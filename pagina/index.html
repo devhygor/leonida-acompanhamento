@@ -126,6 +126,18 @@
 .lt-sparks{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:12px}
 .lt details summary{cursor:pointer;color:var(--n-mut)}
 
+
+/* Novidades */
+.lt-news{border-left:4px solid var(--n-pink)}
+.lt-news-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.lt-news-lista{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.lt-news-lista li{display:grid;grid-template-columns:auto minmax(0,1fr);gap:2px 12px;align-items:baseline}
+.lt-news-lista .q{color:var(--n-mut);font-size:12px;white-space:nowrap;font-variant-numeric:tabular-nums;min-width:74px}
+.lt-news-lista .tx{font-size:15px;line-height:1.45}
+.lt-news-lista .tx b{color:var(--n-yellow);font-weight:600}
+.lt-news-lista li.rec .tx::before{content:"★ ";color:var(--n-yellow)}
+.lt-news-lista li.tela .tx::before{content:"▣ ";color:var(--n-teal)}
+.lt-news-lista li.fase .tx::before,.lt-news-lista li.peca .tx::before{content:"◆ ";color:var(--n-ok)}
 /* Ritmo */
 .lt-pace{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 @media (max-width:640px){.lt-pace{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -245,9 +257,17 @@
 
   <!-- ABA RESUMO -->
   <div class="lt-pane" id="resumo" role="tabpanel" aria-labelledby="tab-resumo">
-    <p class="lead" data-l="pt">Jogável hoje: <b data-draw="jogavel" data-source="componentes" data-field="estado" data-where="componente=Booting, story mode, anything playable">—</b>. Das <b data-draw="ft" data-source="resumo" data-field="fases_total" data-row="0">—</b> fases do caminho até o jogo rodar, <b data-draw="fc" data-source="resumo" data-field="fases_concluidas" data-row="0">—</b> estão concluídas e <b data-draw="fa" data-source="resumo" data-field="fases_andamento" data-row="0">—</b> em andamento. A execução que foi mais longe ficou <b data-draw="vivo" data-source="resumo" data-field="segundos_vivo" data-row="0">—</b> segundos rodando e criou <b data-draw="psos" data-source="resumo" data-field="psos_graficos" data-row="0">—</b> pipelines gráficos, mas a janela ainda fica branca.</p>
-    <p class="lead" data-l="en">Playable today: <b data-draw="jogavel" data-source="componentes" data-field="estado" data-where="componente=Booting, story mode, anything playable">—</b>. Of the <b data-draw="ft" data-source="resumo" data-field="fases_total" data-row="0">—</b> phases on the way to a running game, <b data-draw="fc" data-source="resumo" data-field="fases_concluidas" data-row="0">—</b> are done and <b data-draw="fa" data-source="resumo" data-field="fases_andamento" data-row="0">—</b> are in progress. The run that got furthest stayed up for <b data-draw="vivo" data-source="resumo" data-field="segundos_vivo" data-row="0">—</b> seconds and created <b data-draw="psos" data-source="resumo" data-field="psos_graficos" data-row="0">—</b> graphics pipelines, but the window is still white.</p>
-    <p class="lead" data-l="es">Jugable hoy: <b data-draw="jogavel" data-source="componentes" data-field="estado" data-where="componente=Booting, story mode, anything playable">—</b>. De las <b data-draw="ft" data-source="resumo" data-field="fases_total" data-row="0">—</b> fases del camino hasta que el juego funcione, <b data-draw="fc" data-source="resumo" data-field="fases_concluidas" data-row="0">—</b> están completadas y <b data-draw="fa" data-source="resumo" data-field="fases_andamento" data-row="0">—</b> en curso. La ejecución que llegó más lejos duró <b data-draw="vivo" data-source="resumo" data-field="segundos_vivo" data-row="0">—</b> segundos y creó <b data-draw="psos" data-source="resumo" data-field="psos_graficos" data-row="0">—</b> pipelines gráficos, pero la ventana sigue en blanco.</p>
+    <p class="lead" data-l="pt">Jogável hoje: <b data-draw="jogavel" data-source="componentes" data-field="estado" data-where="componente=Booting, story mode, anything playable">—</b>. Das <b data-draw="ft" data-source="resumo" data-field="fases_total" data-row="0">—</b> fases do caminho até o jogo rodar, <b data-draw="fc" data-source="resumo" data-field="fases_concluidas" data-row="0">—</b> estão concluídas e <b data-draw="fa" data-source="resumo" data-field="fases_andamento" data-row="0">—</b> em andamento. A execução que foi mais longe ficou <b data-draw="vivo" data-source="resumo" data-field="segundos_vivo" data-row="0">—</b> segundos rodando e fez <b data-draw="cham" data-source="resumo" data-field="max_chamadas_d3d12" data-row="0">—</b> chamadas D3D12: <span data-draw="tela" data-source="longe" data-field="tela" data-row="0">—</span>.</p>
+    <p class="lead" data-l="en">Playable today: <b data-draw="jogavel" data-source="componentes" data-field="estado" data-where="componente=Booting, story mode, anything playable">—</b>. Of the <b data-draw="ft" data-source="resumo" data-field="fases_total" data-row="0">—</b> phases on the way to a running game, <b data-draw="fc" data-source="resumo" data-field="fases_concluidas" data-row="0">—</b> are done and <b data-draw="fa" data-source="resumo" data-field="fases_andamento" data-row="0">—</b> are in progress. The run that got furthest stayed up for <b data-draw="vivo" data-source="resumo" data-field="segundos_vivo" data-row="0">—</b> seconds and made <b data-draw="cham" data-source="resumo" data-field="max_chamadas_d3d12" data-row="0">—</b> D3D12 calls: <span data-draw="tela" data-source="longe" data-field="tela" data-row="0">—</span>.</p>
+    <p class="lead" data-l="es">Jugable hoy: <b data-draw="jogavel" data-source="componentes" data-field="estado" data-where="componente=Booting, story mode, anything playable">—</b>. De las <b data-draw="ft" data-source="resumo" data-field="fases_total" data-row="0">—</b> fases del camino hasta que el juego funcione, <b data-draw="fc" data-source="resumo" data-field="fases_concluidas" data-row="0">—</b> están completadas y <b data-draw="fa" data-source="resumo" data-field="fases_andamento" data-row="0">—</b> en curso. La ejecución que llegó más lejos duró <b data-draw="vivo" data-source="resumo" data-field="segundos_vivo" data-row="0">—</b> segundos e hizo <b data-draw="cham" data-source="resumo" data-field="max_chamadas_d3d12" data-row="0">—</b> llamadas D3D12: <span data-draw="tela" data-source="longe" data-field="tela" data-row="0">—</span>.</p>
+
+    <section id="novidades" class="card lt-news">
+      <div class="lt-news-top">
+        <h3><span data-l="pt">Últimas novidades</span><span data-l="en">Latest news</span><span data-l="es">Últimas novedades</span></h3>
+        <span class="muted"><span data-l="pt">detectadas sozinhas no roadmap (issue <a class="lk" href="https://github.com/ItsNotRexed/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a>) e no README</span><span data-l="en">detected automatically in the roadmap (issue <a class="lk" href="https://github.com/ItsNotRexed/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a>) and the README</span><span data-l="es">detectadas automáticamente en la hoja de ruta (issue <a class="lk" href="https://github.com/ItsNotRexed/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a>) y el README</span></span>
+      </div>
+      <ol class="lt-news-lista" data-draw="novidades" data-source="novidades"></ol>
+    </section>
 
     <section id="quao-perto" class="card">
       <div class="lt-gauge-row">
@@ -999,7 +1019,7 @@ window.ltDraw('r-cards', (el) => {
   const r = d.data[0], T = window.ltT();
   window.ltRitmoDesde = r.desde;
   const cards = [['metodos_main', window.LT_REPO + '/issues/313'], ['marcos_ok', window.LT_REPO + '/blob/main/docs/d3d12_vulkan.md'], ['pecas_ok', window.LT_REPO + '#project-status'],
-    ['fases_ok', window.LT_REPO + '/issues/7154'], ['chamadas', window.LT_REPO + '/issues/7154'], ['degraus', window.LT_REPO + '/issues/7154']];
+    ['fases_ok', window.LT_REPO + '/issues/7154'], ['recorde_chamadas', window.LT_REPO + '/issues/7154'], ['recorde_segundos', window.LT_REPO + '/issues/7154']];
   el.replaceChildren(...cards.map(([k, url]) => {
     const c = window.ltA(url, null, 'card');
     c.appendChild(window.ltEl('span', 'v', r[k] == null ? '—' : window.ltFmt(r[k])));
@@ -1050,7 +1070,7 @@ window.ltDraw('r-minis', (el) => {
   if (d.status !== 'ok' || !d.data.length) { el.textContent = '—'; return; }
   const T = window.ltT();
   const series = [['metodos_main', 'metodos_total', 'var(--n-teal)'], ['marcos_ok', 'marcos_total', 'var(--n-yellow)'], ['pecas_ok', 'pecas_total', 'var(--n-ok)'],
-    ['chamadas', null, 'var(--n-orange)'], ['fases_ok', null, 'var(--n-purple)'], ['commits_acum', null, 'var(--n-pink)']];
+    ['recorde_chamadas', null, 'var(--n-orange)'], ['recorde_segundos', null, 'var(--n-purple)'], ['commits_acum', null, 'var(--n-pink)']];
   el.replaceChildren(...series.map(([k]) => {
     const box = window.ltEl('div', 'card lt-mini');
     box.appendChild(window.ltEl('h3', null, T.rs[k]));
@@ -1066,9 +1086,10 @@ window.ltDraw('r-minis', (el) => {
     const tip = window.ltTip(wrap);
     const x = d3.scaleUtc().domain(d3.extent(pts, (p) => p.t)).range([m.l, W - m.r]);
     const ymax = d3.max(pts, (p) => Math.max(p.v, p.tot || 0)) || 1;
-    const y = d3.scaleLinear().domain([0, ymax]).nice(3).range([H - m.b, m.t]);
+    const logY = k === 'recorde_chamadas';
+    const y = logY ? d3.scaleLog().domain([Math.max(1, d3.min(pts, (p) => p.v)), ymax]).nice().range([H - m.b, m.t]) : d3.scaleLinear().domain([0, ymax]).nice(3).range([H - m.b, m.t]);
     const svg = d3.select(wrap).insert('svg', ':first-child').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', T.rs[k]);
-    y.ticks(3).forEach((t) => {
+    (logY ? y.ticks().filter((t) => Math.abs(Math.log10(t) % 1) < 1e-9) : y.ticks(3)).forEach((t) => {
       svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(t)).attr('y2', y(t)).style('stroke', 'var(--cds-chart-grid)');
       svg.append('text').attr('x', m.l - 6).attr('y', y(t) + 4).attr('text-anchor', 'end').text(window.ltFmt(t));
     });
@@ -1092,5 +1113,89 @@ window.ltDraw('r-minis', (el) => {
       })
       .on('pointerleave', () => tip.hide());
   });
+});
+</script>
+
+<script>
+dash.calc('novidades', {inputs: ['leonida'], title: 'Novidades', description: 'Eventos tirados das versões do roadmap e do README.', fn: (leonida) => (leonida && leonida.novidades) || []});
+window.ltNum('cham', 'resumo', 'max_chamadas_d3d12');
+
+Object.assign(window.LT_I18N.pt, {
+  tela: {imagem: 'o jogo já mostra imagem na tela', preta: 'a janela do jogo já abre, mas a imagem ainda sai preta', branca: 'a janela do jogo abre, mas fica branca', janela: 'a janela do jogo já abre', nenhuma: 'a janela do jogo ainda não abre'},
+  telaC: {imagem: 'com imagem', preta: 'janela preta', branca: 'janela branca', janela: 'janela aberta', nenhuma: 'sem janela'},
+  nv: {
+    rec_seg: (e, f) => ['Novo recorde: o jogo ficou ', f(e.para), ' segundos rodando (antes: ', f(e.de), ' s)'],
+    rec_cham: (e, f) => ['Novo recorde: ', f(e.para), ' chamadas D3D12 numa execução (antes: ', f(e.de), ')'],
+    tela: (e, f, T) => ['Tela do jogo: ', T.telaC[e.de] || e.de, ' → ', T.telaC[e.para] || e.para, ''],
+    fase: (e, f, T) => ['Fase ' + e.n + ' (' + (T.fase[e.n] || '') + '): ', T.estado[e.de] || e.de, ' → ', T.estado[e.para] || e.para, ''],
+    peca: (e, f, T) => [(T.comp[e.componente] || e.componente) + ': ', T.estado[e.de] || e.de, ' → ', T.estado[e.para] || e.para, ''],
+    peca_nova: (e, f, T) => ['Nova peça no status do README: ', T.comp[e.componente] || e.componente, ' (', T.estado[e.para] || e.para, ')']
+  },
+  semNov: 'Nenhuma novidade registrada ainda.'
+});
+Object.assign(window.LT_I18N.en, {
+  tela: {imagem: 'the game already shows a picture on screen', preta: 'the game window opens, but the picture is still black', branca: 'the game window opens but stays white', janela: 'the game window already opens', nenhuma: 'the game window does not open yet'},
+  telaC: {imagem: 'picture', preta: 'black window', branca: 'white window', janela: 'window open', nenhuma: 'no window'},
+  nv: {
+    rec_seg: (e, f) => ['New record: the game ran for ', f(e.para), ' seconds (before: ', f(e.de), ' s)'],
+    rec_cham: (e, f) => ['New record: ', f(e.para), ' D3D12 calls in one run (before: ', f(e.de), ')'],
+    tela: (e, f, T) => ['Game screen: ', T.telaC[e.de] || e.de, ' → ', T.telaC[e.para] || e.para, ''],
+    fase: (e, f, T) => ['Phase ' + e.n + ' (' + (T.fase[e.n] || '') + '): ', T.estado[e.de] || e.de, ' → ', T.estado[e.para] || e.para, ''],
+    peca: (e, f, T) => [(T.comp[e.componente] || e.componente) + ': ', T.estado[e.de] || e.de, ' → ', T.estado[e.para] || e.para, ''],
+    peca_nova: (e, f, T) => ['New part in the README status: ', T.comp[e.componente] || e.componente, ' (', T.estado[e.para] || e.para, ')']
+  },
+  semNov: 'No news recorded yet.'
+});
+Object.assign(window.LT_I18N.es, {
+  tela: {imagem: 'el juego ya muestra imagen en pantalla', preta: 'la ventana del juego ya se abre, pero la imagen sigue en negro', branca: 'la ventana del juego se abre pero queda en blanco', janela: 'la ventana del juego ya se abre', nenhuma: 'la ventana del juego aún no se abre'},
+  telaC: {imagem: 'con imagen', preta: 'ventana negra', branca: 'ventana blanca', janela: 'ventana abierta', nenhuma: 'sin ventana'},
+  nv: {
+    rec_seg: (e, f) => ['Nuevo récord: el juego estuvo ', f(e.para), ' segundos en ejecución (antes: ', f(e.de), ' s)'],
+    rec_cham: (e, f) => ['Nuevo récord: ', f(e.para), ' llamadas D3D12 en una ejecución (antes: ', f(e.de), ')'],
+    tela: (e, f, T) => ['Pantalla del juego: ', T.telaC[e.de] || e.de, ' → ', T.telaC[e.para] || e.para, ''],
+    fase: (e, f, T) => ['Fase ' + e.n + ' (' + (T.fase[e.n] || '') + '): ', T.estado[e.de] || e.de, ' → ', T.estado[e.para] || e.para, ''],
+    peca: (e, f, T) => [(T.comp[e.componente] || e.componente) + ': ', T.estado[e.de] || e.de, ' → ', T.estado[e.para] || e.para, ''],
+    peca_nova: (e, f, T) => ['Nueva pieza en el estado del README: ', T.comp[e.componente] || e.componente, ' (', T.estado[e.para] || e.para, ')']
+  },
+  semNov: 'Aún no hay novedades registradas.'
+});
+Object.assign(window.LT_I18N.pt.rs, {recorde_chamadas: 'Recorde de chamadas D3D12 numa execução', recorde_segundos: 'Recorde de segundos rodando'});
+Object.assign(window.LT_I18N.en.rs, {recorde_chamadas: 'Most D3D12 calls in one run', recorde_segundos: 'Longest run (seconds)'});
+Object.assign(window.LT_I18N.es.rs, {recorde_chamadas: 'Récord de llamadas D3D12 en una ejecución', recorde_segundos: 'Récord de segundos en ejecución'});
+
+window.ltDraw('tela', (el) => {
+  const d = dash.data('longe');
+  const v = d.status === 'ok' && d.data[0] ? d.data[0].tela : null;
+  el.textContent = v ? (window.ltT().tela[v] || v) : '—';
+});
+
+window.ltQuando = (iso) => {
+  const T = window.ltT(), dif = (new Date(iso) - Date.now()) / 1000;
+  try {
+    const rtf = new Intl.RelativeTimeFormat(T.loc, {numeric: 'auto'});
+    const a = Math.abs(dif);
+    if (a < 3600) return rtf.format(Math.round(dif / 60), 'minute');
+    if (a < 86400) return rtf.format(Math.round(dif / 3600), 'hour');
+    return rtf.format(Math.round(dif / 86400), 'day');
+  } catch (e) { return window.ltData(iso); }
+};
+
+window.ltDraw('novidades', (el) => {
+  const d = dash.data('novidades');
+  const T = window.ltT();
+  if (d.status !== 'ok') { el.replaceChildren(); return; }
+  if (!d.data.length) { el.replaceChildren(window.ltEl('li', 'muted', T.semNov)); return; }
+  const f = (v) => window.ltFmt(v);
+  el.replaceChildren(...d.data.slice(0, 8).map((e) => {
+    const li = window.ltEl('li', e.tipo.startsWith('rec') ? 'rec' : e.tipo === 'tela' ? 'tela' : e.tipo.startsWith('peca') ? 'peca' : 'fase');
+    const q = window.ltEl('span', 'q', window.ltQuando(e.em)); q.title = window.ltData(e.em);
+    const tx = window.ltEl('span', 'tx');
+    const partes = (T.nv[e.tipo] || (() => [e.tipo]))(e, f, T);
+    partes.forEach((p, i) => tx.appendChild(i % 2 ? window.ltEl('b', null, p) : document.createTextNode(p)));
+    const url = e.tipo.startsWith('peca') ? window.LT_REPO + '#project-status' : window.LT_REPO + '/issues/7154';
+    const a = window.ltA(url, null, 'lk'); a.appendChild(tx);
+    li.appendChild(q); li.appendChild(a);
+    return li;
+  }));
 });
 </script>

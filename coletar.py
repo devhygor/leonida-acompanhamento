@@ -189,23 +189,41 @@ def parse_boot(body):
     return fases, escada, pedidos, fronteira_em
 
 
+def recordes(body):
+    """O texto é editado à mão; pega o maior valor citado em qualquer forma conhecida."""
+    vivos = [int(x) for x in re.findall(r"(?:alive|about|in|runs|for) (\d+) s\b", body)]
+    psos = [num(x) for x in re.findall(r"([\d,]+) graphics PSOs", body)]
+    chamadas = [x for x in (num(x) for x in re.findall(r"([\d,.]+k?) (?:D3D12 )?calls", body)) if x]
+    return {
+        "segundos_vivo": max(vivos) if vivos else None,
+        "psos_graficos": max(p for p in psos if p) if any(psos) else None,
+        "max_chamadas_d3d12": max(chamadas) if chamadas else None,
+    }
+
+
+def tela(fases):
+    """Em que pé está a tela do jogo, lido do texto da fase 5 (primeiro frame)."""
+    f5 = next((f for f in fases if f["n"] == 5), None)
+    if not f5:
+        return None
+    t = f5["situacao"].lower()
+    if f5["estado"] == "concluída" or re.search(r"\b(main menu|title screen|logo|intro|cutscene|loading screen|splash|first picture|renders? the (?:menu|logo|scene))\b", t):
+        return "imagem"
+    if "black" in t:
+        return "preta"
+    if "white" in t:
+        return "branca"
+    if "window" in t:
+        return "janela"
+    return "nenhuma"
+
+
 def roadmap_boot():
     issue = gh(f"repos/{REPO}/issues/7154")
     body = issue["body"]
     fases, escada, pedidos, fronteira_em = parse_boot(body)
-    # Ponto mais longe já medido
-    f5 =next((f for f in fases if f["n"] == 5), None)
-    # O texto é editado à mão; pega o maior valor citado em qualquer forma conhecida.
-    vivos = [int(x) for x in re.findall(r"(?:alive|about|in|runs|for) (\d+) s\b", body)]
-    psos = [num(x) for x in re.findall(r"([\d,]+) graphics PSOs", body)]
-    chamadas = [num(x) for x in re.findall(r"([\d,.]+k?) (?:D3D12 )?calls", body)]
-    chamadas = [x for x in chamadas if x]
-    longe = {
-        "segundos_vivo": max(vivos) if vivos else None,
-        "psos_graficos": max(p for p in psos if p) if any(psos) else None,
-        "max_chamadas_d3d12": max(chamadas) if chamadas else None,
-        "resumo": corta(f5["situacao"], 400) if f5 else None,
-    }
+    f5 = next((f for f in fases if f["n"] == 5), None)
+    longe = dict(recordes(body), resumo=corta(f5["situacao"], 400) if f5 else None, tela=tela(fases))
     return fases, escada, pedidos, longe, fronteira_em, issue["comments"]
 
 
@@ -306,7 +324,7 @@ def _ultimo_por_hora(pares):
     return out
 
 
-def versoes_git(caminho, parser, cache):
+def versoes_git(caminho, parser, cache, versao="v2"):
     pares = []
     for ln in sh(["git", "log", "main", "--format=%H %ct", "--", caminho], cwd=CACHE).splitlines():
         hsh, ct = ln.split()
@@ -314,17 +332,18 @@ def versoes_git(caminho, parser, cache):
     por_hora = _ultimo_por_hora(pares)
     vals = {}
     for hora, hsh in por_hora.items():
-        k = f"{caminho}@{hsh}"
+        k = f"{versao}:{caminho}@{hsh}"
         if k not in cache:
             try:
                 cache[k] = parser(sh(["git", "show", f"{hsh}:{caminho}"], cwd=CACHE))
             except (RuntimeError, ValueError):
                 cache[k] = {}
+            cache[k]["_t"] = _h(dict((b, a) for a, b in pares)[hsh])
         vals[hora] = cache[k]
     return vals
 
 
-def versoes_issue(numero, parser, cache, max_paginas=6):
+def versoes_issue(numero, parser, cache, max_paginas=6, versao="v2"):
     q = ('query($c:String){repository(owner:"ItsNotRexed",name:"Leonida"){issue(number:%d){'
          'userContentEdits(first:100, after:$c){pageInfo{hasNextPage endCursor} nodes{editedAt diff}}}}}' % numero)
     cursor, pares = None, []
@@ -333,7 +352,7 @@ def versoes_issue(numero, parser, cache, max_paginas=6):
         res = json.loads(sh(args))["data"]["repository"]["issue"]["userContentEdits"]
         novos = 0
         for n in res["nodes"]:
-            k = f"#{numero}@{n['editedAt']}"
+            k = f"{versao}:#{numero}@{n['editedAt']}"
             if k not in cache:
                 novos += 1
                 try:
@@ -346,7 +365,7 @@ def versoes_issue(numero, parser, cache, max_paginas=6):
         cursor = res["pageInfo"]["endCursor"]
     # edições já vistas em coletas anteriores e fora das páginas lidas agora
     for k in cache:
-        if k.startswith(f"#{numero}@"):
+        if k.startswith(f"{versao}:#{numero}@"):
             pares.append((dt.datetime.fromisoformat(k.split("@", 1)[1].replace("Z", "+00:00")), k))
     return {hora: cache[k] for hora, k in _ultimo_por_hora(list(set(pares))).items()}
 
@@ -354,7 +373,10 @@ def versoes_issue(numero, parser, cache, max_paginas=6):
 def _p_readme(txt):
     # versões com a tabela duplicada (sobra de conflito de merge): conta cada peça uma vez
     c = list({r["componente"]: r for r in componentes_readme(txt)}.values())
-    return {"pecas_ok": sum(r["estado"] in ("funciona", "medido") for r in c), "pecas_total": len(c)} if c else {}
+    if not c:
+        return {}
+    return {"pecas_ok": sum(r["estado"] in ("funciona", "medido") for r in c), "pecas_total": len(c),
+            "estados": {r["componente"]: r["estado"] for r in c}}
 
 
 def _p_doc(txt):
@@ -370,8 +392,12 @@ def _p_313(txt):
 def _p_7154(txt):
     fases, escada, _, _ = parse_boot(txt)
     out = {}
+    rec = recordes(txt)
+    out["recorde_segundos"], out["recorde_chamadas"] = rec["segundos_vivo"], rec["max_chamadas_d3d12"]
     if fases:
         out["fases_ok"] = sum(f["estado"] == "concluída" for f in fases if f["n"] <= 6)
+        out["estados"] = {str(f["n"]): f["estado"] for f in fases}
+        out["tela"] = tela(fases)
     if escada:
         out["degraus"] = len(escada)
         out["chamadas"] = max((e["chamadas_d3d12"] or 0) for e in escada)
@@ -409,7 +435,7 @@ def linha_do_tempo(agora, criado, cache):
     ]
     cts = sorted(int(x) for x in sh(["git", "log", "main", "--format=%ct"], cwd=CACHE).split())
     prs = prs_por_hora(agora, cache)
-    linha, atual, i, acum = [], {}, 0, 0
+    linha, atual, i, acum, rec_max = [], {}, 0, 0, {}
     h = criado.replace(minute=0, second=0, microsecond=0)
     while h <= agora:
         k = _h(h)
@@ -419,10 +445,51 @@ def linha_do_tempo(agora, criado, cache):
         fim = (h + dt.timedelta(hours=1)).timestamp()
         while i < len(cts) and cts[i] < fim:
             acum += 1; i += 1
+        for c in ("recorde_segundos", "recorde_chamadas"):
+            v = atual.get(c)
+            if v is not None and (rec_max.get(c) is None or v > rec_max[c]):
+                rec_max[c] = v
         linha.append({"hora": k, "commits_acum": acum, "prs_merg": prs.get(k), **{c: atual.get(c) for c in (
-            "pecas_ok", "pecas_total", "marcos_ok", "marcos_total", "metodos_main", "metodos_total", "fases_ok", "degraus", "chamadas")}})
+            "pecas_ok", "pecas_total", "marcos_ok", "marcos_total", "metodos_main", "metodos_total", "fases_ok", "degraus", "chamadas")},
+            "recorde_segundos": rec_max.get("recorde_segundos"), "recorde_chamadas": rec_max.get("recorde_chamadas")})
         h += dt.timedelta(hours=1)
     return linha
+
+
+def novidades(cache, limite=40):
+    """Eventos tirados das versões do roadmap (#7154) e do README: recordes, fases, tela e peças."""
+    ev = []
+    boot = sorted((k.split("@", 1)[1], v) for k, v in cache.items() if k.startswith("v2:#7154@") and v)
+    ant = None
+    for em, v in boot:
+        if ant:
+            for c, tipo in (("recorde_segundos", "rec_seg"), ("recorde_chamadas", "rec_cham")):
+                a, b = ant.get(c), v.get(c)
+                if a and b and b > a * 1.05:
+                    ev.append({"em": em, "tipo": tipo, "de": a, "para": b})
+            if ant.get("tela") and v.get("tela") and ant["tela"] != v["tela"]:
+                ev.append({"em": em, "tipo": "tela", "de": ant["tela"], "para": v["tela"]})
+            for n, est in (v.get("estados") or {}).items():
+                velho = (ant.get("estados") or {}).get(n)
+                if velho and velho != est:
+                    ev.append({"em": em, "tipo": "fase", "n": int(n), "de": velho, "para": est})
+        # guarda o maior recorde já visto, para não registrar de novo um número que só sumiu do texto e voltou
+        ant = dict(v, recorde_segundos=max(filter(None, [v.get("recorde_segundos"), (ant or {}).get("recorde_segundos")]), default=None),
+                   recorde_chamadas=max(filter(None, [v.get("recorde_chamadas"), (ant or {}).get("recorde_chamadas")]), default=None))
+    readme = sorted((v.get("_t", ""), v) for k, v in cache.items() if k.startswith("v2:README.md@") and v.get("estados"))
+    ant, vistas = None, set()
+    for em, v in readme:
+        if ant:
+            for comp, est in v["estados"].items():
+                velho = ant["estados"].get(comp)
+                if velho and velho != est:
+                    ev.append({"em": em, "tipo": "peca", "componente": comp, "de": velho, "para": est})
+                elif velho is None and comp not in vistas:
+                    ev.append({"em": em, "tipo": "peca_nova", "componente": comp, "para": est})
+        vistas.update(v["estados"])
+        ant = v
+    ev.sort(key=lambda e: e["em"], reverse=True)
+    return ev[:limite]
 
 
 def ritmo(linha):
@@ -430,7 +497,7 @@ def ritmo(linha):
     agora = linha[-1]
     atras = linha[-25] if len(linha) >= 25 else linha[0]
     out = {"desde": atras["hora"]}
-    for c in ("commits_acum", "pecas_ok", "marcos_ok", "metodos_main", "fases_ok", "degraus", "chamadas"):
+    for c in ("commits_acum", "pecas_ok", "marcos_ok", "metodos_main", "fases_ok", "degraus", "chamadas", "recorde_segundos", "recorde_chamadas"):
         serie = [r for r in linha if r[c] is not None]
         if not serie:
             out[c], out[c + "_antes"], out[c + "_desde"] = None, None, None
@@ -470,6 +537,7 @@ def main():
             cache = velho.get("_cache") or {}
         except (ValueError, KeyError, IndexError):
             anteriores, longe_ant, cache = {}, {}, {}
+    cache = {k: v for k, v in cache.items() if k == "prs_hora" or k.startswith("v2:")}
     linha = linha_do_tempo(agora, criado, cache)
     rit = ritmo(linha)
     # Recordes: se o texto da issue deixou de citar um número, mantém o maior já visto.
@@ -540,6 +608,7 @@ def main():
         "longe": [longe],
         "linha": linha,
         "ritmo": [rit],
+        "novidades": novidades(cache),
         "_cache": cache,
     }
     OUT.write_text(json.dumps(dados, ensure_ascii=False, separators=(",", ":")), "utf-8")
