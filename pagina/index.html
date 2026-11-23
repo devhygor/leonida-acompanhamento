@@ -60,6 +60,7 @@
 .lt-segs i.ok{background:var(--n-ok);box-shadow:0 0 10px rgba(57,230,160,.5)}
 .lt-segs i.warn{background:var(--n-warn);box-shadow:0 0 10px rgba(255,178,56,.45)}
 .lt-segs i.bad{background:var(--n-bad)}
+.lt-segs i.seg{box-shadow:none}
 .lt-legend{display:flex;flex-wrap:wrap;gap:4px 14px}
 .lt-legend > span::before{content:"";display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;vertical-align:-1px;background:var(--lt-c)}
 
@@ -300,9 +301,9 @@
           <div class="lt-big"><span data-draw="pct" data-source="progresso" data-field="pct" data-row="0">—</span>%</div>
         </div>
         <div style="display:flex;flex-direction:column;gap:10px">
-          <p class="muted" data-l="pt">do caminho até o jogo rodar, numa estimativa simples deste painel: cada fase concluída do roadmap de boot vale 1 e cada fase em andamento vale ½.</p>
-          <p class="muted" data-l="en">of the way to a running game, as this dashboard's simple estimate: each finished boot-roadmap phase counts 1 and each phase in progress counts ½.</p>
-          <p class="muted" data-l="es">del camino hasta que el juego funcione, como estimación simple de este panel: cada fase completada cuenta 1 y cada fase en curso cuenta ½.</p>
+          <p class="muted" data-l="pt">do caminho até o jogo rodar. É uma estimativa deste painel, recalculada sozinha a cada atualização: cada uma das 6 fases do roadmap ganha uma nota de 0 a 1 (concluída = 1, não iniciada = 0, em andamento entre 0,3 e 0,8 conforme o que o roadmap diz, por exemplo "mostly done" = 0,8) e a fase da imagem segue o estado da tela (janela 0,25, preta 0,45, primeira imagem 0,65, imagem de verdade 0,9). Passe o mouse na barra para ver a nota de cada fase.</p>
+          <p class="muted" data-l="en">of the way to a running game. It is this dashboard's own estimate, recomputed on every update: each of the 6 roadmap phases gets a score from 0 to 1 (done = 1, not started = 0, in progress between 0.3 and 0.8 depending on what the roadmap says, e.g. "mostly done" = 0.8), and the image phase follows the screen state (window 0.25, black 0.45, first image 0.65, real picture 0.9). Hover the bar to see each phase's score.</p>
+          <p class="muted" data-l="es">del camino hasta que el juego funcione. Es una estimación de este panel, recalculada en cada actualización: cada una de las 6 fases recibe una nota de 0 a 1 (completada = 1, sin empezar = 0, en curso entre 0,3 y 0,8 según lo que dice la hoja de ruta, p. ej. "mostly done" = 0,8) y la fase de la imagen sigue el estado de la pantalla (ventana 0,25, negra 0,45, primera imagen 0,65, imagen real 0,9). Pasa el ratón por la barra para ver la nota de cada fase.</p>
           <div class="lt-segs" data-draw="segs" data-source="fases"></div>
           <div class="lt-legend muted">
             <span style="--lt-c:var(--n-ok)"><span data-l="pt">concluída</span><span data-l="en">done</span><span data-l="es">completada</span></span>
@@ -535,12 +536,13 @@ dash.calc('longe', {inputs: ['leonida'], title: 'Lista "longe" de leonida.json',
 dash.calc('progresso', {
   inputs: ['fases'],
   title: 'Quão perto do objetivo',
-  description: 'Fases 1 a 6 do roadmap de boot: concluída vale 1, em andamento vale meio. A fase 7 (juntar na main) é processo e fica de fora.',
+  description: 'Média das notas (0 a 1) das fases 1 a 6 do roadmap de boot. A fase 7 (juntar na main) é processo e fica de fora.',
   fn: (fases) => {
     const jogo = fases.filter((f) => f.n <= 6);
+    const nota = (f) => (typeof f.pontos === 'number' ? f.pontos : f.estado === 'concluída' ? 1 : f.estado === 'em andamento' ? 0.5 : 0);
     const c = jogo.filter((f) => f.estado === 'concluída').length;
     const a = jogo.filter((f) => f.estado === 'em andamento').length;
-    return [{pct: jogo.length ? Math.round(100 * (c + a / 2) / jogo.length) : 0, concluidas: c, andamento: a, total: jogo.length}];
+    return [{pct: jogo.length ? Math.round(100 * jogo.reduce((t, f) => t + nota(f), 0) / jogo.length) : 0, concluidas: c, andamento: a, total: jogo.length}];
   }
 });
 
@@ -701,7 +703,7 @@ window.ltDraw('quadro', (el) => {
   const cols = {feito: [], andamento: [], falta: []};
   f.data.forEach((x) => {
     const k = x.estado === 'concluída' ? 'feito' : (x.estado === 'em andamento' || x.estado === 'gargalo') ? 'andamento' : 'falta';
-    cols[k].push([T.fase[x.n] || x.fase, T.tipoFase + ' ' + x.n + (x.estado === 'gargalo' ? ' · ' + T.estado.gargalo : ''), window.ltBootUrl()]);
+    cols[k].push([window.ltNomeFase(x), T.tipoFase + ' ' + x.n + (x.estado === 'gargalo' ? ' · ' + T.estado.gargalo : ''), window.ltBootUrl()]);
   });
   c.data.forEach((x) => {
     const k = (x.estado === 'funciona' || x.estado === 'medido') ? 'feito' : x.estado === 'parcial' ? 'andamento' : 'falta';
@@ -757,7 +759,14 @@ window.ltDraw('segs', (el) => {
   if (d.status !== 'ok') { el.replaceChildren(); return; }
   const cor = {'concluída': 'ok', 'em andamento': 'warn', 'gargalo': 'bad'};
   const T = window.ltT();
-  el.replaceChildren(...d.data.filter((f) => f.n <= 6).map((f) => { const i = window.ltEl('i', cor[f.estado] || ''); i.title = f.n + '. ' + (T.fase[f.n] || f.fase) + ': ' + (T.estado[f.estado] || f.estado); return i; }));
+  el.replaceChildren(...d.data.filter((f) => f.n <= 6).map((f) => {
+    const i = window.ltEl('i', 'seg');
+    const pts = typeof f.pontos === 'number' ? f.pontos : (f.estado === 'concluída' ? 1 : f.estado === 'em andamento' ? 0.5 : 0);
+    const c = f.estado === 'concluída' ? 'var(--n-ok)' : 'var(--n-warn)';
+    i.style.background = 'linear-gradient(90deg,' + c + ' ' + Math.round(pts * 100) + '%, var(--cds-chart-grid) ' + Math.round(pts * 100) + '%)';
+    i.title = f.n + '. ' + window.ltNomeFase(f) + ': ' + (T.estado[f.estado] || f.estado) + ' · ' + T.nota + window.ltFmt(Math.round(pts * 100)) + '%';
+    return i;
+  }));
 });
 
 window.ltDraw('fases', (el) => {
@@ -768,10 +777,12 @@ window.ltDraw('fases', (el) => {
     const row = window.ltEl('div', 'lt-fase');
     row.appendChild(window.ltEl('span', 'n' + (f.estado === 'concluída' ? ' ok' : ''), f.estado === 'concluída' ? '✓' : String(f.n)));
     const nome = window.ltEl('div');
-    nome.appendChild(window.ltEl('div', 'nome', f.n + '. ' + (T.fase[f.n] || f.fase)));
+    nome.appendChild(window.ltEl('div', 'nome', f.n + '. ' + window.ltNomeFase(f)));
     if (window.ltLang !== 'en') nome.appendChild(window.ltEl('div', 'muted', f.fase_original));
     row.appendChild(nome);
-    row.appendChild(window.ltPill(f.estado));
+    const pill = window.ltPill(f.estado);
+    if (typeof f.pontos === 'number' && f.n <= 6) pill.textContent += ' · ' + Math.round(f.pontos * 100) + '%';
+    row.appendChild(pill);
     const det = window.ltEl('div', 'det');
     const sit = f.situacao && !/^(done|in progress|not started)$/i.test(f.situacao) ? f.situacao : null;
     const linha = (rot, txt) => { const p = window.ltEl('p'); p.appendChild(window.ltEl('b', null, rot)); window.ltLinkify(p, txt); det.appendChild(p); };
@@ -1052,7 +1063,7 @@ window.ltDraw('r-cards', (el) => {
   const r = d.data[0], T = window.ltT();
   window.ltRitmoDesde = r.desde;
   const cards = [['metodos_main', window.LT_REPO + '/issues/313'], ['marcos_ok', window.LT_REPO + '/blob/main/docs/d3d12_vulkan.md'], ['pecas_ok', window.LT_REPO + '#project-status'],
-    ['fases_ok', window.ltBootUrl()], ['recorde_chamadas', window.ltBootUrl()], ['recorde_segundos', window.ltBootUrl()]];
+    ['progresso', window.ltBootUrl()], ['recorde_chamadas', window.ltBootUrl()], ['recorde_segundos', window.ltBootUrl()]];
   el.replaceChildren(...cards.map(([k, url]) => {
     const c = window.ltA(url, null, 'card');
     c.appendChild(window.ltEl('span', 'v', r[k] == null ? '—' : window.ltFmt(r[k])));
@@ -1102,8 +1113,8 @@ window.ltDraw('r-minis', (el) => {
   const d = dash.data('linha');
   if (d.status !== 'ok' || !d.data.length) { el.textContent = '—'; return; }
   const T = window.ltT();
-  const series = [['metodos_main', 'metodos_total', 'var(--n-teal)'], ['marcos_ok', 'marcos_total', 'var(--n-yellow)'], ['pecas_ok', 'pecas_total', 'var(--n-ok)'],
-    ['recorde_chamadas', null, 'var(--n-orange)'], ['recorde_segundos', null, 'var(--n-purple)'], ['commits_acum', null, 'var(--n-pink)']];
+  const series = [['progresso', null, 'var(--n-pink)'], ['metodos_main', 'metodos_total', 'var(--n-teal)'], ['marcos_ok', 'marcos_total', 'var(--n-yellow)'], ['pecas_ok', 'pecas_total', 'var(--n-ok)'],
+    ['recorde_chamadas', null, 'var(--n-orange)'], ['recorde_segundos', null, 'var(--n-purple)']];
   el.replaceChildren(...series.map(([k]) => {
     const box = window.ltEl('div', 'card lt-mini');
     box.appendChild(window.ltEl('h3', null, T.rs[k]));
@@ -1293,4 +1304,14 @@ window.ltDraw('frente', (el) => {
     return li;
   }));
 });
+</script>
+
+<script>
+window.ltNomeFase = (f) => (f && f.nome_proprio ? f.fase_original : ((window.ltT().fase || {})[f.n] || f.fase || f.fase_original));
+Object.assign(window.LT_I18N.pt, {nota: 'nota '});
+Object.assign(window.LT_I18N.en, {nota: 'score '});
+Object.assign(window.LT_I18N.es, {nota: 'nota '});
+Object.assign(window.LT_I18N.pt.rs, {progresso: 'Quão perto (%)'});
+Object.assign(window.LT_I18N.en.rs, {progresso: 'How close (%)'});
+Object.assign(window.LT_I18N.es.rs, {progresso: 'Qué tan cerca (%)'});
 </script>

@@ -264,6 +264,34 @@ def resolve_issue(numero, limite=10):
     return iss, cadeia
 
 
+TELA_PONTOS = {"nenhuma": 0.1, "janela": 0.25, "branca": 0.3, "preta": 0.45, "primeira": 0.65, "imagem": 0.9}
+CHAVE_FASE = {1: ("process", "start"), 2: ("device", "queue"), 3: ("shader", "pipeline"), 4: ("audio",),
+              5: ("first frame", "first image", "frame", "image"), 6: ("game running", "running", "input"), 7: ("main", "merge")}
+
+
+def pontuar(fases, tela_atual):
+    """Nota de 0 a 1 por fase, a partir do estado e das palavras do roadmap. Guarda em f["pontos"] e f["criterio"]."""
+    for f in fases:
+        t = f["situacao"].lower()
+        if f["estado"] == "concluída":
+            pts, crit = 1.0, "concluída"
+        elif f["estado"] == "não iniciada":
+            pts, crit = 0.0, "não iniciada"
+        elif f["n"] == 5 and tela_atual in TELA_PONTOS:
+            pts, crit = TELA_PONTOS[tela_atual], "tela:" + tela_atual
+        elif re.search(r"\b(mostly|nearly|almost) (done|there|complete)", t):
+            pts, crit = 0.8, "quase pronta"
+        elif re.search(r"\b(partly|partially|early|just started|started)\b", t):
+            pts, crit = 0.3, "começando"
+        else:
+            pts, crit = 0.5, "em andamento"
+        f["pontos"], f["criterio"] = pts, crit
+        orig = f["fase_original"].lower()
+        f["nome_proprio"] = not any(k in orig for k in CHAVE_FASE.get(f["n"], ()))
+    jogo = [f for f in fases if f["n"] <= 6]
+    return round(100 * sum(f["pontos"] for f in jogo) / len(jogo)) if jogo else None
+
+
 def roadmap_boot(cache):
     issue, cadeia = resolve_issue(BOOT_INICIAL)
     conhecidas = sorted(set(cache.get("v2:cadeia_boot", [])) | set(cadeia))
@@ -275,7 +303,8 @@ def roadmap_boot(cache):
     frente, proxima = parse_frente(body)
     f5 = next((f for f in fases if f["n"] == 5), None)
     longe = dict(recordes(body), resumo=corta(f5["situacao"], 400) if f5 else None, tela=tela(fases))
-    return dict(fases=fases, escada=escada, pedidos=pedidos, longe=longe, fronteira_em=fronteira_em,
+    pct = pontuar(fases, longe["tela"])
+    return dict(progresso=pct, fases=fases, escada=escada, pedidos=pedidos, longe=longe, fronteira_em=fronteira_em,
                 comentarios=issue["comments"], numero=issue["number"], cadeia=conhecidas, frente=frente,
                 proxima=proxima, fechadas={n: None for n in conhecidas if n != issue["number"]})
 
@@ -400,7 +429,7 @@ def versoes_git(caminho, parser, cache, versao="v2"):
     return vals
 
 
-def versoes_issue(numero, parser, cache, max_paginas=6, versao="v2"):
+def versoes_issue(numero, parser, cache, max_paginas=6, versao="v3"):
     q = ('query($c:String){repository(owner:"ItsNotRexed",name:"Leonida"){issue(number:%d){'
          'userContentEdits(first:100, after:$c){pageInfo{hasNextPage endCursor} nodes{editedAt diff}}}}}' % numero)
     cursor, pares = None, []
@@ -455,6 +484,7 @@ def _p_7154(txt):
         out["fases_ok"] = sum(f["estado"] == "concluída" for f in fases if f["n"] <= 6)
         out["estados"] = {str(f["n"]): f["estado"] for f in fases}
         out["tela"] = tela(fases)
+        out["progresso"] = pontuar(fases, out["tela"])
     if escada:
         out["degraus"] = len(escada)
         out["chamadas"] = max((e["chamadas_d3d12"] or 0) for e in escada)
@@ -507,7 +537,7 @@ def linha_do_tempo(agora, criado, cache):
             if v is not None and (rec_max.get(c) is None or v > rec_max[c]):
                 rec_max[c] = v
         linha.append({"hora": k, "commits_acum": acum, "prs_merg": prs.get(k), **{c: atual.get(c) for c in (
-            "pecas_ok", "pecas_total", "marcos_ok", "marcos_total", "metodos_main", "metodos_total", "fases_ok", "degraus", "chamadas")},
+            "pecas_ok", "pecas_total", "marcos_ok", "marcos_total", "metodos_main", "metodos_total", "fases_ok", "degraus", "chamadas", "progresso")},
             "recorde_segundos": rec_max.get("recorde_segundos"), "recorde_chamadas": rec_max.get("recorde_chamadas")})
         h += dt.timedelta(hours=1)
     return linha
@@ -516,7 +546,7 @@ def linha_do_tempo(agora, criado, cache):
 def novidades(cache, limite=40):
     """Eventos tirados das versões do roadmap (#7154) e do README: recordes, fases, tela e peças."""
     ev = []
-    pref = tuple(f"v2:#{n}@" for n in cache.get("v2:cadeia_boot", [BOOT_INICIAL]))
+    pref = tuple(f"v3:#{n}@" for n in cache.get("v2:cadeia_boot", [BOOT_INICIAL]))
     boot = sorted((k.split("@", 1)[1], v) for k, v in cache.items() if k.startswith(pref) and v)
     ant = None
     for em, v in boot:
@@ -626,7 +656,7 @@ def ritmo(linha):
     agora = linha[-1]
     atras = linha[-25] if len(linha) >= 25 else linha[0]
     out = {"desde": atras["hora"]}
-    for c in ("commits_acum", "pecas_ok", "marcos_ok", "metodos_main", "fases_ok", "degraus", "chamadas", "recorde_segundos", "recorde_chamadas"):
+    for c in ("commits_acum", "pecas_ok", "marcos_ok", "metodos_main", "fases_ok", "degraus", "chamadas", "recorde_segundos", "recorde_chamadas", "progresso"):
         serie = [r for r in linha if r[c] is not None]
         if not serie:
             out[c], out[c + "_antes"], out[c + "_desde"] = None, None, None
@@ -664,7 +694,7 @@ def main():
             cache = velho.get("_cache") or {}
         except (ValueError, KeyError, IndexError):
             anteriores, longe_ant, cache, velho = {}, {}, {}, {}
-    cache = {k: v for k, v in cache.items() if k == "prs_hora" or k.startswith("v2:")}
+    cache = {k: v for k, v in cache.items() if k == "prs_hora" or (k.startswith("v2:") and not k.startswith("v2:#")) or k.startswith("v3:")}
     boot = roadmap_boot(cache)
     fases, escada, pedidos, longe = boot["fases"], boot["escada"], boot["pedidos"], boot["longe"]
     fronteira_em, coment_7154 = boot["fronteira_em"], boot["comentarios"]
@@ -709,6 +739,7 @@ def main():
         "roadmap_atualizado": fronteira_em,
         "comentarios_boot": coment_7154,
         "issue_boot": boot["numero"],
+        "progresso_pct": boot["progresso"],
         "issues_boot": boot["cadeia"],
         "issue_metodos": cache.get("v2:issue_313", METODOS_INICIAL),
         "proxima_parada": boot["proxima"],
