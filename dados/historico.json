@@ -37,5 +37,18 @@
   "fases_andamento": 2,
   "metodos_d3d12_main": 185,
   "max_chamadas_d3d12": 3169054
+ },
+ {
+  "gerado_em": "2026-11-23T21:30:54Z",
+  "estrelas": 31668,
+  "forks": 2879,
+  "commits": 10958,
+  "autores": 549,
+  "prs_mergeados": 3680,
+  "issues_abertas": 170,
+  "fases_concluidas": 3,
+  "fases_andamento": 2,
+  "metodos_d3d12_main": 185,
+  "max_chamadas_d3d12": 3169054
  }
 ]

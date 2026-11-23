@@ -138,6 +138,18 @@
 .lt-news-lista li.rec .tx::before{content:"★ ";color:var(--n-yellow)}
 .lt-news-lista li.tela .tx::before{content:"▣ ";color:var(--n-teal)}
 .lt-news-lista li.fase .tx::before,.lt-news-lista li.peca .tx::before{content:"◆ ";color:var(--n-ok)}
+
+/* Comentários da issue */
+.lt-talk{border-left:4px solid var(--n-teal)}
+.lt-talk-lista{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.lt-talk-lista li{display:grid;grid-template-columns:auto minmax(0,1fr);gap:3px 12px}
+.lt-talk-lista .q{color:var(--n-mut);font-size:12px;white-space:nowrap;min-width:74px;padding-top:2px}
+.lt-talk-lista .cab{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;font-size:12.5px;color:var(--n-mut)}
+.lt-talk-lista .cab b{color:var(--n-fg);font-weight:600}
+.lt-talk-lista .tx{grid-column:2;font-size:14px;line-height:1.5;overflow-wrap:anywhere}
+.lt-tag{display:inline-block;padding:0 8px;border-radius:999px;font-size:11px;letter-spacing:.03em;text-transform:uppercase;border:1px solid currentColor}
+.lt-tag.stop{color:var(--n-orange)}.lt-tag.decided{color:var(--n-ok)}.lt-tag.finding{color:var(--n-teal)}
+.lt-tag.implemented{color:var(--n-ok)}.lt-tag.propose{color:var(--n-purple)}.lt-tag.destaque{color:var(--n-yellow)}
 /* Ritmo */
 .lt-pace{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 @media (max-width:640px){.lt-pace{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -267,6 +279,17 @@
         <span class="muted"><span data-l="pt">detectadas sozinhas no roadmap (issue <a class="lk" href="https://github.com/ItsNotRexed/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a>) e no README</span><span data-l="en">detected automatically in the roadmap (issue <a class="lk" href="https://github.com/ItsNotRexed/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a>) and the README</span><span data-l="es">detectadas automáticamente en la hoja de ruta (issue <a class="lk" href="https://github.com/ItsNotRexed/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a>) y el README</span></span>
       </div>
       <ol class="lt-news-lista" data-draw="novidades" data-source="novidades"></ol>
+    </section>
+
+    <section id="conversa" class="card lt-talk">
+      <div class="lt-news-top">
+        <h3><span data-l="pt">Na conversa da issue #7154</span><span data-l="en">In the issue #7154 discussion</span><span data-l="es">En la conversación de la issue #7154</span></h3>
+        <a class="lk muted" href="https://github.com/ItsNotRexed/Leonida/issues/7154" target="_blank" rel="noopener"><span data-l="pt">ver tudo no GitHub</span><span data-l="en">see everything on GitHub</span><span data-l="es">ver todo en GitHub</span></a>
+      </div>
+      <p class="muted" data-l="pt">Os comentários que importam, filtrados sozinhos: onde o boot trava agora (stop), descobertas, decisões e relatos sobre a tela do jogo. A rotina (testes, quem pegou cada tarefa) fica de fora. O texto vem em inglês, como foi escrito.</p>
+      <p class="muted" data-l="en">The comments that matter, filtered automatically: where the boot stops now (stop), findings, decisions and reports about the game screen. Routine posts (test runs, who took which task) are left out.</p>
+      <p class="muted" data-l="es">Los comentarios que importan, filtrados automáticamente: dónde se detiene el arranque ahora (stop), hallazgos, decisiones y relatos sobre la pantalla del juego. La rutina (pruebas, quién tomó cada tarea) queda fuera. El texto está en inglés, como se escribió.</p>
+      <ol class="lt-talk-lista" data-draw="comentarios" data-source="comentarios"></ol>
     </section>
 
     <section id="quao-perto" class="card">
@@ -1195,6 +1218,32 @@ window.ltDraw('novidades', (el) => {
     const url = e.tipo.startsWith('peca') ? window.LT_REPO + '#project-status' : window.LT_REPO + '/issues/7154';
     const a = window.ltA(url, null, 'lk'); a.appendChild(tx);
     li.appendChild(q); li.appendChild(a);
+    return li;
+  }));
+});
+</script>
+
+<script>
+dash.calc('comentarios', {inputs: ['leonida'], title: 'Comentários', description: 'Comentários relevantes da issue #7154.', fn: (leonida) => (leonida && leonida.comentarios) || []});
+Object.assign(window.LT_I18N.pt, {tagC: {stop: 'parada', decided: 'decidido', finding: 'descoberta', implemented: 'implementado', propose: 'proposta', destaque: 'destaque'}, semCom: 'Nenhum comentário relevante nas últimas horas.'});
+Object.assign(window.LT_I18N.en, {tagC: {stop: 'stop', decided: 'decided', finding: 'finding', implemented: 'implemented', propose: 'proposal', destaque: 'highlight'}, semCom: 'No relevant comments in the last hours.'});
+Object.assign(window.LT_I18N.es, {tagC: {stop: 'parada', decided: 'decidido', finding: 'hallazgo', implemented: 'implementado', propose: 'propuesta', destaque: 'destacado'}, semCom: 'Ningún comentario relevante en las últimas horas.'});
+
+window.ltDraw('comentarios', (el) => {
+  const d = dash.data('comentarios');
+  const T = window.ltT();
+  if (d.status !== 'ok') { el.replaceChildren(); return; }
+  if (!d.data.length) { el.replaceChildren(window.ltEl('li', 'muted', T.semCom)); return; }
+  el.replaceChildren(...d.data.slice(0, 10).map((c) => {
+    const li = document.createElement('li');
+    const q = window.ltEl('span', 'q', window.ltQuando(c.em)); q.title = window.ltData(c.em);
+    const cab = window.ltEl('span', 'cab');
+    cab.appendChild(window.ltEl('span', 'lt-tag ' + c.tipo, T.tagC[c.tipo] || c.tipo));
+    cab.appendChild(window.ltA('https://github.com/' + encodeURIComponent(c.autor), c.autor, 'lk'));
+    li.appendChild(q); li.appendChild(cab);
+    const tx = window.ltA(c.url, null, 'lk tx');
+    window.ltLinkify(tx, c.texto);
+    li.appendChild(tx);
     return li;
   }));
 });

@@ -492,6 +492,59 @@ def novidades(cache, limite=40):
     return ev[:limite]
 
 
+TIPOS_COMENT = ("stop", "decided", "finding", "implemented", "propose")
+TELA_RE = re.compile(r"PresentX|first frame|black (?:frame|screen|window)|white window|window (?:opens|turns|is visible)|"
+                     r"title screen|main menu|\blogo\b|\bintro\b|loading screen|cutscene|frame loop|real picture|on screen", re.I)
+
+
+def resumo_comentario(body):
+    """(tipo, texto) de um comentário da #7154, ou None se for rotina (checked:, taking:, ...)."""
+    linhas = [ln.strip().lstrip("#> ").strip() for ln in body.splitlines() if ln.strip()]
+    if not linhas:
+        return None
+    primeira = linhas[0]
+    m = re.match(r"\*\*(.+?)\*\*\s*$", primeira)
+    if m:
+        return "destaque", corta(limpa(m.group(1)), 260)
+    m = re.match(r"([a-z]+)\s*:\s*(.*)", primeira, re.I)
+    tipo = m.group(1).lower() if m else None
+    if tipo in TIPOS_COMENT:
+        resto = re.split(r"\s\|\s*(?:base|with|on|os|gpu|because|probe|measured)\s*:", m.group(2))[0]
+        texto = limpa(resto)
+        res = re.search(r"\|\s*(?:result|next|measured)\s*:\s*([^|\n]+)", body, re.I)
+        if res and len(texto) < 120:
+            texto += " — " + limpa(res.group(1))
+        return tipo, corta(texto, 260)
+    rotina = ("checked", "taking", "releasing", "ask", "tried", "answer", "agree", "disagree", "correction", "withdrawing")
+    if TELA_RE.search(body[:800]) and tipo not in rotina:
+        alvo = next((limpa(ln) for ln in linhas[:6] if TELA_RE.search(ln)), limpa(primeira))
+        alvo = re.split(r"\s\|\s*(?:base|with|on|os|gpu|for)\s*:", alvo)[0].lstrip("-• ").strip()
+        return "destaque", corta(alvo, 260)
+    return None
+
+
+def comentarios_boot(agora, cache, guardar=60):
+    """Comentários relevantes da #7154. Busca só os novos desde a última coleta (parâmetro since)."""
+    itens = cache.setdefault("v2:coments", {})
+    desde = cache.get("v2:coments_ate") or (agora - dt.timedelta(hours=36)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    ultimo = desde
+    for pagina in range(1, 8):
+        lst = gh(f"repos/{REPO}/issues/7154/comments?per_page=100&page={pagina}&since={desde}")
+        for c in lst:
+            ultimo = max(ultimo, c["updated_at"])
+            r = resumo_comentario(c.get("body") or "")
+            if not r or (c.get("user") or {}).get("type") == "Bot":
+                continue
+            itens[str(c["id"])] = {"em": c["created_at"], "autor": c["user"]["login"], "tipo": r[0], "texto": r[1],
+                                   "url": c["html_url"]}
+        if len(lst) < 100:
+            break
+    cache["v2:coments_ate"] = ultimo
+    manter = sorted(itens.items(), key=lambda kv: kv[1]["em"], reverse=True)[:guardar]
+    cache["v2:coments"] = dict(manter)
+    return [v for _, v in manter]
+
+
 def ritmo(linha):
     """Comparação agora x 24 h atrás (ou o primeiro valor conhecido, se a série é mais nova)."""
     agora = linha[-1]
@@ -609,6 +662,7 @@ def main():
         "linha": linha,
         "ritmo": [rit],
         "novidades": novidades(cache),
+        "comentarios": comentarios_boot(agora, cache),
         "_cache": cache,
     }
     OUT.write_text(json.dumps(dados, ensure_ascii=False, separators=(",", ":")), "utf-8")
