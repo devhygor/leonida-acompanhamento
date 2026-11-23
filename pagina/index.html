@@ -162,6 +162,10 @@
 .lt-parte .br i{display:block;height:100%;background:linear-gradient(90deg,var(--n-teal),var(--n-pink))}
 .lt-parte:hover .nm{color:var(--n-teal)}
 /* Ritmo */
+.lt-vid-form{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) auto}
+@media (max-width:560px){.lt-vid-form{grid-template-columns:minmax(0,1fr) auto}.lt-vid-form #lt-vid-url{grid-column:1 / 3}}
+#lt-vid-status{min-height:1.2em;color:var(--n-warn)}
+#lt-vid-status.ok{color:var(--n-ok)}
 .lt-pace.q4{grid-template-columns:repeat(4,minmax(0,1fr))}
 @media (max-width:760px){.lt-pace.q4{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .lt-pace{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
@@ -314,6 +318,17 @@
       <p class="muted" data-l="en">Links only: videos the participants themselves posted in the official boot issues. Each opens on its original site; this dashboard does not host or show game footage.</p>
       <p class="muted" data-l="es">Solo enlaces: videos que los propios participantes publicaron en las issues oficiales del arranque. Cada uno se abre en su sitio de origen; este panel no aloja ni muestra imágenes del juego.</p>
       <ol class="lt-talk-lista" data-draw="videos" data-source="videos"></ol>
+      <h3 style="margin-top:14px"><span data-l="pt">Sugeridos pela comunidade</span><span data-l="en">Suggested by the community</span><span data-l="es">Sugeridos por la comunidad</span></h3>
+      <p class="muted" data-l="pt">Viu um vídeo do jogo iniciando no X, no YouTube ou em outro lugar? Cole o link aqui. Ele aparece depois de aprovado pelo dono do site, que confere se é real.</p>
+      <p class="muted" data-l="en">Saw a video of the game booting on X, YouTube or elsewhere? Paste the link here. It shows up after the site owner approves it and checks it is real.</p>
+      <p class="muted" data-l="es">¿Viste un video del juego arrancando en X, YouTube u otro sitio? Pega el enlace aquí. Aparece después de que el dueño del sitio lo apruebe y compruebe que es real.</p>
+      <ol class="lt-talk-lista" id="lt-vid-lista" aria-live="polite"></ol>
+      <form class="lt-chat-form lt-vid-form" id="lt-vid-form" autocomplete="off">
+        <input id="lt-vid-url" maxlength="300" inputmode="url" aria-label="Link do vídeo / Video link">
+        <input id="lt-vid-com" maxlength="200" aria-label="Comentário / Comment">
+        <button type="submit" id="lt-vid-enviar">Sugerir</button>
+      </form>
+      <p class="muted" id="lt-vid-status" aria-live="polite"></p>
     </section>
 
     <section id="quao-perto" class="card">

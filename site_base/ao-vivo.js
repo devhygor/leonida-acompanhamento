@@ -42,12 +42,94 @@
     var vazio = $('lt-chat-vazio'); if (vazio) vazio.textContent = t().semMsg;
   }
 
+  var VT = {
+    pt: {url: 'Link do vídeo (X, YouTube, Streamable, Twitch, Vimeo, Medal)', com: 'O que aparece no vídeo? (opcional)', enviar: 'Sugerir',
+      ok: 'Obrigado! O link aparece aqui depois de aprovado.', vazio: 'Cole o link do vídeo.', link: 'Esse link não é de um vídeo aceito (X, YouTube, Streamable, Twitch, Vimeo ou Medal).',
+      link_texto: 'Não coloque links no comentário.', repetido: 'Esse vídeo já foi sugerido.', rapido: 'Espere uns segundos antes de sugerir outro.',
+      limite: 'Você já sugeriu 10 vídeos hoje.', apelido: 'Esse apelido é reservado.', banido: 'Você foi bloqueado.', erro: 'Não deu para enviar. Tente de novo.',
+      nenhum: 'Nenhum vídeo aprovado ainda.', pend: function (n) { return n === 1 ? '1 sugestão aguardando aprovação.' : n + ' sugestões aguardando aprovação.'; },
+      abrir: 'Abrir vídeo no ', por: 'sugerido por '},
+    en: {url: 'Video link (X, YouTube, Streamable, Twitch, Vimeo, Medal)', com: 'What does the video show? (optional)', enviar: 'Suggest',
+      ok: 'Thanks! The link shows up here once approved.', vazio: 'Paste the video link.', link: 'That is not an accepted video link (X, YouTube, Streamable, Twitch, Vimeo or Medal).',
+      link_texto: 'Please do not put links in the comment.', repetido: 'That video was already suggested.', rapido: 'Wait a few seconds before suggesting another one.',
+      limite: 'You already suggested 10 videos today.', apelido: 'That nickname is reserved.', banido: 'You have been blocked.', erro: 'Could not send. Try again.',
+      nenhum: 'No approved videos yet.', pend: function (n) { return n === 1 ? '1 suggestion waiting for approval.' : n + ' suggestions waiting for approval.'; },
+      abrir: 'Open video on ', por: 'suggested by '},
+    es: {url: 'Enlace del video (X, YouTube, Streamable, Twitch, Vimeo, Medal)', com: '¿Qué muestra el video? (opcional)', enviar: 'Sugerir',
+      ok: '¡Gracias! El enlace aparece aquí cuando se apruebe.', vazio: 'Pega el enlace del video.', link: 'Ese enlace no es de un video aceptado (X, YouTube, Streamable, Twitch, Vimeo o Medal).',
+      link_texto: 'No pongas enlaces en el comentario.', repetido: 'Ese video ya fue sugerido.', rapido: 'Espera unos segundos antes de sugerir otro.',
+      limite: 'Ya sugeriste 10 videos hoy.', apelido: 'Ese apodo está reservado.', banido: 'Fuiste bloqueado.', erro: 'No se pudo enviar. Inténtalo de nuevo.',
+      nenhum: 'Aún no hay videos aprobados.', pend: function (n) { return n === 1 ? '1 sugerencia esperando aprobación.' : n + ' sugerencias esperando aprobación.'; },
+      abrir: 'Abrir video en ', por: 'sugerido por '}
+  };
+  var vt = function () { return VT[window.ltLang] || VT.pt; };
+
+  function hostDe(u) {
+    var m = /^https:\/\/(?:www\.|m\.|mobile\.|clips\.)?([^\/]+)/i.exec(u || ''); var h = m ? m[1].toLowerCase() : '';
+    return {'x.com': 'X', 'twitter.com': 'X', 'youtube.com': 'YouTube', 'youtu.be': 'YouTube', 'streamable.com': 'Streamable',
+      'twitch.tv': 'Twitch', 'vimeo.com': 'Vimeo', 'medal.tv': 'Medal'}[h] || h;
+  }
+
+  function videosComunidade(sb) {
+    var lista = $('lt-vid-lista'), form = $('lt-vid-form'), url = $('lt-vid-url'), com = $('lt-vid-com'), btn = $('lt-vid-enviar'), st = $('lt-vid-status');
+    if (!lista || !form) return;
+    var ultimo = null;
+    function textosV() { url.placeholder = vt().url; com.placeholder = vt().com; btn.textContent = vt().enviar; desenha(); }
+    function desenha() {
+      if (!ultimo) return;
+      var aprov = ultimo.filter(function (v) { return v.url; });
+      var pend = ultimo.length ? (ultimo[0].pendentes || 0) : 0;
+      var itens = aprov.map(function (v) {
+        var li = document.createElement('li');
+        var q = document.createElement('span'); q.className = 'q';
+        q.textContent = window.ltQuando ? window.ltQuando(v.criado_em) : new Date(v.criado_em).toLocaleDateString();
+        var cab = document.createElement('span'); cab.className = 'cab';
+        var tag = document.createElement('span'); tag.className = 'lt-tag destaque'; tag.textContent = hostDe(v.url); cab.appendChild(tag);
+        if (v.apelido) { var b = document.createElement('b'); b.textContent = vt().por + v.apelido; cab.appendChild(b); }
+        var tx = document.createElement('span'); tx.className = 'tx';
+        var a = document.createElement('a'); a.className = 'lk'; a.target = '_blank'; a.rel = 'noopener nofollow ugc';
+        if (/^https:\/\//i.test(v.url)) a.href = v.url;
+        a.textContent = vt().abrir + hostDe(v.url) + ' ↗'; tx.appendChild(a);
+        if (v.comentario) tx.appendChild(document.createTextNode(' — ' + v.comentario));
+        li.appendChild(q); li.appendChild(cab); li.appendChild(tx);
+        return li;
+      });
+      if (!itens.length) { var vz = document.createElement('li'); vz.className = 'muted'; vz.textContent = vt().nenhum; itens.push(vz); }
+      if (pend) { var pp = document.createElement('li'); pp.className = 'muted'; pp.textContent = vt().pend(pend); itens.push(pp); }
+      lista.replaceChildren.apply(lista, itens);
+    }
+    function carrega() {
+      sb.rpc('leonida_videos_aprovados').then(function (r) { if (!r.error) { ultimo = r.data || []; desenha(); } });
+    }
+    textosV();
+    carrega();
+    setInterval(carrega, 120000);
+    var lang = $('lt-lang'); if (lang) lang.addEventListener('change', textosV);
+    form.addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      var u = url.value.trim();
+      st.className = 'muted';
+      if (!u) { st.textContent = vt().vazio; return; }
+      btn.disabled = true; st.textContent = '';
+      var nick = $('lt-chat-nick') ? $('lt-chat-nick').value.trim().slice(0, 24) : '';
+      sb.rpc('leonida_sugerir_video', {url: u, comentario: com.value.trim().slice(0, 200), apelido: nick}).then(function (r) {
+        btn.disabled = false;
+        if (r.error) { st.textContent = vt().erro; return; }
+        if (r.data === 'ok') { url.value = ''; com.value = ''; st.className = 'muted ok'; st.textContent = vt().ok; carrega(); return; }
+        st.textContent = vt()[r.data] || vt().erro;
+      });
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     if (!window.supabase || !window.supabase.createClient) { poeTodos('.lt-online-n', '—'); var st0 = $('lt-chat-status'); if (st0) st0.textContent = t().offline; return; }
     var sb = window.supabase.createClient(SUPA_URL, SUPA_KEY, {auth: {persistSession: false}});
 
     // Visitas
     sb.rpc('leonida_visita').then(function (r) { if (!r.error && r.data != null) poeTodos('.lt-visitas-n', fmt(r.data)); });
+
+    // Vídeos sugeridos pela comunidade (só aparecem depois de aprovados no Supabase)
+    videosComunidade(sb);
 
     // Online agora
     var meuId = ls.get('lt-id'); if (!meuId) { meuId = Math.random().toString(36).slice(2) + Date.now().toString(36); ls.set('lt-id', meuId); }
