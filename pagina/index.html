@@ -1429,9 +1429,9 @@ window.ltDraw('repo-nome', () => {
 
 <script>
 dash.calc('forge', {inputs: ['leonida'], title: 'Forge dos mantenedores', description: 'Dados públicos da API do Forgejo em git.notrexed.dev/enx/leonida.', fn: (leonida) => (leonida && leonida.forge) || []});
-Object.assign(window.LT_I18N.pt, {fg: {noAr: 'no ar', fora: 'fora do ar desde ', commits: 'commits na main da forge', abertos: 'PRs abertos na forge', merg: 'PRs mergeados na forge', imp: 'dos últimos 100 commits são PRs do GitHub importados', upstream: 'PR do GitHub ', estados: {aberto: 'aberto', mergeado: 'mergeado', fechado: 'fechado'}}});
-Object.assign(window.LT_I18N.en, {fg: {noAr: 'online', fora: 'offline since ', commits: 'commits on the forge main', abertos: 'open PRs on the forge', merg: 'merged PRs on the forge', imp: 'of the last 100 commits are imported GitHub PRs', upstream: 'GitHub PR ', estados: {aberto: 'open', mergeado: 'merged', fechado: 'closed'}}});
-Object.assign(window.LT_I18N.es, {fg: {noAr: 'en línea', fora: 'caída desde ', commits: 'commits en la main de la forge', abertos: 'PRs abiertos en la forge', merg: 'PRs fusionados en la forge', imp: 'de los últimos 100 commits son PRs de GitHub importados', upstream: 'PR de GitHub ', estados: {aberto: 'abierto', mergeado: 'fusionado', fechado: 'cerrado'}}});
+Object.assign(window.LT_I18N.pt, {fg: {noAr: 'no ar', fora: 'fora do ar desde ', commits: 'commits na main da forge', abertos: 'PRs abertos na forge', merg: 'PRs encerrados na forge (quase todos mergeados)', imp: 'dos últimos 30 commits são PRs do GitHub importados', upstream: 'PR do GitHub ', estados: {aberto: 'aberto', mergeado: 'mergeado', fechado: 'fechado'}}});
+Object.assign(window.LT_I18N.en, {fg: {noAr: 'online', fora: 'offline since ', commits: 'commits on the forge main', abertos: 'open PRs on the forge', merg: 'closed PRs on the forge (mostly merged)', imp: 'of the last 30 commits are imported GitHub PRs', upstream: 'GitHub PR ', estados: {aberto: 'open', mergeado: 'merged', fechado: 'closed'}}});
+Object.assign(window.LT_I18N.es, {fg: {noAr: 'en línea', fora: 'caída desde ', commits: 'commits en la main de la forge', abertos: 'PRs abiertos en la forge', merg: 'PRs cerrados en la forge (casi todos fusionados)', imp: 'de los últimos 30 commits son PRs de GitHub importados', upstream: 'PR de GitHub ', estados: {aberto: 'abierto', mergeado: 'fusionado', fechado: 'cerrado'}}});
 
 window.ltForge = () => { const d = dash.data('forge'); return d.status === 'ok' && d.data[0] && Object.keys(d.data[0]).length ? d.data[0] : null; };
 
@@ -1446,7 +1446,7 @@ window.ltDraw('forge-cards', (el) => {
   const f = window.ltForge(), T = window.ltT();
   if (!f) { el.textContent = '—'; return; }
   const cards = [[f.commits_main, T.fg.commits, f.url + '/commits/branch/main'], [f.prs_abertos, T.fg.abertos, f.url + '/pulls?state=open'],
-    [f.prs_mergeados, T.fg.merg, f.url + '/pulls?state=closed'], [f.importados_ultimos100, T.fg.imp, f.url + '/commits/branch/main']];
+    [f.prs_fechados, T.fg.merg, f.url + '/pulls?state=closed'], [f.importados_ultimos30, T.fg.imp, f.url + '/commits/branch/main']];
   el.replaceChildren(...cards.map(([v, l, u]) => {
     const c = window.ltA(u, null, 'card');
     c.appendChild(window.ltEl('span', 'v', v == null ? '—' : window.ltFmt(v)));

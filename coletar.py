@@ -736,52 +736,70 @@ FORGE = "https://git.notrexed.dev"
 FORGE_REPO = "enx/leonida"
 
 
-def _forge(caminho, cabecalhos=False):
+def _forge(caminho, cabecalhos=False, timeout=60):
     import urllib.request
     req = urllib.request.Request(f"{FORGE}/api/v1/repos/{FORGE_REPO}{caminho}", headers={"Accept": "application/json",
                                                                                       "User-Agent": "leonida-acompanhamento"})
-    with urllib.request.urlopen(req, timeout=40) as r:
+    with urllib.request.urlopen(req, timeout=timeout) as r:
         corpo = json.loads(r.read().decode("utf-8"))
-        return (corpo, dict(r.headers)) if cabecalhos else corpo
+        return (corpo, dict((k.lower(), v) for k, v in r.headers.items())) if cabecalhos else corpo
 
 
 def coletar_forge(agora, anterior, cache):
-    """Estado da forge dos mantenedores. Se ela estiver fora do ar, mantém o último dado bom e marca quando caiu."""
-    try:
-        info = _forge("")
-        commits, cab = _forge("/commits?sha=main&limit=12&stat=false&verification=false&files=false", cabecalhos=True)
-        total = int(cab.get("X-Total-Count") or cab.get("x-total-count") or 0)
-        prs = _forge("/pulls?state=all&limit=50&sort=recentupdate")
-        recentes = _forge("/commits?sha=main&limit=100&stat=false&verification=false&files=false")
-    except Exception as e:  # forge fora do ar ou lenta
-        velho = dict(anterior or {})
-        velho["no_ar"] = False
-        velho["fora_desde"] = velho.get("fora_desde") or agora.isoformat().replace("+00:00", "Z")
-        velho["erro"] = corta(str(e), 120)
-        print("aviso: forge indisponível:", velho["erro"])
-        return velho
-    for p in prs:  # vídeos postados nos PRs da forge
-        guarda_videos(cache, {"em": p.get("created_at", ""), "autor": (p.get("user") or {}).get("login", ""),
-                              "url": p.get("html_url", ""), "issue": "forge !" + str(p.get("number")), "corpo": p.get("body") or ""})
-    importados = [c for c in recentes if c["commit"]["message"].startswith("Upstream PR #")]
-    return {
-        "no_ar": True,
-        "fora_desde": None,
-        "url": f"{FORGE}/{FORGE_REPO}",
-        "estrelas": info.get("stars_count"),
-        "atualizada": info.get("updated_at"),
-        "commits_main": total,
-        "prs_abertos": sum(p["state"] == "open" for p in prs),
-        "prs_mergeados": sum(bool(p.get("merged")) for p in prs),
-        "importados_ultimos100": len(importados),
-        "ultimos_commits": [{"em": c["created"], "autor": c["commit"]["author"]["name"],
-                             "titulo": corta(c["commit"]["message"].splitlines()[0], 140), "url": c["html_url"],
-                             "upstream": (re.match(r"Upstream PR #(\d+)", c["commit"]["message"]) or [None, None])[1]}
-                            for c in commits[:10]],
-        "ultimos_prs": [{"n": p["number"], "titulo": corta(p["title"], 140), "autor": (p.get("user") or {}).get("login", ""),
-                         "estado": "mergeado" if p.get("merged") else ("aberto" if p["state"] == "open" else "fechado"),
-                         "em": p.get("merged_at") or p.get("updated_at"), "url": p["html_url"]} for p in prs[:10]],
-    }
+    """Estado da forge dos mantenedores (Forgejo atrás do Cloudflare, às vezes muito lenta).
+    Cada parte é pedida separadamente e pequena; a que falhar fica com o último valor conhecido."""
+    f = dict(anterior or {})
+    f["url"] = f"{FORGE}/{FORGE_REPO}"
+    falhas = []
+
+    def tenta(nome, fn):
+        try:
+            fn()
+        except Exception as e:  # lenta ou fora do ar
+            falhas.append(f"{nome}: {corta(str(e), 80)}")
+
+    def info():
+        i = _forge("", timeout=30)
+        f["estrelas"], f["atualizada"] = i.get("stars_count"), i.get("updated_at")
+
+    def commits():
+        lst, cab = _forge("/commits?sha=main&limit=30&stat=false&verification=false&files=false", cabecalhos=True, timeout=90)
+        f["commits_main"] = int(cab.get("x-total-count") or 0) or f.get("commits_main")
+        f["importados_ultimos30"] = sum(c["commit"]["message"].startswith("Upstream PR #") for c in lst)
+        f["ultimos_commits"] = [{"em": c["created"], "autor": c["commit"]["author"]["name"],
+                                 "titulo": corta(c["commit"]["message"].splitlines()[0], 140), "url": c["html_url"],
+                                 "upstream": (re.match(r"Upstream PR #(\d+)", c["commit"]["message"]) or [None, None])[1]}
+                                for c in lst[:10]]
+
+    def contagens():
+        for estado, campo in (("open", "prs_abertos"), ("closed", "prs_fechados")):
+            _, cab = _forge(f"/pulls?state={estado}&limit=1", cabecalhos=True, timeout=60)
+            f[campo] = int(cab.get("x-total-count") or 0)
+
+    def lista_prs():
+        prs = _forge("/pulls?state=all&limit=8&sort=recentupdate", timeout=120)
+        for p in prs:  # vídeos postados nos PRs da forge
+            guarda_videos(cache, {"em": p.get("created_at", ""), "autor": (p.get("user") or {}).get("login", ""),
+                                  "url": p.get("html_url", ""), "issue": "forge !" + str(p.get("number")), "corpo": p.get("body") or ""})
+        f["ultimos_prs"] = [{"n": p["number"], "titulo": corta(p["title"], 140), "autor": (p.get("user") or {}).get("login", ""),
+                             "estado": "mergeado" if p.get("merged") else ("aberto" if p["state"] == "open" else "fechado"),
+                             "em": p.get("merged_at") or p.get("updated_at"), "url": p["html_url"]} for p in prs]
+
+    tenta("info", info)
+    if falhas:  # nem o básico respondeu: está fora do ar
+        f["no_ar"] = False
+        f["fora_desde"] = f.get("fora_desde") or agora.isoformat().replace("+00:00", "Z")
+        f["erro"] = falhas[0]
+        print("aviso: forge indisponível:", falhas[0])
+        return f
+    for nome, fn in (("commits", commits), ("contagens", contagens), ("prs", lista_prs)):
+        tenta(nome, fn)
+    f["no_ar"], f["fora_desde"], f["erro"] = True, None, None
+    f["parcial"] = bool(falhas)
+    f["conferida"] = agora.isoformat().replace("+00:00", "Z")
+    for x in falhas:
+        print("aviso: forge lenta,", x)
+    return f
 
 
 def comentarios_boot(agora, cache, guardar=60):
