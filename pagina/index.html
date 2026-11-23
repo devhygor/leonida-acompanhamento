@@ -25,12 +25,12 @@
 .lt h3{font-family:var(--f-disp);font-weight:400;font-size:22px;letter-spacing:.03em;text-transform:uppercase;margin:0}
 
 /* Herói */
-.lt-hero{position:relative;min-height:300px;display:flex;flex-direction:column;justify-content:flex-end;isolation:isolate}
+.lt-hero{position:relative;min-height:220px;display:flex;flex-direction:column;justify-content:flex-end;isolation:isolate}
 .lt-hero svg.scene{position:absolute;inset:0;width:100%;height:100%;z-index:-1}
-.lt-hero-in{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;padding:28px 24px 22px;background:linear-gradient(180deg,rgba(12,8,32,0) 0%,rgba(12,8,32,.55) 45%,rgba(12,8,32,.92) 100%)}
+.lt-hero-in{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;padding:22px 24px 16px;background:linear-gradient(180deg,rgba(12,8,32,0) 0%,rgba(12,8,32,.55) 45%,rgba(12,8,32,.92) 100%)}
 .lt-hero-in > div{min-width:0;flex:1 1 320px}
 .lt-kicker{font-family:var(--f-disp);letter-spacing:.25em;font-size:14px;color:var(--n-yellow);text-transform:uppercase}
-.lt-title{font-family:var(--f-disp);font-weight:400;font-size:clamp(56px,11vw,112px);line-height:.85;margin:4px 0 8px;letter-spacing:.01em;text-transform:uppercase;
+.lt-title{font-family:var(--f-disp);font-weight:400;font-size:clamp(48px,9vw,92px);line-height:.85;margin:4px 0 8px;letter-spacing:.01em;text-transform:uppercase;
   background:linear-gradient(180deg,var(--n-yellow) 0%,var(--n-orange) 40%,var(--n-pink) 75%,var(--n-purple) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
   filter:drop-shadow(0 3px 0 rgba(0,0,0,.45))}
 .lt-sub{color:#e8defc;max-width:62ch;font-size:var(--cds-font-size-body);line-height:1.5}
@@ -161,6 +161,24 @@
 .lt-parte .br{grid-column:1 / 3;height:8px;border-radius:4px;background:var(--cds-chart-grid);overflow:hidden}
 .lt-parte .br i{display:block;height:100%;background:linear-gradient(90deg,var(--n-teal),var(--n-pink))}
 .lt-parte:hover .nm{color:var(--n-teal)}
+
+/* Painel de status (topo do Resumo) */
+.lt-status-grid{display:grid;grid-template-columns:minmax(0,240px) minmax(0,1fr);gap:22px;align-items:center}
+@media (max-width:760px){.lt-status-grid{grid-template-columns:minmax(0,1fr)}}
+.lt-status-pct{display:flex;flex-direction:column;gap:4px}
+.lt-eyebrow{font-family:var(--f-disp);font-size:18px;letter-spacing:.06em;text-transform:uppercase;color:var(--n-mut)}
+.lt-fatos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (max-width:520px){.lt-fato{padding:8px 10px}.lt-fato b{font-size:14px}}
+.lt-fato{background:var(--n-bg);border:1px solid var(--n-line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:3px;min-width:0}
+.lt-fato-largo{grid-column:1 / -1;border-color:rgba(255,154,60,.55)}
+.lt-fato .k{color:var(--n-mut);font-size:11.5px;text-transform:uppercase;letter-spacing:.07em}
+.lt-fato b{font-size:15.5px;font-weight:600;color:var(--n-fg);overflow-wrap:anywhere}
+.lt-fato .quando,.lt-now .muted{font-size:12px;color:var(--n-mut)}
+.relato{display:block;font-size:13px;color:var(--n-mut);margin-top:4px;overflow-wrap:anywhere}
+.relato b{color:var(--n-orange);font-size:13px}
+.relato.novo{color:var(--n-fg)}
+.lt-fresco{margin-top:10px}
+#escada-hist summary{cursor:pointer;color:var(--n-mut)}
 /* Ritmo */
 .lt-vid-form{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) auto}
 @media (max-width:560px){.lt-vid-form{grid-template-columns:minmax(0,1fr) auto}.lt-vid-form #lt-vid-url{grid-column:1 / 3}}
@@ -279,17 +297,38 @@
   <nav class="lt-tabs" role="tablist" aria-label="Seções">
     <button class="lt-tab" role="tab" id="tab-resumo" data-tab="resumo" aria-selected="true"><span data-l="pt">Resumo</span><span data-l="en">Overview</span><span data-l="es">Resumen</span></button>
     <button class="lt-tab" role="tab" id="tab-boot" data-tab="boot" aria-selected="false"><span data-l="pt">Boot</span><span data-l="en">Boot</span><span data-l="es">Arranque</span></button>
+    <button class="lt-tab" role="tab" id="tab-comunidade" data-tab="comunidade" aria-selected="false"><span data-l="pt">Comunidade</span><span data-l="en">Community</span><span data-l="es">Comunidad</span></button>
     <button class="lt-tab" role="tab" id="tab-pecas" data-tab="pecas" aria-selected="false"><span data-l="pt">Peças</span><span data-l="en">Parts</span><span data-l="es">Piezas</span></button>
-    <button class="lt-tab" role="tab" id="tab-atividade" data-tab="atividade" aria-selected="false"><span data-l="pt">Atividade</span><span data-l="en">Activity</span><span data-l="es">Actividad</span></button>
     <button class="lt-tab" role="tab" id="tab-ritmo" data-tab="ritmo" aria-selected="false"><span data-l="pt">Ritmo</span><span data-l="en">Pace</span><span data-l="es">Ritmo</span></button>
     <button class="lt-tab" role="tab" id="tab-chat" data-tab="chat" aria-selected="false"><span data-l="pt">Chat</span><span data-l="en">Chat</span><span data-l="es">Chat</span><span class="lt-badge lt-online-n" title="online"></span></button>
   </nav>
 
   <!-- ABA RESUMO -->
   <div class="lt-pane" id="resumo" role="tabpanel" aria-labelledby="tab-resumo">
-    <p class="lead" data-l="pt">Jogável hoje: <b data-draw="jogavel" data-source="componentes" data-field="estado" data-where="componente=Booting, story mode, anything playable">—</b>. Das <b data-draw="ft" data-source="resumo" data-field="fases_total" data-row="0">—</b> fases do caminho até o jogo rodar, <b data-draw="fc" data-source="resumo" data-field="fases_concluidas" data-row="0">—</b> estão concluídas e <b data-draw="fa" data-source="resumo" data-field="fases_andamento" data-row="0">—</b> em andamento. A execução que foi mais longe ficou <b data-draw="vivo" data-source="resumo" data-field="segundos_vivo" data-row="0">—</b> segundos rodando e fez <b data-draw="cham" data-source="resumo" data-field="max_chamadas_d3d12" data-row="0">—</b> chamadas D3D12: <span data-draw="tela" data-source="longe" data-field="tela" data-row="0">—</span>.</p>
-    <p class="lead" data-l="en">Playable today: <b data-draw="jogavel" data-source="componentes" data-field="estado" data-where="componente=Booting, story mode, anything playable">—</b>. Of the <b data-draw="ft" data-source="resumo" data-field="fases_total" data-row="0">—</b> phases on the way to a running game, <b data-draw="fc" data-source="resumo" data-field="fases_concluidas" data-row="0">—</b> are done and <b data-draw="fa" data-source="resumo" data-field="fases_andamento" data-row="0">—</b> are in progress. The run that got furthest stayed up for <b data-draw="vivo" data-source="resumo" data-field="segundos_vivo" data-row="0">—</b> seconds and made <b data-draw="cham" data-source="resumo" data-field="max_chamadas_d3d12" data-row="0">—</b> D3D12 calls: <span data-draw="tela" data-source="longe" data-field="tela" data-row="0">—</span>.</p>
-    <p class="lead" data-l="es">Jugable hoy: <b data-draw="jogavel" data-source="componentes" data-field="estado" data-where="componente=Booting, story mode, anything playable">—</b>. De las <b data-draw="ft" data-source="resumo" data-field="fases_total" data-row="0">—</b> fases del camino hasta que el juego funcione, <b data-draw="fc" data-source="resumo" data-field="fases_concluidas" data-row="0">—</b> están completadas y <b data-draw="fa" data-source="resumo" data-field="fases_andamento" data-row="0">—</b> en curso. La ejecución que llegó más lejos duró <b data-draw="vivo" data-source="resumo" data-field="segundos_vivo" data-row="0">—</b> segundos e hizo <b data-draw="cham" data-source="resumo" data-field="max_chamadas_d3d12" data-row="0">—</b> llamadas D3D12: <span data-draw="tela" data-source="longe" data-field="tela" data-row="0">—</span>.</p>
+    <section id="status" class="card lt-status">
+      <div class="lt-status-grid">
+        <div class="lt-status-pct">
+          <span class="lt-eyebrow"><span data-l="pt">Quão perto do jogo rodar</span><span data-l="en">How close to a running game</span><span data-l="es">Qué tan cerca de que el juego funcione</span></span>
+          <div class="lt-big"><span data-draw="pct" data-source="progresso" data-field="pct" data-row="0">—</span>%</div>
+          <a class="lk muted" href="#quao-perto"><span data-l="pt">como esse número é calculado</span><span data-l="en">how this number is computed</span><span data-l="es">cómo se calcula este número</span></a>
+        </div>
+        <div class="lt-fatos">
+          <div class="lt-fato"><span class="k"><span data-l="pt">Jogável hoje</span><span data-l="en">Playable today</span><span data-l="es">Jugable hoy</span></span>
+            <b data-draw="jogavel" data-source="componentes" data-field="estado" data-where="componente=Booting, story mode, anything playable">—</b></div>
+          <div class="lt-fato"><span class="k"><span data-l="pt">Tela do jogo</span><span data-l="en">Game screen</span><span data-l="es">Pantalla del juego</span></span>
+            <b data-draw="tela-curta" data-source="longe">—</b></div>
+          <div class="lt-fato"><span class="k"><span data-l="pt">Recorde rodando</span><span data-l="en">Longest run</span><span data-l="es">Récord en ejecución</span></span>
+            <b><span data-draw="vivo" data-source="resumo" data-field="segundos_vivo" data-row="0">—</span> s · <span data-draw="cham" data-source="resumo" data-field="max_chamadas_d3d12" data-row="0">—</span> <span data-l="pt">chamadas</span><span data-l="en">calls</span><span data-l="es">llamadas</span></b></div>
+          <div class="lt-fato"><span class="k"><span data-l="pt">Fases do boot</span><span data-l="en">Boot phases</span><span data-l="es">Fases del arranque</span></span>
+            <b><span data-draw="fc" data-source="resumo" data-field="fases_concluidas" data-row="0">—</span> <span data-l="pt">de</span><span data-l="en">of</span><span data-l="es">de</span> <span data-draw="ft" data-source="resumo" data-field="fases_total" data-row="0">—</span> <span data-l="pt">concluídas</span><span data-l="en">done</span><span data-l="es">completadas</span></b></div>
+          <div class="lt-fato lt-fato-largo"><span class="k"><span data-l="pt">Onde o jogo trava agora</span><span data-l="en">Where the game stops now</span><span data-l="es">Dónde se detiene el juego ahora</span></span>
+            <b data-draw="parada" data-source="escada" data-field="para_em">—</b>
+            <span class="quando" data-draw="parada-quando" data-source="resumo"></span>
+            <span class="relato" data-draw="ultimo-stop" data-source="comentarios"></span></div>
+        </div>
+      </div>
+      <p class="muted lt-fresco" data-draw="frescor" data-source="resumo">—</p>
+    </section>
 
     <section id="novidades" class="card lt-news">
       <div class="lt-news-top">
@@ -299,43 +338,15 @@
       <ol class="lt-news-lista" data-draw="novidades" data-source="novidades"></ol>
     </section>
 
-    <section id="conversa" class="card lt-talk">
-      <div class="lt-news-top">
-        <h3><span data-l="pt">Na conversa da issue <a class="lk lk-boot" href="https://github.com/ProjectLeonida/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a></span><span data-l="en">In the issue <a class="lk lk-boot" href="https://github.com/ProjectLeonida/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a> discussion</span><span data-l="es">En la conversación de la issue <a class="lk lk-boot" href="https://github.com/ProjectLeonida/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a></span></h3>
-        <a class="lk muted lk-boot-href" href="https://github.com/ProjectLeonida/Leonida/issues/7154" target="_blank" rel="noopener"><span data-l="pt">ver tudo no GitHub</span><span data-l="en">see everything on GitHub</span><span data-l="es">ver todo en GitHub</span></a>
-      </div>
-      <p class="muted" data-l="pt">Os comentários que importam, filtrados sozinhos: onde o boot trava agora (stop), descobertas, decisões e relatos sobre a tela do jogo. A rotina (testes, quem pegou cada tarefa) fica de fora. O texto é traduzido automaticamente do inglês; passe o mouse para ver o original.</p>
-      <p class="muted" data-l="en">The comments that matter, filtered automatically: where the boot stops now (stop), findings, decisions and reports about the game screen. Routine posts (test runs, who took which task) are left out.</p>
-      <p class="muted" data-l="es">Los comentarios que importan, filtrados automáticamente: dónde se detiene el arranque ahora (stop), hallazgos, decisiones y relatos sobre la pantalla del juego. La rutina (pruebas, quién tomó cada tarea) queda fuera. El texto se traduce automáticamente del inglés; pasa el ratón para ver el original.</p>
-      <ol class="lt-talk-lista" data-draw="comentarios" data-source="comentarios"></ol>
-    </section>
-
-    <section id="videos" class="card lt-talk">
-      <div class="lt-news-top">
-        <h3><span data-l="pt">Vídeos citados pelo projeto</span><span data-l="en">Videos cited by the project</span><span data-l="es">Videos citados por el proyecto</span></h3>
-      </div>
-      <p class="muted" data-l="pt">Só links: vídeos que os próprios participantes postaram nas issues oficiais do boot. O vídeo abre no site de origem; este painel não hospeda nem mostra imagens do jogo.</p>
-      <p class="muted" data-l="en">Links only: videos the participants themselves posted in the official boot issues. Each opens on its original site; this dashboard does not host or show game footage.</p>
-      <p class="muted" data-l="es">Solo enlaces: videos que los propios participantes publicaron en las issues oficiales del arranque. Cada uno se abre en su sitio de origen; este panel no aloja ni muestra imágenes del juego.</p>
-      <ol class="lt-talk-lista" data-draw="videos" data-source="videos"></ol>
-      <h3 style="margin-top:14px"><span data-l="pt">Sugeridos pela comunidade</span><span data-l="en">Suggested by the community</span><span data-l="es">Sugeridos por la comunidad</span></h3>
-      <p class="muted" data-l="pt">Viu um vídeo do jogo iniciando no X, no YouTube ou em outro lugar? Cole o link aqui. Ele aparece depois de aprovado pelo dono do site, que confere se é real.</p>
-      <p class="muted" data-l="en">Saw a video of the game booting on X, YouTube or elsewhere? Paste the link here. It shows up after the site owner approves it and checks it is real.</p>
-      <p class="muted" data-l="es">¿Viste un video del juego arrancando en X, YouTube u otro sitio? Pega el enlace aquí. Aparece después de que el dueño del sitio lo apruebe y compruebe que es real.</p>
-      <ol class="lt-talk-lista" id="lt-vid-lista" aria-live="polite"></ol>
-      <form class="lt-chat-form lt-vid-form" id="lt-vid-form" autocomplete="off">
-        <input id="lt-vid-url" maxlength="300" inputmode="url" aria-label="Link do vídeo / Video link">
-        <input id="lt-vid-com" maxlength="200" aria-label="Comentário / Comment">
-        <button type="submit" id="lt-vid-enviar">Sugerir</button>
-      </form>
-      <p class="muted" id="lt-vid-status" aria-live="polite"></p>
+    <section id="quadro">
+      <h2><span data-l="pt">O que já foi feito e o que falta</span><span data-l="en">What's done and what's left</span><span data-l="es">Qué está hecho y qué falta</span></h2>
+      <div class="lt-board" data-draw="quadro" data-source="fases componentes"></div>
     </section>
 
     <section id="quao-perto" class="card">
       <div class="lt-gauge-row">
         <div>
-          <h2><span data-l="pt">Quão perto</span><span data-l="en">How close</span><span data-l="es">Qué tan cerca</span></h2>
-          <div class="lt-big"><span data-draw="pct" data-source="progresso" data-field="pct" data-row="0">—</span>%</div>
+          <h2><span data-l="pt">Como chegamos nessa porcentagem</span><span data-l="en">How the percentage is built</span><span data-l="es">Cómo se calcula el porcentaje</span></h2>
         </div>
         <div style="display:flex;flex-direction:column;gap:12px">
           <p class="muted" data-l="pt">do caminho até o jogo rodar: a média de 4 contagens que o próprio projeto publica, lidas sozinhas a cada atualização. O que o projeto marca como parcial ou em andamento conta metade. Clique numa parte para ver a fonte.</p>
@@ -345,27 +356,49 @@
         </div>
       </div>
     </section>
-
-    <section id="quadro">
-      <h2><span data-l="pt">O que já foi feito e o que falta</span><span data-l="en">What's done and what's left</span><span data-l="es">Qué está hecho y qué falta</span></h2>
-      <div class="lt-board" data-draw="quadro" data-source="fases componentes"></div>
-    </section>
-
-    <section id="agora" class="card lt-now">
-      <h3><span data-l="pt">Onde o jogo trava agora</span><span data-l="en">Where the game stops now</span><span data-l="es">Dónde se detiene el juego ahora</span></h3>
-      <p data-draw="parada" data-source="escada" data-field="para_em">—</p>
-      <p class="muted"><span data-l="pt">Detalhes na aba Boot.</span><span data-l="en">Details in the Boot tab.</span><span data-l="es">Detalles en la pestaña Arranque.</span></p>
-    </section>
   </div>
 
   <!-- ABA BOOT -->
   <div class="lt-pane" id="boot" role="tabpanel" aria-labelledby="tab-boot" hidden>
+    <section id="agora-boot" class="card lt-now">
+      <h3><span data-l="pt">Onde o jogo trava agora</span><span data-l="en">Where the game stops now</span><span data-l="es">Dónde se detiene el juego ahora</span></h3>
+      <p data-draw="parada" data-source="escada" data-field="para_em">—</p>
+      <span class="muted" data-draw="parada-quando" data-source="resumo"></span>
+      <span class="relato" data-draw="ultimo-stop" data-source="comentarios"></span>
+    </section>
+
     <section id="frente">
       <h2><span data-l="pt">Frente de trabalho agora</span><span data-l="en">Current frontier</span><span data-l="es">Frente de trabajo ahora</span></h2>
       <p class="muted" data-l="pt">Os pontos que o coordenador lista como a fronteira do boot, na issue atual (traduzido automaticamente do inglês).</p>
       <p class="muted" data-l="en">The points the coordinator lists as the boot frontier, in the current issue.</p>
       <p class="muted" data-l="es">Los puntos que el coordinador lista como la frontera del arranque, en la issue actual (traducido automáticamente del inglés).</p>
       <ol class="lt-asks" data-draw="frente" data-source="frente"></ol>
+    </section>
+
+    <section id="fases-sec">
+      <h2><span data-l="pt">Roadmap do boot</span><span data-l="en">Boot roadmap</span><span data-l="es">Hoja de ruta del arranque</span></h2>
+      <p class="muted" data-l="pt">As fases que o executável precisa atravessar, como os coordenadores mantêm na issue <a class="lk lk-boot" href="https://github.com/ProjectLeonida/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a>. "Concluída" lá significa medida em pelo menos duas máquinas, não necessariamente já na main. Os trechos das issues são traduzidos automaticamente do inglês; passe o mouse para ver o original.</p>
+      <p class="muted" data-l="en">The phases the executable has to get through, as the coordinators keep them in issue <a class="lk lk-boot" href="https://github.com/ProjectLeonida/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a>. "Done" there means measured on at least two machines, not necessarily merged into main.</p>
+      <p class="muted" data-l="es">Las fases que el ejecutable tiene que atravesar, tal como los coordinadores las mantienen en la issue <a class="lk lk-boot" href="https://github.com/ProjectLeonida/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a>. "Completada" significa medida en al menos dos máquinas, no necesariamente ya en main. Los fragmentos de las issues se traducen automáticamente del inglés; pasa el ratón para ver el original.</p>
+      <div class="card"><div class="lt-fases" data-draw="fases" data-source="fases"></div></div>
+    </section>
+
+    <section id="mais-longe" class="card">
+      <h2><span data-l="pt">A execução que foi mais longe</span><span data-l="en">The run that got furthest</span><span data-l="es">La ejecución que llegó más lejos</span></h2>
+      <div class="lt-kpis">
+        <div class="lt-kpi"><span class="v" data-draw="l-vivo" data-source="longe" data-field="segundos_vivo" data-row="0">—</span><span class="l"><span data-l="pt">segundos rodando</span><span data-l="en">seconds running</span><span data-l="es">segundos en ejecución</span></span></div>
+        <div class="lt-kpi"><span class="v" data-draw="l-psos" data-source="longe" data-field="psos_graficos" data-row="0">—</span><span class="l"><span data-l="pt">pipelines gráficos criados</span><span data-l="en">graphics pipelines created</span><span data-l="es">pipelines gráficos creados</span></span></div>
+        <div class="lt-kpi"><span class="v" data-draw="l-cham" data-source="longe" data-field="max_chamadas_d3d12" data-row="0">—</span><span class="l"><span data-l="pt">maior número de chamadas D3D12 já citado numa execução</span><span data-l="en">most D3D12 calls reported in a single run</span><span data-l="es">mayor número de llamadas D3D12 citado en una ejecución</span></span></div>
+      </div>
+      <p class="muted" data-draw="l-resumo" data-source="longe" data-field="resumo" data-row="0">—</p>
+    </section>
+
+    <section id="pedidos">
+      <h2><span data-l="pt">O que estão pedindo agora</span><span data-l="en">What people are asking for now</span><span data-l="es">Qué se está pidiendo ahora</span></h2>
+      <p class="muted" data-l="pt">Os pedidos abertos na issue <a class="lk lk-boot" href="https://github.com/ProjectLeonida/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a>, onde as pessoas (e muitos agentes de IA) combinam o próximo passo do boot.</p>
+      <p class="muted" data-l="en">The open asks in issue <a class="lk lk-boot" href="https://github.com/ProjectLeonida/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a>, where people (and many AI agents) agree on the next boot step.</p>
+      <p class="muted" data-l="es">Los pedidos abiertos en la issue <a class="lk lk-boot" href="https://github.com/ProjectLeonida/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a>, donde las personas (y muchos agentes de IA) acuerdan el siguiente paso del arranque.</p>
+      <ul class="lt-asks" data-draw="pedidos" data-source="pedidos"></ul>
     </section>
 
     <section id="forge">
@@ -389,38 +422,50 @@
       </div>
     </section>
 
-    <section id="fases-sec">
-      <h2><span data-l="pt">Roadmap do boot</span><span data-l="en">Boot roadmap</span><span data-l="es">Hoja de ruta del arranque</span></h2>
-      <p class="muted" data-l="pt">As fases que o executável precisa atravessar, como os coordenadores mantêm na issue <a class="lk lk-boot" href="https://github.com/ProjectLeonida/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a>. "Concluída" lá significa medida em pelo menos duas máquinas, não necessariamente já na main. Os trechos das issues são traduzidos automaticamente do inglês; passe o mouse para ver o original.</p>
-      <p class="muted" data-l="en">The phases the executable has to get through, as the coordinators keep them in issue <a class="lk lk-boot" href="https://github.com/ProjectLeonida/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a>. "Done" there means measured on at least two machines, not necessarily merged into main.</p>
-      <p class="muted" data-l="es">Las fases que el ejecutable tiene que atravesar, tal como los coordinadores las mantienen en la issue <a class="lk lk-boot" href="https://github.com/ProjectLeonida/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a>. "Completada" significa medida en al menos dos máquinas, no necesariamente ya en main. Los fragmentos de las issues se traducen automáticamente del inglés; pasa el ratón para ver el original.</p>
-      <div class="card"><div class="lt-fases" data-draw="fases" data-source="fases"></div></div>
-    </section>
-
-    <section id="escada-boot">
+    <details id="escada-hist" class="card">
+      <summary><span data-l="pt">Ver o histórico da escada de boot (a tabela parou de ser atualizada no roadmap)</span><span data-l="en">See the boot ladder history (the roadmap stopped updating this table)</span><span data-l="es">Ver el historial de la escalera de arranque (la hoja de ruta dejó de actualizar esta tabla)</span></summary>
+    <section id="escada-boot" style="margin-top:12px">
       <h2><span data-l="pt">A escada de boot</span><span data-l="en">The boot ladder</span><span data-l="es">La escalera de arranque</span></h2>
       <p class="muted" data-l="pt">Cada degrau é um PR somado aos anteriores. A barra mostra quantas chamadas D3D12 o jogo faz antes de parar (escala logarítmica). Passe o mouse para ver o que cada PR destrava e onde o jogo para.</p>
       <p class="muted" data-l="en">Each step is a PR added on top of the previous ones. The bar shows how many D3D12 calls the game makes before it stops (log scale). Hover to see what each PR unlocks and where the game stops.</p>
       <p class="muted" data-l="es">Cada peldaño es un PR sumado a los anteriores. La barra muestra cuántas llamadas D3D12 hace el juego antes de detenerse (escala logarítmica). Pasa el ratón para ver qué desbloquea cada PR y dónde se detiene.</p>
       <div class="card"><div class="lt-chart" data-draw="escada" data-source="escada"></div></div>
     </section>
+    </details>
+  </div>
 
-    <section id="mais-longe" class="card">
-      <h2><span data-l="pt">A execução que foi mais longe</span><span data-l="en">The run that got furthest</span><span data-l="es">La ejecución que llegó más lejos</span></h2>
-      <div class="lt-kpis">
-        <div class="lt-kpi"><span class="v" data-draw="l-vivo" data-source="longe" data-field="segundos_vivo" data-row="0">—</span><span class="l"><span data-l="pt">segundos rodando</span><span data-l="en">seconds running</span><span data-l="es">segundos en ejecución</span></span></div>
-        <div class="lt-kpi"><span class="v" data-draw="l-psos" data-source="longe" data-field="psos_graficos" data-row="0">—</span><span class="l"><span data-l="pt">pipelines gráficos criados</span><span data-l="en">graphics pipelines created</span><span data-l="es">pipelines gráficos creados</span></span></div>
-        <div class="lt-kpi"><span class="v" data-draw="l-cham" data-source="longe" data-field="max_chamadas_d3d12" data-row="0">—</span><span class="l"><span data-l="pt">maior número de chamadas D3D12 já citado numa execução</span><span data-l="en">most D3D12 calls reported in a single run</span><span data-l="es">mayor número de llamadas D3D12 citado en una ejecución</span></span></div>
+  <!-- ABA COMUNIDADE -->
+  <div class="lt-pane" id="comunidade" role="tabpanel" aria-labelledby="tab-comunidade" hidden>
+    <section id="videos" class="card lt-talk">
+      <div class="lt-news-top">
+        <h3><span data-l="pt">Vídeos citados pelo projeto</span><span data-l="en">Videos cited by the project</span><span data-l="es">Videos citados por el proyecto</span></h3>
       </div>
-      <p class="muted" data-draw="l-resumo" data-source="longe" data-field="resumo" data-row="0">—</p>
+      <p class="muted" data-l="pt">Só links: vídeos que os próprios participantes postaram nas issues oficiais do boot. O vídeo abre no site de origem; este painel não hospeda nem mostra imagens do jogo.</p>
+      <p class="muted" data-l="en">Links only: videos the participants themselves posted in the official boot issues. Each opens on its original site; this dashboard does not host or show game footage.</p>
+      <p class="muted" data-l="es">Solo enlaces: videos que los propios participantes publicaron en las issues oficiales del arranque. Cada uno se abre en su sitio de origen; este panel no aloja ni muestra imágenes del juego.</p>
+      <ol class="lt-talk-lista" data-draw="videos" data-source="videos"></ol>
+      <h3 style="margin-top:14px"><span data-l="pt">Sugeridos pela comunidade</span><span data-l="en">Suggested by the community</span><span data-l="es">Sugeridos por la comunidad</span></h3>
+      <p class="muted" data-l="pt">Viu um vídeo do jogo iniciando no X, no YouTube ou em outro lugar? Cole o link aqui. Ele aparece depois de aprovado pelo dono do site, que confere se é real.</p>
+      <p class="muted" data-l="en">Saw a video of the game booting on X, YouTube or elsewhere? Paste the link here. It shows up after the site owner approves it and checks it is real.</p>
+      <p class="muted" data-l="es">¿Viste un video del juego arrancando en X, YouTube u otro sitio? Pega el enlace aquí. Aparece después de que el dueño del sitio lo apruebe y compruebe que es real.</p>
+      <ol class="lt-talk-lista" id="lt-vid-lista" aria-live="polite"></ol>
+      <form class="lt-chat-form lt-vid-form" id="lt-vid-form" autocomplete="off">
+        <input id="lt-vid-url" maxlength="300" inputmode="url" aria-label="Link do vídeo / Video link">
+        <input id="lt-vid-com" maxlength="200" aria-label="Comentário / Comment">
+        <button type="submit" id="lt-vid-enviar">Sugerir</button>
+      </form>
+      <p class="muted" id="lt-vid-status" aria-live="polite"></p>
     </section>
 
-    <section id="pedidos">
-      <h2><span data-l="pt">O que estão pedindo agora</span><span data-l="en">What people are asking for now</span><span data-l="es">Qué se está pidiendo ahora</span></h2>
-      <p class="muted" data-l="pt">Os pedidos abertos na issue <a class="lk lk-boot" href="https://github.com/ProjectLeonida/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a>, onde as pessoas (e muitos agentes de IA) combinam o próximo passo do boot.</p>
-      <p class="muted" data-l="en">The open asks in issue <a class="lk lk-boot" href="https://github.com/ProjectLeonida/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a>, where people (and many AI agents) agree on the next boot step.</p>
-      <p class="muted" data-l="es">Los pedidos abiertos en la issue <a class="lk lk-boot" href="https://github.com/ProjectLeonida/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a>, donde las personas (y muchos agentes de IA) acuerdan el siguiente paso del arranque.</p>
-      <ul class="lt-asks" data-draw="pedidos" data-source="pedidos"></ul>
+    <section id="conversa" class="card lt-talk">
+      <div class="lt-news-top">
+        <h3><span data-l="pt">Na conversa da issue <a class="lk lk-boot" href="https://github.com/ProjectLeonida/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a></span><span data-l="en">In the issue <a class="lk lk-boot" href="https://github.com/ProjectLeonida/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a> discussion</span><span data-l="es">En la conversación de la issue <a class="lk lk-boot" href="https://github.com/ProjectLeonida/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a></span></h3>
+        <a class="lk muted lk-boot-href" href="https://github.com/ProjectLeonida/Leonida/issues/7154" target="_blank" rel="noopener"><span data-l="pt">ver tudo no GitHub</span><span data-l="en">see everything on GitHub</span><span data-l="es">ver todo en GitHub</span></a>
+      </div>
+      <p class="muted" data-l="pt">Os comentários que importam, filtrados sozinhos: onde o boot trava agora (stop), descobertas, decisões e relatos sobre a tela do jogo. A rotina (testes, quem pegou cada tarefa) fica de fora. O texto é traduzido automaticamente do inglês; passe o mouse para ver o original.</p>
+      <p class="muted" data-l="en">The comments that matter, filtered automatically: where the boot stops now (stop), findings, decisions and reports about the game screen. Routine posts (test runs, who took which task) are left out.</p>
+      <p class="muted" data-l="es">Los comentarios que importan, filtrados automáticamente: dónde se detiene el arranque ahora (stop), hallazgos, decisiones y relatos sobre la pantalla del juego. La rutina (pruebas, quién tomó cada tarea) queda fuera. El texto se traduce automáticamente del inglés; pasa el ratón para ver el original.</p>
+      <ol class="lt-talk-lista" data-draw="comentarios" data-source="comentarios"></ol>
     </section>
   </div>
 
@@ -438,6 +483,7 @@
         </table>
       </div>
     </section>
+
     <div class="lt-two">
       <section id="marcos">
         <h2><span data-l="pt">Marcos D3D12 → Vulkan</span><span data-l="en">D3D12 → Vulkan milestones</span><span data-l="es">Hitos D3D12 → Vulkan</span></h2>
@@ -457,65 +503,6 @@
         <div class="lt-rows" data-draw="metodos" data-source="metodos"></div>
       </section>
     </div>
-  </div>
-
-  <!-- ABA ATIVIDADE -->
-  <div class="lt-pane" id="atividade" role="tabpanel" aria-labelledby="tab-atividade" hidden>
-    <section id="numeros">
-      <h2><span data-l="pt">O projeto em números</span><span data-l="en">The project in numbers</span><span data-l="es">El proyecto en números</span></h2>
-      <div class="lt-kpis">
-        <a class="card lt-kpi" href="https://github.com/ProjectLeonida/Leonida/commits/main" target="_blank" rel="noopener"><span class="v" data-draw="k-commits" data-source="resumo" data-field="commits" data-row="0">—</span><span class="l"><span data-l="pt">commits na main</span><span data-l="en">commits on main</span><span data-l="es">commits en main</span></span></a>
-        <a class="card lt-kpi" href="https://github.com/ProjectLeonida/Leonida/pulls?q=is%3Apr+is%3Amerged" target="_blank" rel="noopener"><span class="v" data-draw="k-merg" data-source="resumo" data-field="prs_mergeados" data-row="0">—</span><span class="l"><span data-l="pt">PRs mergeados, de</span><span data-l="en">PRs merged, out of</span><span data-l="es">PRs fusionados, de</span> <span data-draw="k-prtot" data-source="resumo" data-field="prs_total" data-row="0">—</span> <span data-l="pt">enviados</span><span data-l="en">opened</span><span data-l="es">enviados</span></span></a>
-        <a class="card lt-kpi" href="https://github.com/ProjectLeonida/Leonida/pulls" target="_blank" rel="noopener"><span class="v" data-draw="k-abertos" data-source="resumo" data-field="prs_abertos" data-row="0">—</span><span class="l"><span data-l="pt">PRs abertos esperando revisão</span><span data-l="en">open PRs waiting for review</span><span data-l="es">PRs abiertos esperando revisión</span></span></a>
-        <a class="card lt-kpi" href="https://github.com/ProjectLeonida/Leonida/graphs/contributors" target="_blank" rel="noopener"><span class="v" data-draw="k-autores" data-source="resumo" data-field="autores" data-row="0">—</span><span class="l"><span data-l="pt">pessoas com commit</span><span data-l="en">people with commits</span><span data-l="es">personas con commits</span></span></a>
-        <a class="card lt-kpi" href="https://github.com/ProjectLeonida/Leonida/stargazers" target="_blank" rel="noopener"><span class="v" data-draw="k-estrelas" data-source="resumo" data-field="estrelas" data-row="0">—</span><span class="l"><span data-l="pt">estrelas no GitHub</span><span data-l="en">GitHub stars</span><span data-l="es">estrellas en GitHub</span></span></a>
-        <a class="card lt-kpi" href="https://github.com/ProjectLeonida/Leonida" target="_blank" rel="noopener"><span class="v" data-draw="k-dias" data-source="resumo" data-field="dias_de_projeto" data-row="0">—</span><span class="l"><span data-l="pt">dias desde a criação do repositório</span><span data-l="en">days since the repository was created</span><span data-l="es">días desde que se creó el repositorio</span></span></a>
-      </div>
-    </section>
-
-    <section id="ritmo">
-      <h2><span data-l="pt">Commits por hora · últimas 72 h</span><span data-l="en">Commits per hour · last 72 h</span><span data-l="es">Commits por hora · últimas 72 h</span></h2>
-      <div class="card"><div class="lt-chart" data-draw="horas" data-source="horas"></div></div>
-    </section>
-
-    <section id="por-dia">
-      <h2><span data-l="pt">Dia a dia</span><span data-l="en">Day by day</span><span data-l="es">Día a día</span></h2>
-      <div class="lt-scroll card">
-        <table data-source="dias" data-row-key="dia">
-          <thead><tr><th data-field="dia"><span data-l="pt">Dia (UTC)</span><span data-l="en">Day (UTC)</span><span data-l="es">Día (UTC)</span></th><th class="r" data-field="commits">Commits</th><th class="r" data-field="prs_abertos"><span data-l="pt">PRs enviados</span><span data-l="en">PRs opened</span><span data-l="es">PRs enviados</span></th><th class="r" data-field="prs_mergeados"><span data-l="pt">PRs mergeados</span><span data-l="en">PRs merged</span><span data-l="es">PRs fusionados</span></th><th class="r" data-field="issues_abertas"><span data-l="pt">Issues novas</span><span data-l="en">New issues</span><span data-l="es">Issues nuevas</span></th></tr></thead>
-          <tbody data-draw="dias"></tbody>
-        </table>
-      </div>
-    </section>
-
-    <section id="evolucao">
-      <h2><span data-l="pt">Evolução entre atualizações</span><span data-l="en">Change between updates</span><span data-l="es">Evolución entre actualizaciones</span></h2>
-      <p class="muted" data-draw="hist-vazio" data-source="historico">—</p>
-      <div class="lt-sparks" data-draw="hist" data-source="historico"></div>
-    </section>
-
-    <div class="lt-two">
-      <section id="merges">
-        <h2><span data-l="pt">Últimos PRs mergeados</span><span data-l="en">Latest merged PRs</span><span data-l="es">Últimos PRs fusionados</span></h2>
-        <div class="lt-scroll">
-          <table data-source="merges" data-row-key="pr">
-            <thead><tr><th data-field="pr">PR</th><th data-field="titulo"><span data-l="pt">Título</span><span data-l="en">Title</span><span data-l="es">Título</span></th><th data-field="autor"><span data-l="pt">Autor</span><span data-l="en">Author</span><span data-l="es">Autor</span></th></tr></thead>
-            <tbody data-draw="merges"></tbody>
-          </table>
-        </div>
-      </section>
-      <section id="autores">
-        <h2><span data-l="pt">Quem mais fez commits</span><span data-l="en">Top committers</span><span data-l="es">Quién hizo más commits</span></h2>
-        <div class="lt-rows" data-draw="autores" data-source="autores"></div>
-      </section>
-    </div>
-
-    <details id="como-ler">
-      <summary><span data-l="pt">Como estes números são medidos</span><span data-l="en">How these numbers are measured</span><span data-l="es">Cómo se miden estos números</span></summary>
-      <p class="muted" style="margin-top:8px;max-width:70ch" data-l="pt">Um script local (coletar.py) lê a API do GitHub, o histórico de commits da branch main e o texto das issues de coordenação: #7154 (roadmap e escada do boot) e #313 (camada D3D12). Essas issues são escritas à mão pelos coordenadores, então o painel mostra o que eles registraram naquele momento. A porcentagem é a média de 4 contagens que o próprio projeto publica (detalhes no Resumo). Os textos copiados das issues e do README são traduzidos automaticamente com o Argos Translate, de código aberto, que roda de graça no próprio GitHub Actions; a tradução pode ter erros. Visual inspirado em Vice City à noite, sem nenhuma arte ou marca do jogo.</p>
-      <p class="muted" style="margin-top:8px;max-width:70ch" data-l="en">A local script (coletar.py) reads the GitHub API, the commit history of the main branch and the text of the coordination issues: #7154 (boot roadmap and ladder) and #313 (D3D12 layer). The coordinators write those issues by hand, so the dashboard shows what they had recorded at that moment. The percentage is this dashboard's own estimate, not the project's. Look inspired by Vice City at night, with no art or branding from the game.</p>
-      <p class="muted" style="margin-top:8px;max-width:70ch" data-l="es">Un script local (coletar.py) lee la API de GitHub, el historial de commits de la rama main y el texto de las issues de coordinación: #7154 (hoja de ruta y escalera del arranque) y #313 (capa D3D12). Los coordinadores escriben esas issues a mano, así que el panel muestra lo que habían registrado en ese momento. El porcentaje es la media de 4 recuentos que el propio proyecto publica (detalles en el Resumen). Los textos copiados de las issues y del README se traducen automáticamente con Argos Translate, de código abierto, que corre gratis en el propio GitHub Actions; la traducción puede tener errores. Estética inspirada en Vice City de noche, sin arte ni marcas del juego.</p>
-    </details>
   </div>
 
   <!-- ABA RITMO -->
@@ -548,6 +535,51 @@
       <p class="muted" data-l="es">Reconstruida a partir del historial del README, del plan D3D12 y de las ediciones de las issues #313 y #7154. Algunas series empiezan más tarde porque su fuente apareció después.</p>
       <div class="lt-minis" data-draw="r-minis" data-source="linha"></div>
     </section>
+
+    <section id="numeros">
+      <h2><span data-l="pt">O projeto em números</span><span data-l="en">The project in numbers</span><span data-l="es">El proyecto en números</span></h2>
+      <div class="lt-kpis">
+        <a class="card lt-kpi" href="https://github.com/ProjectLeonida/Leonida/commits/main" target="_blank" rel="noopener"><span class="v" data-draw="k-commits" data-source="resumo" data-field="commits" data-row="0">—</span><span class="l"><span data-l="pt">commits na main</span><span data-l="en">commits on main</span><span data-l="es">commits en main</span></span></a>
+        <a class="card lt-kpi" href="https://github.com/ProjectLeonida/Leonida/pulls?q=is%3Apr+is%3Amerged" target="_blank" rel="noopener"><span class="v" data-draw="k-merg" data-source="resumo" data-field="prs_mergeados" data-row="0">—</span><span class="l"><span data-l="pt">PRs mergeados, de</span><span data-l="en">PRs merged, out of</span><span data-l="es">PRs fusionados, de</span> <span data-draw="k-prtot" data-source="resumo" data-field="prs_total" data-row="0">—</span> <span data-l="pt">enviados</span><span data-l="en">opened</span><span data-l="es">enviados</span></span></a>
+        <a class="card lt-kpi" href="https://github.com/ProjectLeonida/Leonida/pulls" target="_blank" rel="noopener"><span class="v" data-draw="k-abertos" data-source="resumo" data-field="prs_abertos" data-row="0">—</span><span class="l"><span data-l="pt">PRs abertos esperando revisão</span><span data-l="en">open PRs waiting for review</span><span data-l="es">PRs abiertos esperando revisión</span></span></a>
+        <a class="card lt-kpi" href="https://github.com/ProjectLeonida/Leonida/graphs/contributors" target="_blank" rel="noopener"><span class="v" data-draw="k-autores" data-source="resumo" data-field="autores" data-row="0">—</span><span class="l"><span data-l="pt">pessoas com commit</span><span data-l="en">people with commits</span><span data-l="es">personas con commits</span></span></a>
+        <a class="card lt-kpi" href="https://github.com/ProjectLeonida/Leonida/stargazers" target="_blank" rel="noopener"><span class="v" data-draw="k-estrelas" data-source="resumo" data-field="estrelas" data-row="0">—</span><span class="l"><span data-l="pt">estrelas no GitHub</span><span data-l="en">GitHub stars</span><span data-l="es">estrellas en GitHub</span></span></a>
+        <a class="card lt-kpi" href="https://github.com/ProjectLeonida/Leonida" target="_blank" rel="noopener"><span class="v" data-draw="k-dias" data-source="resumo" data-field="dias_de_projeto" data-row="0">—</span><span class="l"><span data-l="pt">dias desde a criação do repositório</span><span data-l="en">days since the repository was created</span><span data-l="es">días desde que se creó el repositorio</span></span></a>
+      </div>
+    </section>
+
+    <section id="por-dia">
+      <h2><span data-l="pt">Dia a dia</span><span data-l="en">Day by day</span><span data-l="es">Día a día</span></h2>
+      <div class="lt-scroll card">
+        <table data-source="dias" data-row-key="dia">
+          <thead><tr><th data-field="dia"><span data-l="pt">Dia (UTC)</span><span data-l="en">Day (UTC)</span><span data-l="es">Día (UTC)</span></th><th class="r" data-field="commits">Commits</th><th class="r" data-field="prs_abertos"><span data-l="pt">PRs enviados</span><span data-l="en">PRs opened</span><span data-l="es">PRs enviados</span></th><th class="r" data-field="prs_mergeados"><span data-l="pt">PRs mergeados</span><span data-l="en">PRs merged</span><span data-l="es">PRs fusionados</span></th><th class="r" data-field="issues_abertas"><span data-l="pt">Issues novas</span><span data-l="en">New issues</span><span data-l="es">Issues nuevas</span></th></tr></thead>
+          <tbody data-draw="dias"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <div class="lt-two">
+      <section id="merges">
+        <h2><span data-l="pt">Últimos PRs mergeados</span><span data-l="en">Latest merged PRs</span><span data-l="es">Últimos PRs fusionados</span></h2>
+        <div class="lt-scroll">
+          <table data-source="merges" data-row-key="pr">
+            <thead><tr><th data-field="pr">PR</th><th data-field="titulo"><span data-l="pt">Título</span><span data-l="en">Title</span><span data-l="es">Título</span></th><th data-field="autor"><span data-l="pt">Autor</span><span data-l="en">Author</span><span data-l="es">Autor</span></th></tr></thead>
+            <tbody data-draw="merges"></tbody>
+          </table>
+        </div>
+      </section>
+      <section id="autores">
+        <h2><span data-l="pt">Quem mais fez commits</span><span data-l="en">Top committers</span><span data-l="es">Quién hizo más commits</span></h2>
+        <div class="lt-rows" data-draw="autores" data-source="autores"></div>
+      </section>
+    </div>
+
+    <details id="como-ler">
+      <summary><span data-l="pt">Como estes números são medidos</span><span data-l="en">How these numbers are measured</span><span data-l="es">Cómo se miden estos números</span></summary>
+      <p class="muted" style="margin-top:8px;max-width:70ch" data-l="pt">Um script local (coletar.py) lê a API do GitHub, o histórico de commits da branch main e o texto das issues de coordenação: #7154 (roadmap e escada do boot) e #313 (camada D3D12). Essas issues são escritas à mão pelos coordenadores, então o painel mostra o que eles registraram naquele momento. A porcentagem é a média de 4 contagens que o próprio projeto publica (detalhes no Resumo). Os textos copiados das issues e do README são traduzidos automaticamente com o Argos Translate, de código aberto, que roda de graça no próprio GitHub Actions; a tradução pode ter erros. Visual inspirado em Vice City à noite, sem nenhuma arte ou marca do jogo.</p>
+      <p class="muted" style="margin-top:8px;max-width:70ch" data-l="en">A local script (coletar.py) reads the GitHub API, the commit history of the main branch and the text of the coordination issues: #7154 (boot roadmap and ladder) and #313 (D3D12 layer). The coordinators write those issues by hand, so the dashboard shows what they had recorded at that moment. The percentage is this dashboard's own estimate, not the project's. Look inspired by Vice City at night, with no art or branding from the game.</p>
+      <p class="muted" style="margin-top:8px;max-width:70ch" data-l="es">Un script local (coletar.py) lee la API de GitHub, el historial de commits de la rama main y el texto de las issues de coordinación: #7154 (hoja de ruta y escalera del arranque) y #313 (capa D3D12). Los coordinadores escriben esas issues a mano, así que el panel muestra lo que habían registrado en ese momento. El porcentaje es la media de 4 recuentos que el propio proyecto publica (detalles en el Resumen). Los textos copiados de las issues y del README se traducen automáticamente con Argos Translate, de código abierto, que corre gratis en el propio GitHub Actions; la traducción puede tener errores. Estética inspirada en Vice City de noche, sin arte ni marcas del juego.</p>
+    </details>
   </div>
 
   <!-- ABA CHAT -->
@@ -736,7 +768,8 @@ Object.assign(window.LT_I18N.es, {colFeito: 'Hecho', colAndamento: 'En curso', c
 
 /* Abas: só mostra/esconde as seções e guarda a aba no link. */
 (() => {
-  const ids = ['resumo', 'boot', 'pecas', 'atividade', 'ritmo', 'chat'];
+  const ids = ['resumo', 'boot', 'comunidade', 'pecas', 'ritmo', 'chat'];
+  const apelidos = {atividade: 'ritmo'};
   const abre = (id, link) => {
     if (!ids.includes(id)) id = 'resumo';
     document.querySelectorAll('.lt-pane').forEach((p) => { p.hidden = p.id !== id; });
@@ -744,7 +777,7 @@ Object.assign(window.LT_I18N.es, {colFeito: 'Hecho', colAndamento: 'En curso', c
     if (link) dash.setLink(id);
   };
   document.querySelectorAll('.lt-tab').forEach((b) => b.addEventListener('click', () => abre(b.dataset.tab, true)));
-  const h = (location.hash || '').slice(1);
+  const h0 = (location.hash || '').slice(1), h = apelidos[h0] || h0;
   let alvo = 'resumo';
   if (ids.includes(h)) alvo = h;
   else if (h) { const e = document.getElementById(h); const p = e && e.closest('.lt-pane'); if (p) alvo = p.id; }
@@ -1285,7 +1318,7 @@ window.ltDraw('novidades', (el) => {
   if (d.status !== 'ok') { el.replaceChildren(); return; }
   if (!d.data.length) { el.replaceChildren(window.ltEl('li', 'muted', T.semNov)); return; }
   const f = (v) => window.ltFmt(v);
-  el.replaceChildren(...d.data.slice(0, 8).map((e) => {
+  el.replaceChildren(...d.data.slice(0, 6).map((e) => {
     const li = window.ltEl('li', e.tipo.startsWith('rec') ? 'rec' : (e.tipo === 'tela' || e.tipo === 'issue_mudou') ? 'tela' : e.tipo.startsWith('peca') ? 'peca' : 'fase');
     const q = window.ltEl('span', 'q', window.ltQuando(e.em)); q.title = window.ltData(e.em);
     const tx = window.ltEl('span', 'tx');
@@ -1500,4 +1533,59 @@ window.ltDraw('forge-prs', (el) => {
     return li;
   }));
 });
+</script>
+
+<script>
+Object.assign(window.LT_I18N.pt, {fr: {roadmap: 'segundo o roadmap da issue ', revisado: ', revisado ', relato: 'Relato mais recente de parada: ', novo: 'mais novo que o roadmap', dados: 'Dados coletados ', auto: ' · atualiza sozinho a cada ~5 min e a página recarrega a cada 2 min'}});
+Object.assign(window.LT_I18N.en, {fr: {roadmap: 'per the roadmap in issue ', revisado: ', revised ', relato: 'Latest stop report: ', novo: 'newer than the roadmap', dados: 'Data collected ', auto: ' · updates itself every ~5 min and the page reloads every 2 min'}});
+Object.assign(window.LT_I18N.es, {fr: {roadmap: 'según la hoja de ruta de la issue ', revisado: ', revisada ', relato: 'Relato más reciente de parada: ', novo: 'más nuevo que la hoja de ruta', dados: 'Datos recogidos ', auto: ' · se actualiza solo cada ~5 min y la página se recarga cada 2 min'}});
+
+window.ltRoadmapEm = () => {
+  const d = dash.data('resumo');
+  const s = d.status === 'ok' && d.data[0] ? d.data[0].roadmap_atualizado : null;
+  if (!s) return null;
+  const t = new Date(s.replace(' UTC', 'Z').replace(' ', 'T'));
+  return isNaN(t) ? null : t.toISOString();
+};
+
+window.ltDraw('tela-curta', (el) => {
+  const d = dash.data('longe');
+  const v = d.status === 'ok' && d.data[0] ? d.data[0].tela : null;
+  const t = v ? (window.ltT().telaC[v] || v) : '—';
+  el.textContent = t.charAt(0).toUpperCase() + t.slice(1);
+});
+
+window.ltDraw('parada-quando', (el) => {
+  const T = window.ltT(), em = window.ltRoadmapEm();
+  el.replaceChildren();
+  el.appendChild(document.createTextNode(T.fr.roadmap));
+  el.appendChild(window.ltA(window.ltBootUrl(), '#' + window.ltBootN(), 'lk'));
+  if (em) el.appendChild(document.createTextNode(T.fr.revisado + window.ltQuando(em)));
+});
+
+window.ltDraw('ultimo-stop', (el) => {
+  const d = dash.data('comentarios'), T = window.ltT();
+  const c = d.status === 'ok' ? d.data.find((x) => x.tipo === 'stop') : null;
+  el.replaceChildren();
+  el.className = 'relato';
+  if (!c) return;
+  const em = window.ltRoadmapEm();
+  const novo = em && c.em > em;
+  if (novo) el.className = 'relato novo';
+  el.appendChild(window.ltEl('b', null, T.fr.relato));
+  const a = window.ltA(c.url, null, 'lk');
+  const txt = window.ltTr(c, 'texto');
+  window.ltLinkify(a, txt.length > 150 ? txt.slice(0, 149).trimEnd() + '…' : txt);
+  el.appendChild(a);
+  el.appendChild(document.createTextNode(' — ' + c.autor + ', ' + window.ltQuando(c.em) + (novo ? ' (' + T.fr.novo + ')' : '')));
+});
+
+window.ltDraw('frescor', (el) => {
+  const d = dash.data('resumo'), T = window.ltT();
+  const g = d.status === 'ok' && d.data[0] ? d.data[0].gerado_em : null;
+  el.textContent = g ? T.fr.dados + window.ltQuando(g) + ' (' + window.ltData(g) + ')' + T.fr.auto : '—';
+});
+</script>
+<script>
+document.querySelectorAll('#escada-hist').forEach((d) => d.addEventListener('toggle', () => { if (d.open) dash.draw('escada'); }));
 </script>
