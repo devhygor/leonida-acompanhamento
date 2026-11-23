@@ -17,6 +17,7 @@ BASE = pathlib.Path(__file__).resolve().parent
 CACHE = BASE / "cache" / "leonida.git"
 OUT = BASE / "dados" / "leonida.json"
 HIST = BASE / "dados" / "historico.json"
+EST = BASE / "dados" / "estado.json"   # cache e traduções (não é lido pela página)
 UTC = dt.timezone.utc
 BOOT_INICIAL = 7154      # issue do boot; o coletor segue os "moved to #N"
 METODOS_INICIAL = 313    # issue da camada D3D12 -> Vulkan
@@ -739,6 +740,13 @@ def main():
             cache = velho.get("_cache") or {}
         except (ValueError, KeyError, IndexError):
             anteriores, longe_ant, cache, velho = {}, {}, {}, {}
+    estado = {}
+    if EST.exists():
+        try:
+            estado = json.loads(EST.read_text("utf-8"))
+        except ValueError:
+            estado = {}
+    cache = estado.get("_cache") or cache
     cache = {k: v for k, v in cache.items() if k == "prs_hora" or (k.startswith("v2:") and not k.startswith("v2:#")) or k.startswith("v3:")}
     boot = roadmap_boot(cache)
     fases, escada, pedidos, longe = boot["fases"], boot["escada"], boot["pedidos"], boot["longe"]
@@ -830,9 +838,10 @@ def main():
         "novidades": novidades(cache),
         "frente": [{"n": i + 1, "texto": t} for i, t in enumerate(boot["frente"])],
         "comentarios": comentarios_boot(agora, cache),
-        "_cache": cache,
     }
     OUT.write_text(json.dumps(dados, ensure_ascii=False, separators=(",", ":")), "utf-8")
+    estado["_cache"] = cache
+    EST.write_text(json.dumps(estado, ensure_ascii=False, separators=(",", ":")), "utf-8")
     print(f"ok {OUT} ({OUT.stat().st_size // 1024} KB) fases={len(fases)} escada={len(escada)} "
           f"pedidos={len(pedidos)} comps={len(dados['componentes'])} marcos={len(dados['marcos'])} metodos={len(metodos)}")
 
