@@ -101,8 +101,13 @@ def atividade_git(agora):
         k = h.strftime("%Y-%m-%dT%H:00Z")
         horas.append({"hora": k, "commits": por_hora.get(k, 0)})
         h += dt.timedelta(hours=1)
-    top = [{"autor": a, "commits": c} for a, c in autores.most_common(15)]
-    return len(linhas), por_dia, horas, len(autores), top
+    return len(linhas), por_dia, horas, len(autores)
+
+
+def top_autores():
+    """Os 15 que mais fizeram commits, pelo login do GitHub (para dar link ao perfil e aos commits)."""
+    lst = gh(f"repos/{REPO}/contributors?per_page=15")
+    return [{"autor": c["login"], "commits": c["contributions"], "url": c["html_url"]} for c in lst if c.get("type") == "User"]
 
 
 # ---------------------------------------------------------------- issues de coordenação
@@ -270,7 +275,7 @@ def main():
     repo = gh(f"repos/{REPO}")
     criado = dt.datetime.fromisoformat(repo["created_at"].replace("Z", "+00:00"))
     atualiza_clone()
-    total_commits, commits_dia, horas, n_autores, top_autores = atividade_git(agora)
+    total_commits, commits_dia, horas, n_autores = atividade_git(agora)
     fases, escada, pedidos, longe, fronteira_em, coment_7154 = roadmap_boot()
     metodos = cobertura_metodos()
     anteriores, longe_ant = {}, {}
@@ -343,7 +348,7 @@ def main():
         "metodos": metodos,
         "dias": dias,
         "horas": horas,
-        "autores": top_autores,
+        "autores": top_autores(),
         "merges": merges_recentes(),
         "historico": hist,
         "longe": [longe],

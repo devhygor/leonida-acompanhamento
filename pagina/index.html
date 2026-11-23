@@ -125,6 +125,35 @@
 .lt-now p{font-size:16px;margin-top:4px}
 .lt-sparks{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:12px}
 .lt details summary{cursor:pointer;color:var(--n-mut)}
+/* Ao vivo e chat */
+.lt-live{display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px 14px;margin-top:10px;padding:6px 12px;border-radius:999px;background:rgba(12,8,32,.7);border:1px solid var(--n-line);font-size:13px}
+.lt-live b{font-family:var(--f-disp);font-size:20px;font-weight:400;letter-spacing:.03em;color:var(--n-teal);font-variant-numeric:tabular-nums}
+.lt-live .vis b{color:var(--n-yellow)}
+.lt-dot{width:9px;height:9px;border-radius:50%;background:var(--n-ok);box-shadow:0 0 0 0 rgba(57,230,160,.6);display:inline-block}
+@media (prefers-reduced-motion:no-preference){.lt-dot{animation:lt-pulso 1.8s infinite}}
+@keyframes lt-pulso{0%{box-shadow:0 0 0 0 rgba(57,230,160,.6)}70%{box-shadow:0 0 0 8px rgba(57,230,160,0)}100%{box-shadow:0 0 0 0 rgba(57,230,160,0)}}
+.lt-badge{display:inline-block;margin-left:6px;padding:0 7px;border-radius:999px;background:var(--n-pink);color:#fff;font-family:var(--f-body);font-size:11px;letter-spacing:0;vertical-align:3px}
+.lt-badge:empty{display:none}
+.lt-chatbox{display:flex;flex-direction:column;gap:10px}
+.lt-chat-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.lt-chat-lista{list-style:none;margin:0;padding:10px;height:min(56vh,520px);overflow-y:auto;background:var(--n-bg);border:1px solid var(--n-line);border-radius:10px;display:flex;flex-direction:column;gap:6px}
+.lt-chat-lista li{font-size:14px;line-height:1.45;overflow-wrap:anywhere}
+.lt-chat-lista li .h{color:var(--n-mut);font-size:11px;margin-right:6px;font-variant-numeric:tabular-nums}
+.lt-chat-lista li b{margin-right:6px}
+.lt-chat-lista li.vazio{color:var(--n-mut);text-align:center;margin:auto}
+.lt-chat-form{display:grid;grid-template-columns:minmax(0,160px) minmax(0,1fr) auto;gap:8px}
+@media (max-width:560px){.lt-chat-form{grid-template-columns:minmax(0,1fr) auto}.lt-chat-form #lt-chat-nick{grid-column:1 / 3}}
+.lt-chat-form input{font:inherit;font-size:14px;padding:10px 12px;border-radius:8px;border:1px solid var(--n-line);background:var(--n-bg);color:var(--n-fg);min-width:0}
+.lt-chat-form input:focus{outline:2px solid var(--n-teal);outline-offset:0;border-color:transparent}
+.lt-chat-form button{font-family:var(--f-disp);font-size:20px;letter-spacing:.06em;text-transform:uppercase;padding:8px 18px;border:0;border-radius:8px;cursor:pointer;color:#1a0b2e;background:linear-gradient(90deg,var(--n-yellow),var(--n-orange),var(--n-pink))}
+.lt-chat-form button:disabled{opacity:.6;cursor:wait}
+#lt-chat-status{min-height:1.2em;color:var(--n-warn)}
+
+.lt a.card{text-decoration:none;color:inherit;transition:border-color .15s,transform .15s}
+.lt a.card:hover{border-color:var(--n-pink);transform:translateY(-2px)}
+.lt a.lk{color:inherit;text-decoration:underline;text-decoration-color:rgba(45,226,230,.55);text-underline-offset:3px}
+.lt a.lk:hover{color:var(--n-teal)}
+.lt-col li a.lk{text-decoration-color:transparent}.lt-col li a.lk:hover{text-decoration-color:var(--n-teal)}
 @media (max-width:520px){.lt-pane{padding:20px 14px}.lt-hero-in{padding:24px 14px 18px}.lt-big{font-size:96px}}
 </style>
 
@@ -177,6 +206,7 @@
         <p class="lt-sub" data-l="en">The <a href="https://github.com/ItsNotRexed/Leonida" target="_blank" rel="noopener">ItsNotRexed/Leonida</a> group is recompiling the Xbox Series version to run natively on Windows. The goal: get the game to boot and be playable on PC.</p>
         <p class="lt-sub" data-l="es">El grupo de <a href="https://github.com/ItsNotRexed/Leonida" target="_blank" rel="noopener">ItsNotRexed/Leonida</a> está recompilando la versión de Xbox Series para que funcione de forma nativa en Windows. La meta: que el juego arranque y sea jugable en PC.</p>
         <p class="muted lt-meta"><span data-l="pt">Dados de</span><span data-l="en">Data from</span><span data-l="es">Datos del</span> <span data-draw="atualizado" data-source="resumo" data-field="gerado_em" data-row="0">—</span> · <span data-l="pt">roadmap revisado em</span><span data-l="en">roadmap revised on</span><span data-l="es">hoja de ruta revisada el</span> <span data-draw="roadmap-em" data-source="resumo" data-field="roadmap_atualizado" data-row="0">—</span></p>
+        <p class="lt-live" id="ao-vivo"><span class="lt-dot" aria-hidden="true"></span><span><b class="lt-online-n">—</b> <span data-l="pt">online agora</span><span data-l="en">online now</span><span data-l="es">en línea ahora</span></span><span class="vis"><b class="lt-visitas-n">—</b> <span data-l="pt">visitas</span><span data-l="en">visits</span><span data-l="es">visitas</span></span></p>
       </div>
       <label class="lt-lang" for="lt-lang">
         <span>Idioma · Language · Idioma</span>
@@ -194,6 +224,7 @@
     <button class="lt-tab" role="tab" id="tab-boot" data-tab="boot" aria-selected="false"><span data-l="pt">Boot</span><span data-l="en">Boot</span><span data-l="es">Arranque</span></button>
     <button class="lt-tab" role="tab" id="tab-pecas" data-tab="pecas" aria-selected="false"><span data-l="pt">Peças</span><span data-l="en">Parts</span><span data-l="es">Piezas</span></button>
     <button class="lt-tab" role="tab" id="tab-atividade" data-tab="atividade" aria-selected="false"><span data-l="pt">Atividade</span><span data-l="en">Activity</span><span data-l="es">Actividad</span></button>
+    <button class="lt-tab" role="tab" id="tab-chat" data-tab="chat" aria-selected="false"><span data-l="pt">Chat</span><span data-l="en">Chat</span><span data-l="es">Chat</span><span class="lt-badge lt-online-n" title="online"></span></button>
   </nav>
 
   <!-- ABA RESUMO -->
@@ -238,9 +269,9 @@
   <div class="lt-pane" id="boot" role="tabpanel" aria-labelledby="tab-boot" hidden>
     <section id="fases-sec">
       <h2><span data-l="pt">Roadmap do boot</span><span data-l="en">Boot roadmap</span><span data-l="es">Hoja de ruta del arranque</span></h2>
-      <p class="muted" data-l="pt">As fases que o executável precisa atravessar, como os coordenadores mantêm na issue #7154. "Concluída" lá significa medida em pelo menos duas máquinas, não necessariamente já na main. Trechos citados das issues ficam no inglês original.</p>
-      <p class="muted" data-l="en">The phases the executable has to get through, as the coordinators keep them in issue #7154. "Done" there means measured on at least two machines, not necessarily merged into main.</p>
-      <p class="muted" data-l="es">Las fases que el ejecutable tiene que atravesar, tal como los coordinadores las mantienen en la issue #7154. "Completada" significa medida en al menos dos máquinas, no necesariamente ya en main. Los fragmentos citados quedan en el inglés original.</p>
+      <p class="muted" data-l="pt">As fases que o executável precisa atravessar, como os coordenadores mantêm na issue <a class="lk" href="https://github.com/ItsNotRexed/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a>. "Concluída" lá significa medida em pelo menos duas máquinas, não necessariamente já na main. Trechos citados das issues ficam no inglês original.</p>
+      <p class="muted" data-l="en">The phases the executable has to get through, as the coordinators keep them in issue <a class="lk" href="https://github.com/ItsNotRexed/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a>. "Done" there means measured on at least two machines, not necessarily merged into main.</p>
+      <p class="muted" data-l="es">Las fases que el ejecutable tiene que atravesar, tal como los coordinadores las mantienen en la issue <a class="lk" href="https://github.com/ItsNotRexed/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a>. "Completada" significa medida en al menos dos máquinas, no necesariamente ya en main. Los fragmentos citados quedan en el inglés original.</p>
       <div class="card"><div class="lt-fases" data-draw="fases" data-source="fases"></div></div>
     </section>
 
@@ -264,9 +295,9 @@
 
     <section id="pedidos">
       <h2><span data-l="pt">O que estão pedindo agora</span><span data-l="en">What people are asking for now</span><span data-l="es">Qué se está pidiendo ahora</span></h2>
-      <p class="muted" data-l="pt">Os pedidos abertos na issue #7154, onde as pessoas (e muitos agentes de IA) combinam o próximo passo do boot.</p>
-      <p class="muted" data-l="en">The open asks in issue #7154, where people (and many AI agents) agree on the next boot step.</p>
-      <p class="muted" data-l="es">Los pedidos abiertos en la issue #7154, donde las personas (y muchos agentes de IA) acuerdan el siguiente paso del arranque.</p>
+      <p class="muted" data-l="pt">Os pedidos abertos na issue <a class="lk" href="https://github.com/ItsNotRexed/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a>, onde as pessoas (e muitos agentes de IA) combinam o próximo passo do boot.</p>
+      <p class="muted" data-l="en">The open asks in issue <a class="lk" href="https://github.com/ItsNotRexed/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a>, where people (and many AI agents) agree on the next boot step.</p>
+      <p class="muted" data-l="es">Los pedidos abiertos en la issue <a class="lk" href="https://github.com/ItsNotRexed/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a>, donde las personas (y muchos agentes de IA) acuerdan el siguiente paso del arranque.</p>
       <ul class="lt-asks" data-draw="pedidos" data-source="pedidos"></ul>
     </section>
   </div>
@@ -288,14 +319,14 @@
     <div class="lt-two">
       <section id="marcos">
         <h2><span data-l="pt">Marcos D3D12 → Vulkan</span><span data-l="en">D3D12 → Vulkan milestones</span><span data-l="es">Hitos D3D12 → Vulkan</span></h2>
-        <p class="muted" data-l="pt">M0 a M7 do plano em docs/d3d12_vulkan.md. "Sintético" quer dizer cumprido num teste próprio, ainda sem o jogo.</p>
-        <p class="muted" data-l="en">M0 to M7 from the plan in docs/d3d12_vulkan.md. "Synthetic" means met in the project's own test, not yet with the game.</p>
-        <p class="muted" data-l="es">M0 a M7 del plan en docs/d3d12_vulkan.md. "Sintético" significa cumplido en una prueba propia, todavía sin el juego.</p>
+        <p class="muted" data-l="pt">M0 a M7 do plano em <a class="lk" href="https://github.com/ItsNotRexed/Leonida/blob/main/docs/d3d12_vulkan.md" target="_blank" rel="noopener">docs/d3d12_vulkan.md</a>. "Sintético" quer dizer cumprido num teste próprio, ainda sem o jogo.</p>
+        <p class="muted" data-l="en">M0 to M7 from the plan in <a class="lk" href="https://github.com/ItsNotRexed/Leonida/blob/main/docs/d3d12_vulkan.md" target="_blank" rel="noopener">docs/d3d12_vulkan.md</a>. "Synthetic" means met in the project's own test, not yet with the game.</p>
+        <p class="muted" data-l="es">M0 a M7 del plan en <a class="lk" href="https://github.com/ItsNotRexed/Leonida/blob/main/docs/d3d12_vulkan.md" target="_blank" rel="noopener">docs/d3d12_vulkan.md</a>. "Sintético" significa cumplido en una prueba propia, todavía sin el juego.</p>
         <div class="lt-marcos" data-draw="marcos" data-source="marcos"></div>
       </section>
       <section id="metodos">
         <h2><span data-l="pt">Métodos D3D12</span><span data-l="en">D3D12 methods</span><span data-l="es">Métodos D3D12</span></h2>
-        <p class="muted"><span data-draw="m-main" data-source="resumo" data-field="metodos_d3d12_main" data-row="0">—</span> <span data-l="pt">de</span><span data-l="en">of</span><span data-l="es">de</span> <span data-draw="m-tot" data-source="resumo" data-field="metodos_d3d12_total" data-row="0">—</span> <span data-l="pt">métodos já estão na main (contagem da issue #313).</span><span data-l="en">methods are already on main (count from issue #313).</span><span data-l="es">métodos ya están en main (recuento de la issue #313).</span></p>
+        <p class="muted"><span data-draw="m-main" data-source="resumo" data-field="metodos_d3d12_main" data-row="0">—</span> <span data-l="pt">de</span><span data-l="en">of</span><span data-l="es">de</span> <span data-draw="m-tot" data-source="resumo" data-field="metodos_d3d12_total" data-row="0">—</span> <span data-l="pt">métodos já estão na main (contagem da issue <a class="lk" href="https://github.com/ItsNotRexed/Leonida/issues/313" target="_blank" rel="noopener">#313</a>).</span><span data-l="en">methods are already on main (count from issue <a class="lk" href="https://github.com/ItsNotRexed/Leonida/issues/313" target="_blank" rel="noopener">#313</a>).</span><span data-l="es">métodos ya están en main (recuento de la issue <a class="lk" href="https://github.com/ItsNotRexed/Leonida/issues/313" target="_blank" rel="noopener">#313</a>).</span></p>
         <div class="lt-legend muted">
           <span style="--lt-c:var(--n-ok)"><span data-l="pt">na main</span><span data-l="en">on main</span><span data-l="es">en main</span></span>
           <span style="--lt-c:var(--n-warn)"><span data-l="pt">em PRs abertos</span><span data-l="en">in open PRs</span><span data-l="es">en PRs abiertos</span></span>
@@ -311,12 +342,12 @@
     <section id="numeros">
       <h2><span data-l="pt">O projeto em números</span><span data-l="en">The project in numbers</span><span data-l="es">El proyecto en números</span></h2>
       <div class="lt-kpis">
-        <div class="card lt-kpi"><span class="v" data-draw="k-commits" data-source="resumo" data-field="commits" data-row="0">—</span><span class="l"><span data-l="pt">commits na main</span><span data-l="en">commits on main</span><span data-l="es">commits en main</span></span></div>
-        <div class="card lt-kpi"><span class="v" data-draw="k-merg" data-source="resumo" data-field="prs_mergeados" data-row="0">—</span><span class="l"><span data-l="pt">PRs mergeados, de</span><span data-l="en">PRs merged, out of</span><span data-l="es">PRs fusionados, de</span> <span data-draw="k-prtot" data-source="resumo" data-field="prs_total" data-row="0">—</span> <span data-l="pt">enviados</span><span data-l="en">opened</span><span data-l="es">enviados</span></span></div>
-        <div class="card lt-kpi"><span class="v" data-draw="k-abertos" data-source="resumo" data-field="prs_abertos" data-row="0">—</span><span class="l"><span data-l="pt">PRs abertos esperando revisão</span><span data-l="en">open PRs waiting for review</span><span data-l="es">PRs abiertos esperando revisión</span></span></div>
-        <div class="card lt-kpi"><span class="v" data-draw="k-autores" data-source="resumo" data-field="autores" data-row="0">—</span><span class="l"><span data-l="pt">pessoas com commit</span><span data-l="en">people with commits</span><span data-l="es">personas con commits</span></span></div>
-        <div class="card lt-kpi"><span class="v" data-draw="k-estrelas" data-source="resumo" data-field="estrelas" data-row="0">—</span><span class="l"><span data-l="pt">estrelas no GitHub</span><span data-l="en">GitHub stars</span><span data-l="es">estrellas en GitHub</span></span></div>
-        <div class="card lt-kpi"><span class="v" data-draw="k-dias" data-source="resumo" data-field="dias_de_projeto" data-row="0">—</span><span class="l"><span data-l="pt">dias desde a criação do repositório</span><span data-l="en">days since the repository was created</span><span data-l="es">días desde que se creó el repositorio</span></span></div>
+        <a class="card lt-kpi" href="https://github.com/ItsNotRexed/Leonida/commits/main" target="_blank" rel="noopener"><span class="v" data-draw="k-commits" data-source="resumo" data-field="commits" data-row="0">—</span><span class="l"><span data-l="pt">commits na main</span><span data-l="en">commits on main</span><span data-l="es">commits en main</span></span></a>
+        <a class="card lt-kpi" href="https://github.com/ItsNotRexed/Leonida/pulls?q=is%3Apr+is%3Amerged" target="_blank" rel="noopener"><span class="v" data-draw="k-merg" data-source="resumo" data-field="prs_mergeados" data-row="0">—</span><span class="l"><span data-l="pt">PRs mergeados, de</span><span data-l="en">PRs merged, out of</span><span data-l="es">PRs fusionados, de</span> <span data-draw="k-prtot" data-source="resumo" data-field="prs_total" data-row="0">—</span> <span data-l="pt">enviados</span><span data-l="en">opened</span><span data-l="es">enviados</span></span></a>
+        <a class="card lt-kpi" href="https://github.com/ItsNotRexed/Leonida/pulls" target="_blank" rel="noopener"><span class="v" data-draw="k-abertos" data-source="resumo" data-field="prs_abertos" data-row="0">—</span><span class="l"><span data-l="pt">PRs abertos esperando revisão</span><span data-l="en">open PRs waiting for review</span><span data-l="es">PRs abiertos esperando revisión</span></span></a>
+        <a class="card lt-kpi" href="https://github.com/ItsNotRexed/Leonida/graphs/contributors" target="_blank" rel="noopener"><span class="v" data-draw="k-autores" data-source="resumo" data-field="autores" data-row="0">—</span><span class="l"><span data-l="pt">pessoas com commit</span><span data-l="en">people with commits</span><span data-l="es">personas con commits</span></span></a>
+        <a class="card lt-kpi" href="https://github.com/ItsNotRexed/Leonida/stargazers" target="_blank" rel="noopener"><span class="v" data-draw="k-estrelas" data-source="resumo" data-field="estrelas" data-row="0">—</span><span class="l"><span data-l="pt">estrelas no GitHub</span><span data-l="en">GitHub stars</span><span data-l="es">estrellas en GitHub</span></span></a>
+        <a class="card lt-kpi" href="https://github.com/ItsNotRexed/Leonida" target="_blank" rel="noopener"><span class="v" data-draw="k-dias" data-source="resumo" data-field="dias_de_projeto" data-row="0">—</span><span class="l"><span data-l="pt">dias desde a criação do repositório</span><span data-l="en">days since the repository was created</span><span data-l="es">días desde que se creó el repositorio</span></span></a>
       </div>
     </section>
 
@@ -364,7 +395,28 @@
       <p class="muted" style="margin-top:8px;max-width:70ch" data-l="es">Un script local (coletar.py) lee la API de GitHub, el historial de commits de la rama main y el texto de las issues de coordinación: #7154 (hoja de ruta y escalera del arranque) y #313 (capa D3D12). Los coordinadores escriben esas issues a mano, así que el panel muestra lo que habían registrado en ese momento. El porcentaje es una estimación de este panel, no del proyecto. Estética inspirada en Vice City de noche, sin arte ni marcas del juego.</p>
     </details>
   </div>
+
+  <!-- ABA CHAT -->
+  <div class="lt-pane" id="chat" role="tabpanel" aria-labelledby="tab-chat" hidden>
+    <section class="card lt-chatbox">
+      <div class="lt-chat-top">
+        <h2><span data-l="pt">Chat ao vivo</span><span data-l="en">Live chat</span><span data-l="es">Chat en vivo</span></h2>
+        <span class="muted"><span class="lt-dot" aria-hidden="true"></span> <b class="lt-online-n">—</b> <span data-l="pt">pessoas acompanhando agora</span><span data-l="en">people watching now</span><span data-l="es">personas siguiendo ahora</span></span>
+      </div>
+      <p class="muted" data-l="pt">Converse com quem está acompanhando o port. Regras: sem links, sem flood e sem mensagens repetidas; uma mensagem a cada poucos segundos. Quem passa do limite fica um tempo sem escrever. As mensagens somem depois de 7 dias.</p>
+      <p class="muted" data-l="en">Talk with others following the port. Rules: no links, no flooding and no repeated messages; one message every few seconds. Going over the limit mutes you for a while. Messages disappear after 7 days.</p>
+      <p class="muted" data-l="es">Conversa con quienes siguen el port. Reglas: sin enlaces, sin flood y sin mensajes repetidos; un mensaje cada pocos segundos. Quien pasa el límite queda un tiempo sin escribir. Los mensajes desaparecen a los 7 días.</p>
+      <ol class="lt-chat-lista" id="lt-chat-lista" aria-live="polite"></ol>
+      <form class="lt-chat-form" id="lt-chat-form" autocomplete="off">
+        <input id="lt-chat-nick" maxlength="24" aria-label="Apelido / Nickname">
+        <input id="lt-chat-texto" maxlength="280" aria-label="Mensagem / Message">
+        <button type="submit" id="lt-chat-enviar">Enviar</button>
+      </form>
+      <p class="muted" id="lt-chat-status" aria-live="polite"></p>
+    </section>
+  </div>
 </div>
+
 <script>
 dash.calc('resumo', {inputs: ['leonida'], title: 'Lista "resumo" de leonida.json', description: 'Linhas "resumo" do arquivo que o coletor gera.', fn: (leonida) => (leonida && leonida.resumo) || []});
 dash.calc('fases', {inputs: ['leonida'], title: 'Lista "fases" de leonida.json', description: 'Linhas "fases" do arquivo que o coletor gera.', fn: (leonida) => (leonida && leonida.fases) || []});
@@ -474,6 +526,9 @@ window.ltEstado = {
 };
 window.ltEl = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
 window.ltPill = (estado) => window.ltEl('span', 'pill ' + (window.ltEstado[estado] || 'mut'), window.ltT().estado[estado] || estado);
+window.LT_REPO = 'https://github.com/ItsNotRexed/Leonida';
+window.ltA = (href, text, cls) => { const a = window.ltEl('a', cls || 'lk', text); if (/^https:\/\//.test(href)) { a.href = href; a.target = '_blank'; a.rel = 'noopener'; } return a; };
+window.ltLinkify = (el, text) => { String(text == null ? '' : text).split(/(#\d{2,6})/).forEach((p) => { if (/^#\d{2,6}$/.test(p)) el.appendChild(window.ltA(window.LT_REPO + '/issues/' + p.slice(1), p)); else if (p) el.appendChild(document.createTextNode(p)); }); return el; };
 window.ltData = (iso) => { const d = new Date(iso); return isNaN(d) ? '—' : d.toLocaleString(window.ltT().loc, {day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'}); };
 window.ltTip = (host) => {
   const t = window.ltEl('div', 'lt-tip'); t.hidden = true; host.appendChild(t);
@@ -518,13 +573,13 @@ window.ltNum = (name, src, field) => window.ltDraw(name, (el) => {
 })();
 </script>
 <script>
-Object.assign(window.LT_I18N.pt, {colFeito: 'Feito', colAndamento: 'Em andamento', colFalta: 'Falta', tipoFase: 'Fase do boot', tipoPeca: 'Peça do port', nada: 'Nada aqui por enquanto.'});
-Object.assign(window.LT_I18N.en, {colFeito: 'Done', colAndamento: 'In progress', colFalta: 'Still to do', tipoFase: 'Boot phase', tipoPeca: 'Part of the port', nada: 'Nothing here yet.'});
-Object.assign(window.LT_I18N.es, {colFeito: 'Hecho', colAndamento: 'En curso', colFalta: 'Falta', tipoFase: 'Fase del arranque', tipoPeca: 'Pieza del port', nada: 'Nada aquí por ahora.'});
+Object.assign(window.LT_I18N.pt, {colFeito: 'Feito', colAndamento: 'Em andamento', colFalta: 'Falta', tipoFase: 'Fase do boot', tipoPeca: 'Peça do port', nada: 'Nada aqui por enquanto.', abrePr: 'Clique para abrir o PR'});
+Object.assign(window.LT_I18N.en, {colFeito: 'Done', colAndamento: 'In progress', colFalta: 'Still to do', tipoFase: 'Boot phase', tipoPeca: 'Part of the port', nada: 'Nothing here yet.', abrePr: 'Click to open the PR'});
+Object.assign(window.LT_I18N.es, {colFeito: 'Hecho', colAndamento: 'En curso', colFalta: 'Falta', tipoFase: 'Fase del arranque', tipoPeca: 'Pieza del port', nada: 'Nada aquí por ahora.', abrePr: 'Haz clic para abrir el PR'});
 
 /* Abas: só mostra/esconde as seções e guarda a aba no link. */
 (() => {
-  const ids = ['resumo', 'boot', 'pecas', 'atividade'];
+  const ids = ['resumo', 'boot', 'pecas', 'atividade', 'chat'];
   const abre = (id, link) => {
     if (!ids.includes(id)) id = 'resumo';
     document.querySelectorAll('.lt-pane').forEach((p) => { p.hidden = p.id !== id; });
@@ -546,11 +601,11 @@ window.ltDraw('quadro', (el) => {
   const cols = {feito: [], andamento: [], falta: []};
   f.data.forEach((x) => {
     const k = x.estado === 'concluída' ? 'feito' : (x.estado === 'em andamento' || x.estado === 'gargalo') ? 'andamento' : 'falta';
-    cols[k].push([T.fase[x.n] || x.fase, T.tipoFase + ' ' + x.n + (x.estado === 'gargalo' ? ' · ' + T.estado.gargalo : '')]);
+    cols[k].push([T.fase[x.n] || x.fase, T.tipoFase + ' ' + x.n + (x.estado === 'gargalo' ? ' · ' + T.estado.gargalo : ''), window.LT_REPO + '/issues/7154']);
   });
   c.data.forEach((x) => {
     const k = (x.estado === 'funciona' || x.estado === 'medido') ? 'feito' : x.estado === 'parcial' ? 'andamento' : 'falta';
-    cols[k].push([T.comp[x.componente] || x.componente, T.tipoPeca]);
+    cols[k].push([T.comp[x.componente] || x.componente, T.tipoPeca, window.LT_REPO + '#project-status']);
   });
   const def = [['feito', T.colFeito, 'var(--n-ok)'], ['andamento', T.colAndamento, 'var(--n-warn)'], ['falta', T.colFalta, 'var(--n-bad)']];
   el.replaceChildren(...def.map(([k, nome, cor]) => {
@@ -558,7 +613,7 @@ window.ltDraw('quadro', (el) => {
     col.appendChild(window.ltEl('h3', null, nome + ' · ' + cols[k].length));
     const ul = window.ltEl('ul');
     if (!cols[k].length) ul.appendChild(window.ltEl('li', null, T.nada));
-    cols[k].forEach(([titulo, tipo]) => { const li = window.ltEl('li', null, titulo); li.appendChild(window.ltEl('small', null, tipo)); ul.appendChild(li); });
+    cols[k].forEach(([titulo, tipo, url]) => { const li = window.ltEl('li'); li.appendChild(window.ltA(url, titulo)); li.appendChild(window.ltEl('small', null, tipo)); ul.appendChild(li); });
     col.appendChild(ul);
     return col;
   }));
@@ -587,12 +642,12 @@ window.ltDraw('jogavel', (el) => {
 });
 window.ltDraw('l-resumo', (el) => {
   const d = dash.data('longe');
-  el.textContent = d.status === 'ok' && d.data[0] && d.data[0].resumo ? window.ltT().palavras + d.data[0].resumo : '—';
+  if (d.status === 'ok' && d.data[0] && d.data[0].resumo) { el.replaceChildren(); window.ltLinkify(el, window.ltT().palavras + d.data[0].resumo); } else el.textContent = '—';
 });
 window.ltDraw('parada', (el) => {
   const d = dash.data('escada');
   const r = d.status === 'ok' ? d.data[d.data.length - 1] : null;
-  el.textContent = r ? r.para_em : (d.status === 'error' ? window.ltT().erroEscada : '—');
+  if (r) { el.replaceChildren(); window.ltLinkify(el, r.para_em); } else el.textContent = d.status === 'error' ? window.ltT().erroEscada : '—';
 });
 
 window.ltDraw('segs', (el) => {
@@ -618,7 +673,7 @@ window.ltDraw('fases', (el) => {
     row.appendChild(window.ltPill(f.estado));
     const det = window.ltEl('div', 'det');
     const sit = f.situacao && !/^(done|in progress|not started)$/i.test(f.situacao) ? f.situacao : null;
-    const linha = (rot, txt) => { const p = window.ltEl('p'); p.appendChild(window.ltEl('b', null, rot)); p.appendChild(document.createTextNode(txt)); det.appendChild(p); };
+    const linha = (rot, txt) => { const p = window.ltEl('p'); p.appendChild(window.ltEl('b', null, rot)); window.ltLinkify(p, txt); det.appendChild(p); };
     if (sit) linha(T.situacao, sit);
     if (f.o_que_destrava) linha(T.destrava, f.o_que_destrava);
     if (f.quem && f.quem !== 'open') linha(T.quem, f.quem);
@@ -648,11 +703,13 @@ window.ltDraw('escada', (el) => {
     const lab = r.pr.length > maxCh ? r.pr.slice(0, maxCh - 1) + '…' : r.pr;
     g.append('text').attr('x', 0).attr('y', rowH / 2 + 4).text((i + 1) + '. ' + lab);
     const v = r.chamadas_d3d12 || 1;
+    const mpr = r.pr.match(/#(\d{2,6})/);
     g.append('rect').attr('x', labW).attr('y', 7).attr('height', rowH - 14).attr('rx', 2)
       .attr('width', Math.max(2, x(v) - labW)).style('fill', i === rows.length - 1 ? 'var(--color-warn)' : 'var(--n-teal)');
     g.append('text').attr('x', x(v) + 6).attr('y', rowH / 2 + 4).style('fill', 'var(--color-fg)').text(window.ltFmt(v));
     g.append('rect').attr('x', 0).attr('y', 0).attr('width', W).attr('height', rowH).style('fill', 'transparent')
-      .on('pointermove pointerdown', (ev) => tip.show(ev, [T.degrau + ' ' + (i + 1) + ': ' + r.pr, T.libera + r.libera, T.chamadas + window.ltFmt(v), T.paraEm + r.para_em]))
+      .style('cursor', mpr ? 'pointer' : 'default').on('click', () => { if (mpr) window.open(window.LT_REPO + '/pull/' + mpr[1], '_blank', 'noopener'); })
+      .on('pointermove', (ev) => tip.show(ev, [T.degrau + ' ' + (i + 1) + ': ' + r.pr, T.libera + r.libera, T.chamadas + window.ltFmt(v), T.paraEm + r.para_em, mpr ? T.abrePr : null]))
       .on('pointerleave', () => tip.hide());
   });
 });
@@ -664,9 +721,9 @@ window.ltDraw('componentes', (el) => {
   el.replaceChildren(...d.data.map((r) => {
     const tr = document.createElement('tr');
     tr.dataset.key = r.componente;
-    tr.appendChild(window.ltEl('td', null, T.comp[r.componente] || r.componente));
+    const tn = window.ltEl('td'); tn.appendChild(window.ltA(window.LT_REPO + '#project-status', T.comp[r.componente] || r.componente)); tr.appendChild(tn);
     const td = window.ltEl('td'); td.appendChild(window.ltPill(r.estado)); tr.appendChild(td);
-    tr.appendChild(window.ltEl('td', 'det', r.detalhe));
+    tr.appendChild(window.ltLinkify(window.ltEl('td', 'det'), r.detalhe));
     return tr;
   }));
 });
@@ -675,7 +732,7 @@ window.ltDraw('marcos', (el) => {
   const d = dash.data('marcos');
   if (d.status !== 'ok') { el.textContent = '—'; return; }
   el.replaceChildren(...d.data.map((m) => {
-    const c = window.ltEl('div', 'lt-marco');
+    const c = window.ltA(window.LT_REPO + '/blob/main/docs/d3d12_vulkan.md', null, 'lt-marco card');
     const top = window.ltEl('div'); top.style.display = 'flex'; top.style.justifyContent = 'space-between'; top.style.alignItems = 'center';
     top.appendChild(window.ltEl('span', 'm', m.marco)); top.appendChild(window.ltPill(m.estado));
     c.appendChild(top);
@@ -694,7 +751,7 @@ window.ltDraw('metodos', (el) => {
   d.data.forEach((r) => {
     const row = window.ltEl('div', 'lt-row');
     const top = window.ltEl('div', 'top');
-    top.appendChild(window.ltEl('span', null, r.interface));
+    top.appendChild(window.ltA(window.LT_REPO + '/issues/313', r.interface));
     top.appendChild(window.ltEl('span', 'num muted', r.na_main + ' / ' + r.metodos));
     row.appendChild(top);
     const bar = window.ltEl('div', 'lt-stack');
@@ -745,7 +802,8 @@ window.ltDraw('dias', (el) => {
     const tr = document.createElement('tr');
     tr.dataset.key = r.dia;
     tr.appendChild(window.ltEl('td', 'num', new Date(r.dia + 'T12:00:00Z').toLocaleDateString(T.loc, {timeZone: 'UTC', day: '2-digit', month: '2-digit', year: 'numeric'})));
-    ['commits', 'prs_abertos', 'prs_mergeados', 'issues_abertas'].forEach((k) => tr.appendChild(window.ltEl('td', 'r', window.ltFmt(r[k]))));
+    const q = {commits: window.LT_REPO + '/commits/main?since=' + r.dia + '&until=' + r.dia, prs_abertos: window.LT_REPO + '/pulls?q=is%3Apr+created%3A' + r.dia, prs_mergeados: window.LT_REPO + '/pulls?q=is%3Apr+merged%3A' + r.dia, issues_abertas: window.LT_REPO + '/issues?q=is%3Aissue+created%3A' + r.dia};
+    ['commits', 'prs_abertos', 'prs_mergeados', 'issues_abertas'].forEach((k) => { const td = window.ltEl('td', 'r'); td.appendChild(window.ltA(q[k], window.ltFmt(r[k]))); tr.appendChild(td); });
     return tr;
   }));
 });
@@ -799,8 +857,8 @@ window.ltDraw('pedidos', (el) => {
   const T = window.ltT();
   el.replaceChildren(...d.data.map((p) => {
     const li = document.createElement('li');
-    li.appendChild(window.ltEl('span', 'id', p.id));
-    li.appendChild(window.ltEl('span', null, p.pedido));
+    li.appendChild(window.ltA(window.LT_REPO + '/issues/7154', p.id, 'id'));
+    li.appendChild(window.ltLinkify(window.ltEl('span'), p.pedido));
     li.appendChild(window.ltEl('span', 'meta', T.precisa + p.precisa + ' · ' + T.com + p.quem));
     return li;
   }));
@@ -833,7 +891,7 @@ window.ltDraw('autores', (el) => {
   d.data.forEach((r) => {
     const row = window.ltEl('div', 'lt-row');
     const top = window.ltEl('div', 'top');
-    top.appendChild(window.ltEl('span', null, r.autor));
+    top.appendChild(window.ltA(window.LT_REPO + '/commits/main?author=' + encodeURIComponent(r.autor), r.autor));
     top.appendChild(window.ltEl('span', 'num muted', window.ltFmt(r.commits)));
     row.appendChild(top);
     const bar = window.ltEl('div', 'lt-stack');

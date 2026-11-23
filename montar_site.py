@@ -25,6 +25,7 @@ def main():
     pag = (BASE / "pagina" / "index.html").read_text("utf-8")
     (SITE / "index.html").write_text(cab + pag + RODAPE, "utf-8")
     shutil.copy(BASE / "site_base" / "dash-shim.js", SITE / "dash-shim.js")
+    shutil.copy(BASE / "site_base" / "ao-vivo.js", SITE / "ao-vivo.js")
     for nome in ("leonida.json", "historico.json"):
         if (BASE / "dados" / nome).exists():
             shutil.copy(BASE / "dados" / nome, SITE / nome)
