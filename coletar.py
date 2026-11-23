@@ -18,6 +18,8 @@ CACHE = BASE / "cache" / "leonida.git"
 OUT = BASE / "dados" / "leonida.json"
 HIST = BASE / "dados" / "historico.json"
 UTC = dt.timezone.utc
+BOOT_INICIAL = 7154      # issue do boot; o coletor segue os "moved to #N"
+METODOS_INICIAL = 313    # issue da camada D3D12 -> Vulkan
 
 
 def sh(args, cwd=None):
@@ -81,10 +83,10 @@ def linhas_tabela(texto):
 
 def num(s):
     s = (s or "").replace(",", "")
-    m = re.search(r"(\d+(?:\.\d+)?)\s*(k)?\b", s)
+    m = re.search(r"(\d+(?:\.\d+)?)\s*([kKM])?\b", s)
     if not m:
         return None
-    v = float(m.group(1)) * (1000 if m.group(2) else 1)
+    v = float(m.group(1)) * {"k": 1e3, "K": 1e3, "M": 1e6}.get(m.group(2) or "", 1)
     return int(v)
 
 
@@ -132,27 +134,28 @@ NOMES_FASE = {
     2: "Device, filas, listas e heaps",
     3: "Shaders e pipelines",
     4: "Inicialização do áudio",
-    5: "Primeiro frame na tela",
+    5: "Primeira imagem na tela",
     6: "Jogo rodando (controle, saves, rede offline, streaming)",
     7: "Juntar tudo na main",
 }
 
 
 def estado_fase(texto):
-    t = texto.lower()
-    if t.startswith("done"):
+    t = texto.lower().lstrip("*_ ")
+    if t.startswith("done") or t.startswith("complete"):
         return "concluída"
-    if t.startswith("in progress"):
-        return "em andamento"
     if t.startswith("not started"):
         return "não iniciada"
-    return "gargalo"
+    if "bottleneck" in t[:40] or "blocked" in t[:20]:
+        return "gargalo"
+    return "em andamento"  # in progress, mostly done, partly...
 
 
 def parse_boot(body):
     fases = []
-    for c in linhas_tabela(secao(body, "Roadmap")):
-        if len(c) < 5 or not c[0].isdigit():
+    tabela = secao(body, "Roadmap") or secao(body, "Where the boot is")
+    for c in linhas_tabela(tabela):
+        if len(c) < 3 or not c[0].isdigit():
             continue
         n = int(c[0])
         fases.append({
@@ -161,8 +164,8 @@ def parse_boot(body):
             "fase_original": limpa(c[1]),
             "estado": estado_fase(limpa(c[2])),
             "situacao": corta(limpa(c[2]), 400),
-            "o_que_destrava": corta(limpa(c[3]), 300),
-            "quem": corta(limpa(c[4]), 160),
+            "o_que_destrava": corta(limpa(c[3]), 300) if len(c) > 3 else "",
+            "quem": corta(limpa(c[4]), 160) if len(c) > 4 else "",
         })
     fronteira = secao(body, "Frontier")
     m = re.search(r"Last update: ([^.]*?UTC)", fronteira)
@@ -184,16 +187,38 @@ def parse_boot(body):
         })
     pedidos = []
     for c in linhas_tabela(secao(body, "Open asks")):
-        if len(c) >= 4 and re.match(r"A\d+", c[0]):
-            pedidos.append({"id": c[0], "pedido": corta(limpa(c[1]), 260), "precisa": limpa(c[2]), "quem": corta(limpa(c[3]), 120)})
+        if len(c) < 4 or "~~" in c[0] or not limpa(c[0]) or limpa(c[0]).lower().startswith(("also", "#  ")):
+            continue
+        ident = limpa(c[0]).strip("~ ")
+        if len(c) >= 5:  # formato novo: # | item | dono → reserva | prazo (UTC) | pronto quando
+            pedidos.append({"id": ident, "pedido": corta(limpa(c[1]), 260), "precisa": corta(limpa(c[4]), 160),
+                            "quem": corta(limpa(c[2]), 120), "prazo": limpa(c[3])})
+        elif re.match(r"A\d+", ident):
+            pedidos.append({"id": ident, "pedido": corta(limpa(c[1]), 260), "precisa": limpa(c[2]), "quem": corta(limpa(c[3]), 120)})
     return fases, escada, pedidos, fronteira_em
+
+
+def parse_frente(body):
+    """Tópicos da seção Frontier (formato em lista) e a próxima parada citada nela."""
+    fr = secao(body, "Frontier")
+    itens = []
+    for ln in fr.splitlines():
+        ln = ln.strip()
+        if ln.startswith(("- ", "* ")):
+            t = re.sub(r"~~.*?~~", "", ln[2:])
+            t = limpa(t)
+            if t:
+                itens.append(corta(t, 320))
+    m = re.search(r"Next stop:\s*([^.\n]+)", fr)
+    return itens[:10], (limpa(m.group(1)) if m else None)
 
 
 def recordes(body):
     """O texto é editado à mão; pega o maior valor citado em qualquer forma conhecida."""
     vivos = [int(x) for x in re.findall(r"(?:alive|about|in|runs|for) (\d+) s\b", body)]
+    vivos += [int(b or a) * 60 for a, b in re.findall(r"(\d+)(?:\s*[-–]\s*(\d+))?\s*minutes?\b", body)]
     psos = [num(x) for x in re.findall(r"([\d,]+) graphics PSOs", body)]
-    chamadas = [x for x in (num(x) for x in re.findall(r"([\d,.]+k?) (?:D3D12 )?calls", body)) if x]
+    chamadas = [x for x in (num(x) for x in re.findall(r"([\d,.]+\s?[kKM]?) (?:D3D12 )?calls", body)) if x]
     return {
         "segundos_vivo": max(vivos) if vivos else None,
         "psos_graficos": max(p for p in psos if p) if any(psos) else None,
@@ -209,6 +234,8 @@ def tela(fases):
     t = f5["situacao"].lower()
     if f5["estado"] == "concluída" or re.search(r"\b(main menu|title screen|logo|intro|cutscene|loading screen|splash|first picture|renders? the (?:menu|logo|scene))\b", t):
         return "imagem"
+    if re.search(r"first (?:non-uniform|non-black|real|visible|actual) (?:frame|image|picture)|non-uniform frame|first image (?:was )?captured", t):
+        return "primeira"
     if "black" in t:
         return "preta"
     if "white" in t:
@@ -218,18 +245,48 @@ def tela(fases):
     return "nenhuma"
 
 
-def roadmap_boot():
-    issue = gh(f"repos/{REPO}/issues/7154")
+MOVIDA = re.compile(r"(?:moved|transferred|continues|continued|migrated|superseded|replaced)\s+(?:to|in|by|at)\s+#(\d+)", re.I)
+
+
+def resolve_issue(numero, limite=10):
+    """Segue issues encerradas com aviso de mudança ("moved to #N"). Devolve (issue final, cadeia de números)."""
+    cadeia, mudancas = [], []
+    for _ in range(limite):
+        iss = gh(f"repos/{REPO}/issues/{numero}")
+        cadeia.append(numero)
+        m = MOVIDA.search((iss.get("body") or "")[:1200]) or MOVIDA.search(iss.get("title") or "")
+        if iss.get("state") == "closed" and m and int(m.group(1)) not in cadeia:
+            mudancas.append({"de": numero, "para": int(m.group(1)), "em": iss.get("closed_at") or iss.get("updated_at")})
+            numero = int(m.group(1))
+            continue
+        break
+    resolve_issue.mudancas = mudancas
+    return iss, cadeia
+
+
+def roadmap_boot(cache):
+    issue, cadeia = resolve_issue(BOOT_INICIAL)
+    conhecidas = sorted(set(cache.get("v2:cadeia_boot", [])) | set(cadeia))
+    cache["v2:cadeia_boot"] = conhecidas
+    vistas = {(m["de"], m["para"]) for m in cache.get("v2:mudancas", [])}
+    cache["v2:mudancas"] = cache.get("v2:mudancas", []) + [m for m in resolve_issue.mudancas if (m["de"], m["para"]) not in vistas]
     body = issue["body"]
     fases, escada, pedidos, fronteira_em = parse_boot(body)
+    frente, proxima = parse_frente(body)
     f5 = next((f for f in fases if f["n"] == 5), None)
     longe = dict(recordes(body), resumo=corta(f5["situacao"], 400) if f5 else None, tela=tela(fases))
-    return fases, escada, pedidos, longe, fronteira_em, issue["comments"]
+    return dict(fases=fases, escada=escada, pedidos=pedidos, longe=longe, fronteira_em=fronteira_em,
+                comentarios=issue["comments"], numero=issue["number"], cadeia=conhecidas, frente=frente,
+                proxima=proxima, fechadas={n: None for n in conhecidas if n != issue["number"]})
 
 
-def cobertura_metodos(body=None):
+def cobertura_metodos(body=None, cache=None):
     if body is None:
-        body = gh(f"repos/{REPO}/issues/313")["body"]
+        iss, cadeia = resolve_issue(METODOS_INICIAL)
+        body = iss["body"]
+        if cache is not None:
+            cache["v2:cadeia_313"] = sorted(set(cache.get("v2:cadeia_313", [])) | set(cadeia))
+            cache["v2:issue_313"] = iss["number"]
     rows = []
     for c in linhas_tabela(secao(body, "Method coverage")):
         if len(c) >= 5 and c[1].isdigit():
@@ -430,8 +487,8 @@ def linha_do_tempo(agora, criado, cache):
     fontes = [
         versoes_git("README.md", _p_readme, cache),
         versoes_git("docs/d3d12_vulkan.md", _p_doc, cache),
-        versoes_issue(313, _p_313, cache),
-        versoes_issue(7154, _p_7154, cache),
+        *[versoes_issue(n, _p_313, cache) for n in cache.get("v2:cadeia_313", [METODOS_INICIAL])],
+        *[versoes_issue(n, _p_7154, cache) for n in cache.get("v2:cadeia_boot", [BOOT_INICIAL])],
     ]
     cts = sorted(int(x) for x in sh(["git", "log", "main", "--format=%ct"], cwd=CACHE).split())
     prs = prs_por_hora(agora, cache)
@@ -459,7 +516,8 @@ def linha_do_tempo(agora, criado, cache):
 def novidades(cache, limite=40):
     """Eventos tirados das versões do roadmap (#7154) e do README: recordes, fases, tela e peças."""
     ev = []
-    boot = sorted((k.split("@", 1)[1], v) for k, v in cache.items() if k.startswith("v2:#7154@") and v)
+    pref = tuple(f"v2:#{n}@" for n in cache.get("v2:cadeia_boot", [BOOT_INICIAL]))
+    boot = sorted((k.split("@", 1)[1], v) for k, v in cache.items() if k.startswith(pref) and v)
     ant = None
     for em, v in boot:
         if ant:
@@ -476,6 +534,8 @@ def novidades(cache, limite=40):
         # guarda o maior recorde já visto, para não registrar de novo um número que só sumiu do texto e voltou
         ant = dict(v, recorde_segundos=max(filter(None, [v.get("recorde_segundos"), (ant or {}).get("recorde_segundos")]), default=None),
                    recorde_chamadas=max(filter(None, [v.get("recorde_chamadas"), (ant or {}).get("recorde_chamadas")]), default=None))
+    for mv in cache.get("v2:mudancas", []):
+        ev.append({"em": mv["em"], "tipo": "issue_mudou", "de": mv["de"], "para": mv["para"]})
     readme = sorted((v.get("_t", ""), v) for k, v in cache.items() if k.startswith("v2:README.md@") and v.get("estados"))
     ant, vistas = None, set()
     for em, v in readme:
@@ -488,8 +548,21 @@ def novidades(cache, limite=40):
                     ev.append({"em": em, "tipo": "peca_nova", "componente": comp, "para": est})
         vistas.update(v["estados"])
         ant = v
-    ev.sort(key=lambda e: e["em"], reverse=True)
-    return ev[:limite]
+    # edições seguidas que vão e voltam (preta → primeira → preta em 2 min) não são novidade
+    def _t(e):
+        return dt.datetime.fromisoformat(e["em"].replace("Z", "+00:00")) if "T" in e["em"] and len(e["em"]) > 17 else None
+    ev.sort(key=lambda e: e["em"])
+    limpo = []
+    for e in ev:
+        a = limpo[-1] if limpo else None
+        if (a and e["tipo"] in ("tela", "fase") and a["tipo"] == e["tipo"] and a.get("n") == e.get("n")
+                and a["de"] == e["para"] and a["para"] == e["de"] and _t(a) and _t(e)
+                and (_t(e) - _t(a)) < dt.timedelta(minutes=20)):
+            limpo.pop()
+            continue
+        limpo.append(e)
+    limpo.sort(key=lambda e: e["em"], reverse=True)
+    return limpo[:limite]
 
 
 TIPOS_COMENT = ("stop", "decided", "finding", "implemented", "propose")
@@ -526,20 +599,23 @@ def resumo_comentario(body):
 def comentarios_boot(agora, cache, guardar=60):
     """Comentários relevantes da #7154. Busca só os novos desde a última coleta (parâmetro since)."""
     itens = cache.setdefault("v2:coments", {})
-    desde = cache.get("v2:coments_ate") or (agora - dt.timedelta(hours=36)).strftime("%Y-%m-%dT%H:%M:%SZ")
-    ultimo = desde
-    for pagina in range(1, 8):
-        lst = gh(f"repos/{REPO}/issues/7154/comments?per_page=100&page={pagina}&since={desde}")
-        for c in lst:
-            ultimo = max(ultimo, c["updated_at"])
-            r = resumo_comentario(c.get("body") or "")
-            if not r or (c.get("user") or {}).get("type") == "Bot":
-                continue
-            itens[str(c["id"])] = {"em": c["created_at"], "autor": c["user"]["login"], "tipo": r[0], "texto": r[1],
-                                   "url": c["html_url"]}
-        if len(lst) < 100:
-            break
-    cache["v2:coments_ate"] = ultimo
+    padrao = (agora - dt.timedelta(hours=36)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    for numero in cache.get("v2:cadeia_boot", [BOOT_INICIAL]):
+        marca = "v2:coments_ate" if numero == BOOT_INICIAL else f"v2:coments_ate:{numero}"
+        desde = cache.get(marca) or padrao
+        ultimo = desde
+        for pagina in range(1, 8):
+            lst = gh(f"repos/{REPO}/issues/{numero}/comments?per_page=100&page={pagina}&since={desde}")
+            for c in lst:
+                ultimo = max(ultimo, c["updated_at"])
+                r = resumo_comentario(c.get("body") or "")
+                if not r or (c.get("user") or {}).get("type") == "Bot":
+                    continue
+                itens[str(c["id"])] = {"em": c["created_at"], "autor": c["user"]["login"], "tipo": r[0], "texto": r[1],
+                                       "url": c["html_url"], "issue": numero}
+            if len(lst) < 100:
+                break
+        cache[marca] = ultimo
     manter = sorted(itens.items(), key=lambda kv: kv[1]["em"], reverse=True)[:guardar]
     cache["v2:coments"] = dict(manter)
     return [v for _, v in manter]
@@ -579,9 +655,7 @@ def main():
     criado = dt.datetime.fromisoformat(repo["created_at"].replace("Z", "+00:00"))
     atualiza_clone()
     total_commits, commits_dia, horas, n_autores = atividade_git(agora)
-    fases, escada, pedidos, longe, fronteira_em, coment_7154 = roadmap_boot()
-    metodos = cobertura_metodos()
-    anteriores, longe_ant, cache = {}, {}, {}
+    anteriores, longe_ant, cache, velho = {}, {}, {}, {}
     if OUT.exists():
         try:
             velho = json.loads(OUT.read_text("utf-8"))
@@ -589,8 +663,14 @@ def main():
             longe_ant = (velho.get("longe") or [{}])[0]
             cache = velho.get("_cache") or {}
         except (ValueError, KeyError, IndexError):
-            anteriores, longe_ant, cache = {}, {}, {}
+            anteriores, longe_ant, cache, velho = {}, {}, {}, {}
     cache = {k: v for k, v in cache.items() if k == "prs_hora" or k.startswith("v2:")}
+    boot = roadmap_boot(cache)
+    fases, escada, pedidos, longe = boot["fases"], boot["escada"], boot["pedidos"], boot["longe"]
+    fronteira_em, coment_7154 = boot["fronteira_em"], boot["comentarios"]
+    if not escada:  # a issue nova não tem mais a tabela da escada: mantém a última conhecida
+        escada = velho.get("escada") or []
+    metodos = cobertura_metodos(cache=cache)
     linha = linha_do_tempo(agora, criado, cache)
     rit = ritmo(linha)
     # Recordes: se o texto da issue deixou de citar um número, mantém o maior já visto.
@@ -628,6 +708,10 @@ def main():
         "ultimo_push": repo["pushed_at"],
         "roadmap_atualizado": fronteira_em,
         "comentarios_boot": coment_7154,
+        "issue_boot": boot["numero"],
+        "issues_boot": boot["cadeia"],
+        "issue_metodos": cache.get("v2:issue_313", METODOS_INICIAL),
+        "proxima_parada": boot["proxima"],
         "gerado_em": agora.isoformat().replace("+00:00", "Z"),
     }
 
@@ -662,6 +746,7 @@ def main():
         "linha": linha,
         "ritmo": [rit],
         "novidades": novidades(cache),
+        "frente": [{"n": i + 1, "texto": t} for i, t in enumerate(boot["frente"])],
         "comentarios": comentarios_boot(agora, cache),
         "_cache": cache,
     }

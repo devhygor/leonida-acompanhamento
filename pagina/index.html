@@ -197,6 +197,7 @@
 </style>
 
 <div class="lt l-pt" id="lt-root" lang="pt-BR">
+  <span data-draw="boot-links" data-source="resumo" style="display:none"></span>
   <header class="lt-hero" id="topo">
     <svg class="scene" viewBox="0 0 1200 380" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
       <defs>
@@ -276,15 +277,15 @@
     <section id="novidades" class="card lt-news">
       <div class="lt-news-top">
         <h3><span data-l="pt">Últimas novidades</span><span data-l="en">Latest news</span><span data-l="es">Últimas novedades</span></h3>
-        <span class="muted"><span data-l="pt">detectadas sozinhas no roadmap (issue <a class="lk" href="https://github.com/ItsNotRexed/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a>) e no README</span><span data-l="en">detected automatically in the roadmap (issue <a class="lk" href="https://github.com/ItsNotRexed/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a>) and the README</span><span data-l="es">detectadas automáticamente en la hoja de ruta (issue <a class="lk" href="https://github.com/ItsNotRexed/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a>) y el README</span></span>
+        <span class="muted"><span data-l="pt">detectadas sozinhas no roadmap (issue <a class="lk lk-boot" href="https://github.com/ItsNotRexed/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a>) e no README</span><span data-l="en">detected automatically in the roadmap (issue <a class="lk lk-boot" href="https://github.com/ItsNotRexed/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a>) and the README</span><span data-l="es">detectadas automáticamente en la hoja de ruta (issue <a class="lk lk-boot" href="https://github.com/ItsNotRexed/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a>) y el README</span></span>
       </div>
       <ol class="lt-news-lista" data-draw="novidades" data-source="novidades"></ol>
     </section>
 
     <section id="conversa" class="card lt-talk">
       <div class="lt-news-top">
-        <h3><span data-l="pt">Na conversa da issue #7154</span><span data-l="en">In the issue #7154 discussion</span><span data-l="es">En la conversación de la issue #7154</span></h3>
-        <a class="lk muted" href="https://github.com/ItsNotRexed/Leonida/issues/7154" target="_blank" rel="noopener"><span data-l="pt">ver tudo no GitHub</span><span data-l="en">see everything on GitHub</span><span data-l="es">ver todo en GitHub</span></a>
+        <h3><span data-l="pt">Na conversa da issue <a class="lk lk-boot" href="https://github.com/ItsNotRexed/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a></span><span data-l="en">In the issue <a class="lk lk-boot" href="https://github.com/ItsNotRexed/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a> discussion</span><span data-l="es">En la conversación de la issue <a class="lk lk-boot" href="https://github.com/ItsNotRexed/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a></span></h3>
+        <a class="lk muted lk-boot-href" href="https://github.com/ItsNotRexed/Leonida/issues/7154" target="_blank" rel="noopener"><span data-l="pt">ver tudo no GitHub</span><span data-l="en">see everything on GitHub</span><span data-l="es">ver todo en GitHub</span></a>
       </div>
       <p class="muted" data-l="pt">Os comentários que importam, filtrados sozinhos: onde o boot trava agora (stop), descobertas, decisões e relatos sobre a tela do jogo. A rotina (testes, quem pegou cada tarefa) fica de fora. O texto vem em inglês, como foi escrito.</p>
       <p class="muted" data-l="en">The comments that matter, filtered automatically: where the boot stops now (stop), findings, decisions and reports about the game screen. Routine posts (test runs, who took which task) are left out.</p>
@@ -326,11 +327,19 @@
 
   <!-- ABA BOOT -->
   <div class="lt-pane" id="boot" role="tabpanel" aria-labelledby="tab-boot" hidden>
+    <section id="frente">
+      <h2><span data-l="pt">Frente de trabalho agora</span><span data-l="en">Current frontier</span><span data-l="es">Frente de trabajo ahora</span></h2>
+      <p class="muted" data-l="pt">Os pontos que o coordenador lista como a fronteira do boot, na issue atual (texto original em inglês).</p>
+      <p class="muted" data-l="en">The points the coordinator lists as the boot frontier, in the current issue.</p>
+      <p class="muted" data-l="es">Los puntos que el coordinador lista como la frontera del arranque, en la issue actual (texto original en inglés).</p>
+      <ol class="lt-asks" data-draw="frente" data-source="frente"></ol>
+    </section>
+
     <section id="fases-sec">
       <h2><span data-l="pt">Roadmap do boot</span><span data-l="en">Boot roadmap</span><span data-l="es">Hoja de ruta del arranque</span></h2>
-      <p class="muted" data-l="pt">As fases que o executável precisa atravessar, como os coordenadores mantêm na issue <a class="lk" href="https://github.com/ItsNotRexed/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a>. "Concluída" lá significa medida em pelo menos duas máquinas, não necessariamente já na main. Trechos citados das issues ficam no inglês original.</p>
-      <p class="muted" data-l="en">The phases the executable has to get through, as the coordinators keep them in issue <a class="lk" href="https://github.com/ItsNotRexed/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a>. "Done" there means measured on at least two machines, not necessarily merged into main.</p>
-      <p class="muted" data-l="es">Las fases que el ejecutable tiene que atravesar, tal como los coordinadores las mantienen en la issue <a class="lk" href="https://github.com/ItsNotRexed/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a>. "Completada" significa medida en al menos dos máquinas, no necesariamente ya en main. Los fragmentos citados quedan en el inglés original.</p>
+      <p class="muted" data-l="pt">As fases que o executável precisa atravessar, como os coordenadores mantêm na issue <a class="lk lk-boot" href="https://github.com/ItsNotRexed/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a>. "Concluída" lá significa medida em pelo menos duas máquinas, não necessariamente já na main. Trechos citados das issues ficam no inglês original.</p>
+      <p class="muted" data-l="en">The phases the executable has to get through, as the coordinators keep them in issue <a class="lk lk-boot" href="https://github.com/ItsNotRexed/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a>. "Done" there means measured on at least two machines, not necessarily merged into main.</p>
+      <p class="muted" data-l="es">Las fases que el ejecutable tiene que atravesar, tal como los coordinadores las mantienen en la issue <a class="lk lk-boot" href="https://github.com/ItsNotRexed/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a>. "Completada" significa medida en al menos dos máquinas, no necesariamente ya en main. Los fragmentos citados quedan en el inglés original.</p>
       <div class="card"><div class="lt-fases" data-draw="fases" data-source="fases"></div></div>
     </section>
 
@@ -354,9 +363,9 @@
 
     <section id="pedidos">
       <h2><span data-l="pt">O que estão pedindo agora</span><span data-l="en">What people are asking for now</span><span data-l="es">Qué se está pidiendo ahora</span></h2>
-      <p class="muted" data-l="pt">Os pedidos abertos na issue <a class="lk" href="https://github.com/ItsNotRexed/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a>, onde as pessoas (e muitos agentes de IA) combinam o próximo passo do boot.</p>
-      <p class="muted" data-l="en">The open asks in issue <a class="lk" href="https://github.com/ItsNotRexed/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a>, where people (and many AI agents) agree on the next boot step.</p>
-      <p class="muted" data-l="es">Los pedidos abiertos en la issue <a class="lk" href="https://github.com/ItsNotRexed/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a>, donde las personas (y muchos agentes de IA) acuerdan el siguiente paso del arranque.</p>
+      <p class="muted" data-l="pt">Os pedidos abertos na issue <a class="lk lk-boot" href="https://github.com/ItsNotRexed/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a>, onde as pessoas (e muitos agentes de IA) combinam o próximo passo do boot.</p>
+      <p class="muted" data-l="en">The open asks in issue <a class="lk lk-boot" href="https://github.com/ItsNotRexed/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a>, where people (and many AI agents) agree on the next boot step.</p>
+      <p class="muted" data-l="es">Los pedidos abiertos en la issue <a class="lk lk-boot" href="https://github.com/ItsNotRexed/Leonida/issues/7154" target="_blank" rel="noopener">#7154</a>, donde las personas (y muchos agentes de IA) acuerdan el siguiente paso del arranque.</p>
       <ul class="lt-asks" data-draw="pedidos" data-source="pedidos"></ul>
     </section>
   </div>
@@ -540,7 +549,7 @@ window.LT_I18N = {
   pt: {
     loc: 'pt-BR',
     estado: {'concluída': 'concluída', 'em andamento': 'em andamento', 'não iniciada': 'não iniciada', 'gargalo': 'gargalo', 'funciona': 'funciona', 'parcial': 'parcial', 'não': 'não', 'medido': 'medido', 'concluído': 'concluído', 'sintético': 'sintético', 'aberto': 'aberto'},
-    fase: {1: 'Do início do processo ao device D3D12', 2: 'Device, filas, listas e heaps', 3: 'Shaders e pipelines', 4: 'Inicialização do áudio', 5: 'Primeiro frame na tela', 6: 'Jogo rodando (controle, saves, rede offline, streaming)', 7: 'Juntar tudo na main'},
+    fase: {1: 'Do início do processo ao device D3D12', 2: 'Device, filas, listas e heaps', 3: 'Shaders e pipelines', 4: 'Inicialização do áudio', 5: 'Primeira imagem na tela', 6: 'Jogo rodando (controle, saves, rede offline, streaming)', 7: 'Juntar tudo na main'},
     comp: {
       'Booting, story mode, anything playable': 'Boot, modo história, qualquer coisa jogável',
       'Finding and checking your copy (Xbox Series 1.0.2.1)': 'Encontrar e verificar sua cópia (Xbox Series 1.0.2.1)',
@@ -566,7 +575,7 @@ window.LT_I18N = {
   en: {
     loc: 'en-US',
     estado: {'concluída': 'done', 'em andamento': 'in progress', 'não iniciada': 'not started', 'gargalo': 'bottleneck', 'funciona': 'works', 'parcial': 'partial', 'não': 'no', 'medido': 'measured', 'concluído': 'done', 'sintético': 'synthetic', 'aberto': 'open'},
-    fase: {1: 'Process start to the D3D12 device', 2: 'Device, queues, lists and heaps', 3: 'Shaders and pipelines', 4: 'Audio init', 5: 'First frame on screen', 6: 'Game running (input, saves, offline network, streaming)', 7: 'Into main'},
+    fase: {1: 'Process start to the D3D12 device', 2: 'Device, queues, lists and heaps', 3: 'Shaders and pipelines', 4: 'Audio init', 5: 'First image on screen', 6: 'Game running (input, saves, offline network, streaming)', 7: 'Into main'},
     comp: {},
     sim: 'yes', nao: 'not yet', situacao: 'Status: ', destrava: 'What clears it: ', quem: 'Who is on it: ',
     degrau: 'Step', libera: 'Clears: ', chamadas: 'D3D12 calls: ', paraEm: 'Stops at: ', commitsHora: ' commits in that hour',
@@ -580,7 +589,7 @@ window.LT_I18N = {
   es: {
     loc: 'es-ES',
     estado: {'concluída': 'completada', 'em andamento': 'en curso', 'não iniciada': 'sin empezar', 'gargalo': 'cuello de botella', 'funciona': 'funciona', 'parcial': 'parcial', 'não': 'no', 'medido': 'medido', 'concluído': 'completado', 'sintético': 'sintético', 'aberto': 'abierto'},
-    fase: {1: 'Del inicio del proceso al device D3D12', 2: 'Device, colas, listas y heaps', 3: 'Shaders y pipelines', 4: 'Inicialización del audio', 5: 'Primer frame en pantalla', 6: 'Juego funcionando (mando, partidas guardadas, red offline, streaming)', 7: 'Integrar todo en main'},
+    fase: {1: 'Del inicio del proceso al device D3D12', 2: 'Device, colas, listas y heaps', 3: 'Shaders y pipelines', 4: 'Inicialización del audio', 5: 'Primera imagen en pantalla', 6: 'Juego funcionando (mando, partidas guardadas, red offline, streaming)', 7: 'Integrar todo en main'},
     comp: {
       'Booting, story mode, anything playable': 'Arranque, modo historia, algo jugable',
       'Finding and checking your copy (Xbox Series 1.0.2.1)': 'Encontrar y verificar tu copia (Xbox Series 1.0.2.1)',
@@ -692,7 +701,7 @@ window.ltDraw('quadro', (el) => {
   const cols = {feito: [], andamento: [], falta: []};
   f.data.forEach((x) => {
     const k = x.estado === 'concluída' ? 'feito' : (x.estado === 'em andamento' || x.estado === 'gargalo') ? 'andamento' : 'falta';
-    cols[k].push([T.fase[x.n] || x.fase, T.tipoFase + ' ' + x.n + (x.estado === 'gargalo' ? ' · ' + T.estado.gargalo : ''), window.LT_REPO + '/issues/7154']);
+    cols[k].push([T.fase[x.n] || x.fase, T.tipoFase + ' ' + x.n + (x.estado === 'gargalo' ? ' · ' + T.estado.gargalo : ''), window.ltBootUrl()]);
   });
   c.data.forEach((x) => {
     const k = (x.estado === 'funciona' || x.estado === 'medido') ? 'feito' : x.estado === 'parcial' ? 'andamento' : 'falta';
@@ -736,8 +745,9 @@ window.ltDraw('l-resumo', (el) => {
   if (d.status === 'ok' && d.data[0] && d.data[0].resumo) { el.replaceChildren(); window.ltLinkify(el, window.ltT().palavras + d.data[0].resumo); } else el.textContent = '—';
 });
 window.ltDraw('parada', (el) => {
-  const d = dash.data('escada');
-  const r = d.status === 'ok' ? d.data[d.data.length - 1] : null;
+  const d = dash.data('escada'), rs = dash.data('resumo');
+  const prox = rs.status === 'ok' && rs.data[0] ? rs.data[0].proxima_parada : null;
+  const r = prox ? {para_em: prox} : (d.status === 'ok' ? d.data[d.data.length - 1] : null);
   if (r) { el.replaceChildren(); window.ltLinkify(el, r.para_em); } else el.textContent = d.status === 'error' ? window.ltT().erroEscada : '—';
 });
 
@@ -948,9 +958,9 @@ window.ltDraw('pedidos', (el) => {
   const T = window.ltT();
   el.replaceChildren(...d.data.map((p) => {
     const li = document.createElement('li');
-    li.appendChild(window.ltA(window.LT_REPO + '/issues/7154', p.id, 'id'));
+    li.appendChild(window.ltA(window.ltBootUrl(), p.id, 'id'));
     li.appendChild(window.ltLinkify(window.ltEl('span'), p.pedido));
-    li.appendChild(window.ltEl('span', 'meta', T.precisa + p.precisa + ' · ' + T.com + p.quem));
+    li.appendChild(window.ltEl('span', 'meta', T.precisa + p.precisa + ' · ' + T.com + p.quem + (p.prazo ? ' · ' + T.prazo + p.prazo + ' UTC' : '')));
     return li;
   }));
 });
@@ -1042,7 +1052,7 @@ window.ltDraw('r-cards', (el) => {
   const r = d.data[0], T = window.ltT();
   window.ltRitmoDesde = r.desde;
   const cards = [['metodos_main', window.LT_REPO + '/issues/313'], ['marcos_ok', window.LT_REPO + '/blob/main/docs/d3d12_vulkan.md'], ['pecas_ok', window.LT_REPO + '#project-status'],
-    ['fases_ok', window.LT_REPO + '/issues/7154'], ['recorde_chamadas', window.LT_REPO + '/issues/7154'], ['recorde_segundos', window.LT_REPO + '/issues/7154']];
+    ['fases_ok', window.ltBootUrl()], ['recorde_chamadas', window.ltBootUrl()], ['recorde_segundos', window.ltBootUrl()]];
   el.replaceChildren(...cards.map(([k, url]) => {
     const c = window.ltA(url, null, 'card');
     c.appendChild(window.ltEl('span', 'v', r[k] == null ? '—' : window.ltFmt(r[k])));
@@ -1210,12 +1220,12 @@ window.ltDraw('novidades', (el) => {
   if (!d.data.length) { el.replaceChildren(window.ltEl('li', 'muted', T.semNov)); return; }
   const f = (v) => window.ltFmt(v);
   el.replaceChildren(...d.data.slice(0, 8).map((e) => {
-    const li = window.ltEl('li', e.tipo.startsWith('rec') ? 'rec' : e.tipo === 'tela' ? 'tela' : e.tipo.startsWith('peca') ? 'peca' : 'fase');
+    const li = window.ltEl('li', e.tipo.startsWith('rec') ? 'rec' : (e.tipo === 'tela' || e.tipo === 'issue_mudou') ? 'tela' : e.tipo.startsWith('peca') ? 'peca' : 'fase');
     const q = window.ltEl('span', 'q', window.ltQuando(e.em)); q.title = window.ltData(e.em);
     const tx = window.ltEl('span', 'tx');
     const partes = (T.nv[e.tipo] || (() => [e.tipo]))(e, f, T);
     partes.forEach((p, i) => tx.appendChild(i % 2 ? window.ltEl('b', null, p) : document.createTextNode(p)));
-    const url = e.tipo.startsWith('peca') ? window.LT_REPO + '#project-status' : window.LT_REPO + '/issues/7154';
+    const url = e.tipo.startsWith('peca') ? window.LT_REPO + '#project-status' : e.tipo === 'issue_mudou' ? window.LT_REPO + '/issues/' + e.para : window.ltBootUrl();
     const a = window.ltA(url, null, 'lk'); a.appendChild(tx);
     li.appendChild(q); li.appendChild(a);
     return li;
@@ -1244,6 +1254,42 @@ window.ltDraw('comentarios', (el) => {
     const tx = window.ltA(c.url, null, 'lk tx');
     window.ltLinkify(tx, c.texto);
     li.appendChild(tx);
+    return li;
+  }));
+});
+</script>
+
+<script>
+dash.calc('frente', {inputs: ['leonida'], title: 'Frente de trabalho', description: 'Tópicos da seção Frontier da issue atual do boot.', fn: (leonida) => (leonida && leonida.frente) || []});
+window.ltBootN = () => { const d = dash.data('resumo'); return (d.status === 'ok' && d.data[0] && d.data[0].issue_boot) || 7154; };
+window.ltBootUrl = () => window.LT_REPO + '/issues/' + window.ltBootN();
+
+window.ltDraw('boot-links', () => {
+  const n = window.ltBootN();
+  document.querySelectorAll('a.lk-boot').forEach((a) => { a.href = window.LT_REPO + '/issues/' + n; a.textContent = '#' + n; });
+  document.querySelectorAll('a.lk-boot-href').forEach((a) => { a.href = window.LT_REPO + '/issues/' + n; });
+});
+
+Object.assign(window.LT_I18N.pt, {prazo: 'até '});
+Object.assign(window.LT_I18N.en, {prazo: 'due '});
+Object.assign(window.LT_I18N.es, {prazo: 'hasta '});
+Object.assign(window.LT_I18N.pt.tela, {primeira: 'um primeiro frame com imagem (não só preto) já foi capturado'});
+Object.assign(window.LT_I18N.en.tela, {primeira: 'a first frame with actual content (not just black) has been captured'});
+Object.assign(window.LT_I18N.es.tela, {primeira: 'ya se capturó un primer frame con imagen (no solo negro)'});
+Object.assign(window.LT_I18N.pt.telaC, {primeira: 'primeira imagem'});
+Object.assign(window.LT_I18N.en.telaC, {primeira: 'first image'});
+Object.assign(window.LT_I18N.es.telaC, {primeira: 'primera imagen'});
+window.LT_I18N.pt.nv.issue_mudou = (e) => ['A coordenação do boot mudou da issue ', '#' + e.de, ' para a ', '#' + e.para, ''];
+window.LT_I18N.en.nv.issue_mudou = (e) => ['Boot coordination moved from issue ', '#' + e.de, ' to ', '#' + e.para, ''];
+window.LT_I18N.es.nv.issue_mudou = (e) => ['La coordinación del arranque pasó de la issue ', '#' + e.de, ' a la ', '#' + e.para, ''];
+
+window.ltDraw('frente', (el) => {
+  const d = dash.data('frente');
+  if (d.status !== 'ok' || !d.data.length) { el.replaceChildren(); return; }
+  el.replaceChildren(...d.data.map((f) => {
+    const li = document.createElement('li');
+    li.appendChild(window.ltEl('span', 'id', String(f.n)));
+    li.appendChild(window.ltLinkify(window.ltEl('span'), f.texto));
     return li;
   }));
 });
