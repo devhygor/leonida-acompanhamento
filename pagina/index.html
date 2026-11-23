@@ -151,6 +151,16 @@
 .lt-tag{display:inline-block;padding:0 8px;border-radius:999px;font-size:11px;letter-spacing:.03em;text-transform:uppercase;border:1px solid currentColor}
 .lt-tag.stop{color:var(--n-orange)}.lt-tag.decided{color:var(--n-ok)}.lt-tag.finding{color:var(--n-teal)}
 .lt-tag.implemented{color:var(--n-ok)}.lt-tag.propose{color:var(--n-purple)}.lt-tag.destaque{color:var(--n-yellow)}
+
+/* Partes do índice */
+.lt-partes{display:flex;flex-direction:column;gap:10px}
+.lt-parte{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;text-decoration:none;color:inherit}
+.lt-parte .nm{font-size:14px}
+.lt-parte .vl{font-family:var(--f-disp);font-size:22px;line-height:1;color:var(--n-teal);font-variant-numeric:tabular-nums}
+.lt-parte .ct{grid-column:1 / 3;color:var(--n-mut);font-size:12px}
+.lt-parte .br{grid-column:1 / 3;height:8px;border-radius:4px;background:var(--cds-chart-grid);overflow:hidden}
+.lt-parte .br i{display:block;height:100%;background:linear-gradient(90deg,var(--n-teal),var(--n-pink))}
+.lt-parte:hover .nm{color:var(--n-teal)}
 /* Ritmo */
 .lt-pace{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 @media (max-width:640px){.lt-pace{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -300,16 +310,11 @@
           <h2><span data-l="pt">Quão perto</span><span data-l="en">How close</span><span data-l="es">Qué tan cerca</span></h2>
           <div class="lt-big"><span data-draw="pct" data-source="progresso" data-field="pct" data-row="0">—</span>%</div>
         </div>
-        <div style="display:flex;flex-direction:column;gap:10px">
-          <p class="muted" data-l="pt">do caminho até o jogo rodar. É uma estimativa deste painel, recalculada sozinha a cada atualização: cada uma das 6 fases do roadmap ganha uma nota de 0 a 1 (concluída = 1, não iniciada = 0, em andamento entre 0,3 e 0,8 conforme o que o roadmap diz, por exemplo "mostly done" = 0,8) e a fase da imagem segue o estado da tela (janela 0,25, preta 0,45, primeira imagem 0,65, imagem de verdade 0,9). Passe o mouse na barra para ver a nota de cada fase.</p>
-          <p class="muted" data-l="en">of the way to a running game. It is this dashboard's own estimate, recomputed on every update: each of the 6 roadmap phases gets a score from 0 to 1 (done = 1, not started = 0, in progress between 0.3 and 0.8 depending on what the roadmap says, e.g. "mostly done" = 0.8), and the image phase follows the screen state (window 0.25, black 0.45, first image 0.65, real picture 0.9). Hover the bar to see each phase's score.</p>
-          <p class="muted" data-l="es">del camino hasta que el juego funcione. Es una estimación de este panel, recalculada en cada actualización: cada una de las 6 fases recibe una nota de 0 a 1 (completada = 1, sin empezar = 0, en curso entre 0,3 y 0,8 según lo que dice la hoja de ruta, p. ej. "mostly done" = 0,8) y la fase de la imagen sigue el estado de la pantalla (ventana 0,25, negra 0,45, primera imagen 0,65, imagen real 0,9). Pasa el ratón por la barra para ver la nota de cada fase.</p>
-          <div class="lt-segs" data-draw="segs" data-source="fases"></div>
-          <div class="lt-legend muted">
-            <span style="--lt-c:var(--n-ok)"><span data-l="pt">concluída</span><span data-l="en">done</span><span data-l="es">completada</span></span>
-            <span style="--lt-c:var(--n-warn)"><span data-l="pt">em andamento</span><span data-l="en">in progress</span><span data-l="es">en curso</span></span>
-            <span style="--lt-c:#2c2158"><span data-l="pt">não iniciada</span><span data-l="en">not started</span><span data-l="es">sin empezar</span></span>
-          </div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <p class="muted" data-l="pt">do caminho até o jogo rodar: a média de 4 contagens que o próprio projeto publica, lidas sozinhas a cada atualização. O que o projeto marca como parcial ou em andamento conta metade. Clique numa parte para ver a fonte.</p>
+          <p class="muted" data-l="en">of the way to a running game: the average of 4 counts the project itself publishes, read automatically on every update. Whatever the project marks as partial or in progress counts half. Click a part to see its source.</p>
+          <p class="muted" data-l="es">del camino hasta que el juego funcione: la media de 4 recuentos que el propio proyecto publica, leídos automáticamente en cada actualización. Lo que el proyecto marca como parcial o en curso cuenta la mitad. Haz clic en una parte para ver la fuente.</p>
+          <div class="lt-partes" data-draw="indice" data-source="indice"></div>
         </div>
       </div>
     </section>
@@ -533,16 +538,14 @@ dash.calc('merges', {inputs: ['leonida'], title: 'Lista "merges" de leonida.json
 dash.calc('historico', {inputs: ['leonida'], title: 'Lista "historico" de leonida.json', description: 'Linhas "historico" do arquivo que o coletor gera.', fn: (leonida) => (leonida && leonida.historico) || []});
 dash.calc('longe', {inputs: ['leonida'], title: 'Lista "longe" de leonida.json', description: 'Linhas "longe" do arquivo que o coletor gera.', fn: (leonida) => (leonida && leonida.longe) || []});
 
+dash.calc('indice', {inputs: ['leonida'], title: 'Partes do índice', description: 'As 4 contagens do projeto que formam a porcentagem.', fn: (leonida) => (leonida && leonida.indice) || []});
 dash.calc('progresso', {
-  inputs: ['fases'],
+  inputs: ['indice'],
   title: 'Quão perto do objetivo',
-  description: 'Média das notas (0 a 1) das fases 1 a 6 do roadmap de boot. A fase 7 (juntar na main) é processo e fica de fora.',
-  fn: (fases) => {
-    const jogo = fases.filter((f) => f.n <= 6);
-    const nota = (f) => (typeof f.pontos === 'number' ? f.pontos : f.estado === 'concluída' ? 1 : f.estado === 'em andamento' ? 0.5 : 0);
-    const c = jogo.filter((f) => f.estado === 'concluída').length;
-    const a = jogo.filter((f) => f.estado === 'em andamento').length;
-    return [{pct: jogo.length ? Math.round(100 * jogo.reduce((t, f) => t + nota(f), 0) / jogo.length) : 0, concluidas: c, andamento: a, total: jogo.length}];
+  description: 'Média das 4 contagens do projeto (fases do boot, métodos D3D12, marcos D3D12, peças do README); parcial ou em andamento conta metade.',
+  fn: (partes) => {
+    const v = partes.map((p) => p.valor);
+    return [{pct: v.length ? Math.round(v.reduce((a, b) => a + b, 0) / v.length) : 0}];
   }
 });
 
@@ -781,7 +784,6 @@ window.ltDraw('fases', (el) => {
     if (window.ltLang !== 'en') nome.appendChild(window.ltEl('div', 'muted', f.fase_original));
     row.appendChild(nome);
     const pill = window.ltPill(f.estado);
-    if (typeof f.pontos === 'number' && f.n <= 6) pill.textContent += ' · ' + Math.round(f.pontos * 100) + '%';
     row.appendChild(pill);
     const det = window.ltEl('div', 'det');
     const sit = f.situacao && !/^(done|in progress|not started)$/i.test(f.situacao) ? f.situacao : null;
@@ -1314,4 +1316,26 @@ Object.assign(window.LT_I18N.es, {nota: 'nota '});
 Object.assign(window.LT_I18N.pt.rs, {progresso: 'Quão perto (%)'});
 Object.assign(window.LT_I18N.en.rs, {progresso: 'How close (%)'});
 Object.assign(window.LT_I18N.es.rs, {progresso: 'Qué tan cerca (%)'});
+</script>
+
+<script>
+Object.assign(window.LT_I18N.pt, {partes: {fases: 'Fases do boot concluídas', metodos: 'Métodos D3D12 na main', marcos: 'Marcos D3D12 (M0–M7) cumpridos', pecas: 'Peças do port funcionando'}, de2: ' de ', fonteP: {fases: 'roadmap da issue do boot', metodos: 'issue #313', marcos: 'docs/d3d12_vulkan.md', pecas: 'status do README'}});
+Object.assign(window.LT_I18N.en, {partes: {fases: 'Boot phases done', metodos: 'D3D12 methods on main', marcos: 'D3D12 milestones (M0–M7) met', pecas: 'Port parts working'}, de2: ' of ', fonteP: {fases: 'boot issue roadmap', metodos: 'issue #313', marcos: 'docs/d3d12_vulkan.md', pecas: 'README status'}});
+Object.assign(window.LT_I18N.es, {partes: {fases: 'Fases del arranque completadas', metodos: 'Métodos D3D12 en main', marcos: 'Hitos D3D12 (M0–M7) cumplidos', pecas: 'Piezas del port funcionando'}, de2: ' de ', fonteP: {fases: 'hoja de ruta de la issue del arranque', metodos: 'issue #313', marcos: 'docs/d3d12_vulkan.md', pecas: 'estado del README'}});
+
+window.ltDraw('indice', (el) => {
+  const d = dash.data('indice');
+  if (d.status !== 'ok' || !d.data.length) { el.textContent = '—'; return; }
+  const T = window.ltT(), rs = dash.data('resumo');
+  const n313 = (rs.status === 'ok' && rs.data[0] && rs.data[0].issue_metodos) || 313;
+  const url = {fases: window.ltBootUrl(), metodos: window.LT_REPO + '/issues/' + n313, marcos: window.LT_REPO + '/blob/main/docs/d3d12_vulkan.md', pecas: window.LT_REPO + '#project-status'};
+  el.replaceChildren(...d.data.map((p) => {
+    const a = window.ltA(url[p.parte] || window.LT_REPO, null, 'lt-parte');
+    a.appendChild(window.ltEl('span', 'nm', T.partes[p.parte] || p.parte));
+    a.appendChild(window.ltEl('span', 'vl', p.valor + '%'));
+    const br = window.ltEl('span', 'br'); const i = window.ltEl('i'); i.style.width = p.valor + '%'; br.appendChild(i); a.appendChild(br);
+    a.appendChild(window.ltEl('span', 'ct', window.ltFmt(p.feito) + T.de2 + window.ltFmt(p.total) + ' · ' + (T.fonteP[p.parte] || '')));
+    return a;
+  }));
+});
 </script>

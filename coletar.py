@@ -248,8 +248,9 @@ def tela(fases):
 MOVIDA = re.compile(r"(?:moved|transferred|continues|continued|migrated|superseded|replaced)\s+(?:to|in|by|at)\s+#(\d+)", re.I)
 
 
-def resolve_issue(numero, limite=10):
-    """Segue issues encerradas com aviso de mudança ("moved to #N"). Devolve (issue final, cadeia de números)."""
+def resolve_issue(numero, limite=10, titulo_busca=None):
+    """Segue issues encerradas com aviso de mudança ("moved to #N"). Se a última estiver encerrada sem aviso,
+    procura a issue aberta mais nova com título parecido. Devolve (issue final, cadeia de números)."""
     cadeia, mudancas = [], []
     for _ in range(limite):
         iss = gh(f"repos/{REPO}/issues/{numero}")
@@ -259,6 +260,14 @@ def resolve_issue(numero, limite=10):
             mudancas.append({"de": numero, "para": int(m.group(1)), "em": iss.get("closed_at") or iss.get("updated_at")})
             numero = int(m.group(1))
             continue
+        if iss.get("state") == "closed" and titulo_busca:
+            achadas = gh(f"search/issues?q=repo:{REPO}+is:issue+is:open+in:title+{titulo_busca}&sort=created&order=desc&per_page=5")
+            nova = next((x for x in achadas.get("items", []) if x["number"] not in cadeia and x["number"] > numero), None)
+            if nova:
+                mudancas.append({"de": numero, "para": nova["number"], "em": iss.get("closed_at") or iss.get("updated_at")})
+                numero = nova["number"]
+                titulo_busca = None  # procura uma vez só; depois volta a seguir avisos
+                continue
         break
     resolve_issue.mudancas = mudancas
     return iss, cadeia
@@ -293,7 +302,7 @@ def pontuar(fases, tela_atual):
 
 
 def roadmap_boot(cache):
-    issue, cadeia = resolve_issue(BOOT_INICIAL)
+    issue, cadeia = resolve_issue(BOOT_INICIAL, titulo_busca="%22boot+log%22")
     conhecidas = sorted(set(cache.get("v2:cadeia_boot", [])) | set(cadeia))
     cache["v2:cadeia_boot"] = conhecidas
     vistas = {(m["de"], m["para"]) for m in cache.get("v2:mudancas", [])}
@@ -311,7 +320,7 @@ def roadmap_boot(cache):
 
 def cobertura_metodos(body=None, cache=None):
     if body is None:
-        iss, cadeia = resolve_issue(METODOS_INICIAL)
+        iss, cadeia = resolve_issue(METODOS_INICIAL, titulo_busca="%22Vulkan+layer%22")
         body = iss["body"]
         if cache is not None:
             cache["v2:cadeia_313"] = sorted(set(cache.get("v2:cadeia_313", [])) | set(cadeia))
@@ -467,7 +476,37 @@ def _p_readme(txt):
 
 def _p_doc(txt):
     m = list({r["marco"]: r for r in marcos_d3d12(txt)}.values())
-    return {"marcos_ok": sum(r["estado"] in ("concluído", "sintético") for r in m), "marcos_total": len(m)} if m else {}
+    if not m:
+        return {}
+    return {"marcos_ok": sum(r["estado"] in ("concluído", "sintético") for r in m), "marcos_total": len(m),
+            "estados": {r["marco"]: r["estado"] for r in m}}
+
+
+# ---------------------------------------------------------------- índice "quão perto" (só contagens do projeto)
+VALOR = {"concluída": 1, "concluído": 1, "sintético": 1, "funciona": 1, "medido": 1,
+         "em andamento": 0.5, "gargalo": 0.5, "parcial": 0.5}
+
+
+def _razao(estados, filtro=None):
+    vals = [VALOR.get(e, 0) for k, e in (estados or {}).items() if filtro is None or filtro(k)]
+    return (sum(vals) / len(vals), sum(vals), len(vals)) if vals else None
+
+
+def indice(estados_fases, metodos_main, metodos_total, estados_marcos, estados_pecas):
+    """Média de 4 contagens que o próprio projeto publica. Parcial / em andamento conta metade."""
+    partes = {}
+    r = _razao(estados_fases, lambda n: int(n) <= 6)
+    if r:
+        partes["fases"] = r
+    if metodos_main is not None and metodos_total:
+        partes["metodos"] = (metodos_main / metodos_total, metodos_main, metodos_total)
+    for nome, est in (("marcos", estados_marcos), ("pecas", estados_pecas)):
+        r = _razao(est)
+        if r:
+            partes[nome] = r
+    if not partes:
+        return None, partes
+    return round(100 * sum(v[0] for v in partes.values()) / len(partes)), partes
 
 
 def _p_313(txt):
@@ -514,11 +553,13 @@ def prs_por_hora(agora, cache):
 
 
 def linha_do_tempo(agora, criado, cache):
+    def renomeia(vals, novo):
+        return {h: {(novo if k == "estados" else k): v for k, v in d.items()} for h, d in vals.items()}
     fontes = [
-        versoes_git("README.md", _p_readme, cache),
-        versoes_git("docs/d3d12_vulkan.md", _p_doc, cache),
+        renomeia(versoes_git("README.md", _p_readme, cache), "estados_pecas"),
+        renomeia(versoes_git("docs/d3d12_vulkan.md", _p_doc, cache, versao="v3"), "estados_marcos"),
         *[versoes_issue(n, _p_313, cache) for n in cache.get("v2:cadeia_313", [METODOS_INICIAL])],
-        *[versoes_issue(n, _p_7154, cache) for n in cache.get("v2:cadeia_boot", [BOOT_INICIAL])],
+        *[renomeia(versoes_issue(n, _p_7154, cache), "estados_fases") for n in cache.get("v2:cadeia_boot", [BOOT_INICIAL])],
     ]
     cts = sorted(int(x) for x in sh(["git", "log", "main", "--format=%ct"], cwd=CACHE).split())
     prs = prs_por_hora(agora, cache)
@@ -536,8 +577,12 @@ def linha_do_tempo(agora, criado, cache):
             v = atual.get(c)
             if v is not None and (rec_max.get(c) is None or v > rec_max[c]):
                 rec_max[c] = v
-        linha.append({"hora": k, "commits_acum": acum, "prs_merg": prs.get(k), **{c: atual.get(c) for c in (
-            "pecas_ok", "pecas_total", "marcos_ok", "marcos_total", "metodos_main", "metodos_total", "fases_ok", "degraus", "chamadas", "progresso")},
+        pct, _ = indice(atual.get("estados_fases"), atual.get("metodos_main"), atual.get("metodos_total"),
+                        atual.get("estados_marcos"), atual.get("estados_pecas"))
+        if len(_) < 4:  # só vale com as quatro partes; antes disso a média dava saltos falsos
+            pct = None
+        linha.append({"hora": k, "commits_acum": acum, "prs_merg": prs.get(k), "progresso": pct, **{c: atual.get(c) for c in (
+            "pecas_ok", "pecas_total", "marcos_ok", "marcos_total", "metodos_main", "metodos_total", "fases_ok", "degraus", "chamadas")},
             "recorde_segundos": rec_max.get("recorde_segundos"), "recorde_chamadas": rec_max.get("recorde_chamadas")})
         h += dt.timedelta(hours=1)
     return linha
@@ -712,6 +757,11 @@ def main():
         d["commits"] = commits_dia.get(d["dia"], 0)
 
     m_total = sum(r["metodos"] for r in metodos)
+    comps = componentes_readme()
+    marcos_atuais = marcos_d3d12()
+    ind_pct, ind_partes = indice({str(f["n"]): f["estado"] for f in fases}, sum(r["na_main"] for r in metodos) if metodos else None,
+                                 m_total or None, {r["marco"]: r["estado"] for r in marcos_atuais},
+                                 {r["componente"]: r["estado"] for r in comps})
     m_main = sum(r["na_main"] for r in metodos)
     jogo = [f for f in fases if f["n"] <= 6]
     resumo = {
@@ -739,7 +789,7 @@ def main():
         "roadmap_atualizado": fronteira_em,
         "comentarios_boot": coment_7154,
         "issue_boot": boot["numero"],
-        "progresso_pct": boot["progresso"],
+        "progresso_pct": ind_pct,
         "issues_boot": boot["cadeia"],
         "issue_metodos": cache.get("v2:issue_313", METODOS_INICIAL),
         "proxima_parada": boot["proxima"],
@@ -765,8 +815,9 @@ def main():
         "fases": fases,
         "escada": escada,
         "pedidos": pedidos,
-        "componentes": componentes_readme(),
-        "marcos": marcos_d3d12(),
+        "componentes": comps,
+        "marcos": marcos_atuais,
+        "indice": [{"parte": k, "valor": round(100 * v[0]), "feito": round(v[1], 1), "total": v[2]} for k, v in ind_partes.items()],
         "metodos": metodos,
         "dias": dias,
         "horas": horas,

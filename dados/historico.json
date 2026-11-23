@@ -39,13 +39,13 @@
   "max_chamadas_d3d12": 3169054
  },
  {
-  "gerado_em": "2026-11-23T21:45:39Z",
-  "estrelas": 31973,
-  "forks": 2911,
+  "gerado_em": "2026-11-23T21:51:41Z",
+  "estrelas": 32098,
+  "forks": 2923,
   "commits": 10958,
   "autores": 549,
   "prs_mergeados": 3680,
-  "issues_abertas": 168,
+  "issues_abertas": 169,
   "fases_concluidas": 3,
   "fases_andamento": 2,
   "metodos_d3d12_main": 185,
