@@ -1,15 +1,28 @@
 [
  {
-  "gerado_em": "2026-11-23T18:32:11Z",
-  "estrelas": 27031,
-  "forks": 2446,
-  "commits": 10905,
-  "autores": 547,
-  "prs_mergeados": 3630,
-  "issues_abertas": 138,
+  "gerado_em": "2026-11-23T18:58:06Z",
+  "estrelas": 27775,
+  "forks": 2503,
+  "commits": 10955,
+  "autores": 549,
+  "prs_mergeados": 3680,
+  "issues_abertas": 145,
   "fases_concluidas": 3,
   "fases_andamento": 2,
   "metodos_d3d12_main": 174,
-  "max_chamadas_d3d12": 85000
+  "max_chamadas_d3d12": 85627
+ },
+ {
+  "gerado_em": "2026-11-23T19:02:28Z",
+  "estrelas": 27889,
+  "forks": 2522,
+  "commits": 10955,
+  "autores": 549,
+  "prs_mergeados": 3680,
+  "issues_abertas": 145,
+  "fases_concluidas": 3,
+  "fases_andamento": 2,
+  "metodos_d3d12_main": 174,
+  "max_chamadas_d3d12": 85627
  }
 ]

@@ -31,7 +31,17 @@ def gh(path):
     return json.loads(sh(["gh", "api", path]))
 
 
+_BUSCAS = []
+
+
 def busca(q):
+    """Contagem pela API de busca, respeitando o limite de ~30 buscas por minuto."""
+    import time
+    agora = time.time()
+    while len(_BUSCAS) >= 25 and agora - _BUSCAS[-25] < 61:
+        time.sleep(61 - (agora - _BUSCAS[-25]))
+        agora = time.time()
+    _BUSCAS.append(agora)
     return gh(f"search/issues?q={q}&per_page=1")["total_count"]
 
 
@@ -133,9 +143,7 @@ def estado_fase(texto):
     return "gargalo"
 
 
-def roadmap_boot():
-    issue = gh(f"repos/{REPO}/issues/7154")
-    body = issue["body"]
+def parse_boot(body):
     fases = []
     for c in linhas_tabela(secao(body, "Roadmap")):
         if len(c) < 5 or not c[0].isdigit():
@@ -172,8 +180,15 @@ def roadmap_boot():
     for c in linhas_tabela(secao(body, "Open asks")):
         if len(c) >= 4 and re.match(r"A\d+", c[0]):
             pedidos.append({"id": c[0], "pedido": corta(limpa(c[1]), 260), "precisa": limpa(c[2]), "quem": corta(limpa(c[3]), 120)})
+    return fases, escada, pedidos, fronteira_em
+
+
+def roadmap_boot():
+    issue = gh(f"repos/{REPO}/issues/7154")
+    body = issue["body"]
+    fases, escada, pedidos, fronteira_em = parse_boot(body)
     # Ponto mais longe já medido
-    f5 = next((f for f in fases if f["n"] == 5), None)
+    f5 =next((f for f in fases if f["n"] == 5), None)
     # O texto é editado à mão; pega o maior valor citado em qualquer forma conhecida.
     vivos = [int(x) for x in re.findall(r"(?:alive|about|in|runs|for) (\d+) s\b", body)]
     psos = [num(x) for x in re.findall(r"([\d,]+) graphics PSOs", body)]
@@ -188,8 +203,9 @@ def roadmap_boot():
     return fases, escada, pedidos, longe, fronteira_em, issue["comments"]
 
 
-def cobertura_metodos():
-    body = gh(f"repos/{REPO}/issues/313")["body"]
+def cobertura_metodos(body=None):
+    if body is None:
+        body = gh(f"repos/{REPO}/issues/313")["body"]
     rows = []
     for c in linhas_tabela(secao(body, "Method coverage")):
         if len(c) >= 5 and c[1].isdigit():
@@ -198,8 +214,9 @@ def cobertura_metodos():
 
 
 # ---------------------------------------------------------------- docs do repo
-def componentes_readme():
-    readme = git_show("README.md")
+def componentes_readme(readme=None):
+    if readme is None:
+        readme = git_show("README.md")
     rows = []
     for c in linhas_tabela(secao(readme, "Project status")):
         if len(c) < 2:
@@ -217,8 +234,9 @@ def componentes_readme():
     return rows
 
 
-def marcos_d3d12():
-    doc = git_show("docs/d3d12_vulkan.md")
+def marcos_d3d12(doc=None):
+    if doc is None:
+        doc = git_show("docs/d3d12_vulkan.md")
     rows = []
     for ln in doc.splitlines():
         m = re.match(r"^\| \*\*(M\d(?:\.\d)?)\*\* \|(.*)$", ln)
@@ -269,6 +287,165 @@ def merges_recentes():
              "mergeado_em": p["mergedAt"], "url": p["url"]} for p in lst]
 
 
+# ---------------------------------------------------------------- ritmo (linha do tempo)
+def _h(t):
+    return t.strftime("%Y-%m-%dT%H:00Z")
+
+
+def _ultimo_por_hora(pares):
+    """[(datetime, chave)] -> {hora: chave da última versão daquela hora}."""
+    out = {}
+    for t, k in sorted(pares):
+        out[_h(t)] = k
+    return out
+
+
+def versoes_git(caminho, parser, cache):
+    pares = []
+    for ln in sh(["git", "log", "main", "--format=%H %ct", "--", caminho], cwd=CACHE).splitlines():
+        hsh, ct = ln.split()
+        pares.append((dt.datetime.fromtimestamp(int(ct), UTC), hsh))
+    por_hora = _ultimo_por_hora(pares)
+    vals = {}
+    for hora, hsh in por_hora.items():
+        k = f"{caminho}@{hsh}"
+        if k not in cache:
+            try:
+                cache[k] = parser(sh(["git", "show", f"{hsh}:{caminho}"], cwd=CACHE))
+            except (RuntimeError, ValueError):
+                cache[k] = {}
+        vals[hora] = cache[k]
+    return vals
+
+
+def versoes_issue(numero, parser, cache, max_paginas=6):
+    q = ('query($c:String){repository(owner:"ItsNotRexed",name:"Leonida"){issue(number:%d){'
+         'userContentEdits(first:100, after:$c){pageInfo{hasNextPage endCursor} nodes{editedAt diff}}}}}' % numero)
+    cursor, pares = None, []
+    for _ in range(max_paginas):
+        args = ["gh", "api", "graphql", "-f", f"query={q}"] + (["-f", f"c={cursor}"] if cursor else [])
+        res = json.loads(sh(args))["data"]["repository"]["issue"]["userContentEdits"]
+        novos = 0
+        for n in res["nodes"]:
+            k = f"#{numero}@{n['editedAt']}"
+            if k not in cache:
+                novos += 1
+                try:
+                    cache[k] = parser(n["diff"] or "")
+                except (ValueError, KeyError, IndexError):
+                    cache[k] = {}
+            pares.append((dt.datetime.fromisoformat(n["editedAt"].replace("Z", "+00:00")), k))
+        if not novos or not res["pageInfo"]["hasNextPage"]:
+            break
+        cursor = res["pageInfo"]["endCursor"]
+    # edições já vistas em coletas anteriores e fora das páginas lidas agora
+    for k in cache:
+        if k.startswith(f"#{numero}@"):
+            pares.append((dt.datetime.fromisoformat(k.split("@", 1)[1].replace("Z", "+00:00")), k))
+    return {hora: cache[k] for hora, k in _ultimo_por_hora(list(set(pares))).items()}
+
+
+def _p_readme(txt):
+    # versões com a tabela duplicada (sobra de conflito de merge): conta cada peça uma vez
+    c = list({r["componente"]: r for r in componentes_readme(txt)}.values())
+    return {"pecas_ok": sum(r["estado"] in ("funciona", "medido") for r in c), "pecas_total": len(c)} if c else {}
+
+
+def _p_doc(txt):
+    m = list({r["marco"]: r for r in marcos_d3d12(txt)}.values())
+    return {"marcos_ok": sum(r["estado"] in ("concluído", "sintético") for r in m), "marcos_total": len(m)} if m else {}
+
+
+def _p_313(txt):
+    m = cobertura_metodos(txt)
+    return {"metodos_main": sum(r["na_main"] for r in m), "metodos_total": sum(r["metodos"] for r in m)} if m else {}
+
+
+def _p_7154(txt):
+    fases, escada, _, _ = parse_boot(txt)
+    out = {}
+    if fases:
+        out["fases_ok"] = sum(f["estado"] == "concluída" for f in fases if f["n"] <= 6)
+    if escada:
+        out["degraus"] = len(escada)
+        out["chamadas"] = max((e["chamadas_d3d12"] or 0) for e in escada)
+    return out
+
+
+def prs_por_hora(agora, cache):
+    """PRs mergeados por hora nas últimas 72 h. Horas fechadas ficam no cache; a busca só roda para as que faltam."""
+    ph = cache.setdefault("prs_hora", {})
+    h = agora.replace(minute=0, second=0, microsecond=0) - dt.timedelta(hours=71)
+    out = {}
+    while h <= agora:
+        k = _h(h)
+        fechada = h + dt.timedelta(hours=1) <= agora - dt.timedelta(minutes=10)
+        if k not in ph or not fechada:
+            ini, fim = h.strftime("%Y-%m-%dT%H:00:00Z"), h.strftime("%Y-%m-%dT%H:59:59Z")
+            n = busca(f"repo:{REPO}+is:pr+is:merged+merged:{ini}..{fim}")
+            if fechada:
+                ph[k] = n
+            out[k] = n
+        else:
+            out[k] = ph[k]
+        h += dt.timedelta(hours=1)
+    for k in [k for k in ph if k < _h(agora - dt.timedelta(hours=96))]:
+        del ph[k]
+    return out
+
+
+def linha_do_tempo(agora, criado, cache):
+    fontes = [
+        versoes_git("README.md", _p_readme, cache),
+        versoes_git("docs/d3d12_vulkan.md", _p_doc, cache),
+        versoes_issue(313, _p_313, cache),
+        versoes_issue(7154, _p_7154, cache),
+    ]
+    cts = sorted(int(x) for x in sh(["git", "log", "main", "--format=%ct"], cwd=CACHE).split())
+    prs = prs_por_hora(agora, cache)
+    linha, atual, i, acum = [], {}, 0, 0
+    h = criado.replace(minute=0, second=0, microsecond=0)
+    while h <= agora:
+        k = _h(h)
+        for f in fontes:
+            if k in f:
+                atual.update(f[k])
+        fim = (h + dt.timedelta(hours=1)).timestamp()
+        while i < len(cts) and cts[i] < fim:
+            acum += 1; i += 1
+        linha.append({"hora": k, "commits_acum": acum, "prs_merg": prs.get(k), **{c: atual.get(c) for c in (
+            "pecas_ok", "pecas_total", "marcos_ok", "marcos_total", "metodos_main", "metodos_total", "fases_ok", "degraus", "chamadas")}})
+        h += dt.timedelta(hours=1)
+    return linha
+
+
+def ritmo(linha):
+    """Comparação agora x 24 h atrás (ou o primeiro valor conhecido, se a série é mais nova)."""
+    agora = linha[-1]
+    atras = linha[-25] if len(linha) >= 25 else linha[0]
+    out = {"desde": atras["hora"]}
+    for c in ("commits_acum", "pecas_ok", "marcos_ok", "metodos_main", "fases_ok", "degraus", "chamadas"):
+        serie = [r for r in linha if r[c] is not None]
+        if not serie:
+            out[c], out[c + "_antes"], out[c + "_desde"] = None, None, None
+            continue
+        base = next((r for r in serie if r["hora"] >= atras["hora"]), serie[0])
+        out[c], out[c + "_antes"], out[c + "_desde"] = serie[-1][c], base[c], base["hora"]
+    ult24 = [r["prs_merg"] for r in linha[-25:-1] if r["prs_merg"] is not None]
+    out["prs_24h"] = sum(ult24) if ult24 else None
+    out["prs_por_hora"] = round(sum(ult24) / len(ult24), 1) if ult24 else None
+    out["commits_24h"] = (out["commits_acum"] or 0) - (out["commits_acum_antes"] or 0)
+    mm, mt = agora.get("metodos_main"), agora.get("metodos_total")
+    ganho = (out["metodos_main"] or 0) - (out["metodos_main_antes"] or 0)
+    horas = (dt.datetime.fromisoformat(agora["hora"].replace("Z", "+00:00")) -
+             dt.datetime.fromisoformat((out["metodos_main_desde"] or agora["hora"]).replace("Z", "+00:00"))).total_seconds() / 3600
+    out["metodos_faltam"] = (mt - mm) if (mm is not None and mt is not None) else None
+    out["metodos_por_dia"] = round(ganho / horas * 24, 1) if horas >= 1 and ganho > 0 else None
+    out["metodos_dias_restantes"] = (round(out["metodos_faltam"] / out["metodos_por_dia"], 1)
+                                     if out["metodos_por_dia"] and out["metodos_faltam"] is not None else None)
+    return out
+
+
 # ---------------------------------------------------------------- main
 def main():
     agora = dt.datetime.now(UTC).replace(microsecond=0)
@@ -278,14 +455,17 @@ def main():
     total_commits, commits_dia, horas, n_autores = atividade_git(agora)
     fases, escada, pedidos, longe, fronteira_em, coment_7154 = roadmap_boot()
     metodos = cobertura_metodos()
-    anteriores, longe_ant = {}, {}
+    anteriores, longe_ant, cache = {}, {}, {}
     if OUT.exists():
         try:
             velho = json.loads(OUT.read_text("utf-8"))
             anteriores = {r["dia"]: r for r in velho.get("dias", [])}
             longe_ant = (velho.get("longe") or [{}])[0]
+            cache = velho.get("_cache") or {}
         except (ValueError, KeyError, IndexError):
-            anteriores, longe_ant = {}, {}
+            anteriores, longe_ant, cache = {}, {}, {}
+    linha = linha_do_tempo(agora, criado, cache)
+    rit = ritmo(linha)
     # Recordes: se o texto da issue deixou de citar um número, mantém o maior já visto.
     for k in ("segundos_vivo", "psos_graficos", "max_chamadas_d3d12"):
         vals = [v for v in (longe.get(k), longe_ant.get(k)) if v]
@@ -352,6 +532,9 @@ def main():
         "merges": merges_recentes(),
         "historico": hist,
         "longe": [longe],
+        "linha": linha,
+        "ritmo": [rit],
+        "_cache": cache,
     }
     OUT.write_text(json.dumps(dados, ensure_ascii=False, separators=(",", ":")), "utf-8")
     print(f"ok {OUT} ({OUT.stat().st_size // 1024} KB) fases={len(fases)} escada={len(escada)} "

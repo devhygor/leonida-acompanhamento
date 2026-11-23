@@ -125,6 +125,21 @@
 .lt-now p{font-size:16px;margin-top:4px}
 .lt-sparks{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:12px}
 .lt details summary{cursor:pointer;color:var(--n-mut)}
+
+/* Ritmo */
+.lt-pace{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:640px){.lt-pace{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.lt-pace .card{display:flex;flex-direction:column;gap:4px}
+.lt-pace .v{font-family:var(--f-disp);font-size:40px;line-height:1;color:var(--n-fg);font-variant-numeric:tabular-nums}
+.lt-pace .l{color:var(--n-mut);font-size:12.5px}
+.lt-delta{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+.lt-delta.up{color:var(--n-ok)}.lt-delta.down{color:var(--n-bad)}.lt-delta.flat{color:var(--n-mut)}
+.lt-proj{border-left:4px solid var(--n-teal)}
+.lt-proj p{font-size:16px;line-height:1.55}
+.lt-proj b{color:var(--n-teal)}
+.lt-minis{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:12px}
+.lt-mini h3{font-size:19px}
+.lt-mini .lt-chart{min-height:150px}
 /* Ao vivo e chat */
 .lt-live{display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px 14px;margin-top:10px;padding:6px 12px;border-radius:999px;background:rgba(12,8,32,.7);border:1px solid var(--n-line);font-size:13px}
 .lt-live b{font-family:var(--f-disp);font-size:20px;font-weight:400;letter-spacing:.03em;color:var(--n-teal);font-variant-numeric:tabular-nums}
@@ -224,6 +239,7 @@
     <button class="lt-tab" role="tab" id="tab-boot" data-tab="boot" aria-selected="false"><span data-l="pt">Boot</span><span data-l="en">Boot</span><span data-l="es">Arranque</span></button>
     <button class="lt-tab" role="tab" id="tab-pecas" data-tab="pecas" aria-selected="false"><span data-l="pt">Peças</span><span data-l="en">Parts</span><span data-l="es">Piezas</span></button>
     <button class="lt-tab" role="tab" id="tab-atividade" data-tab="atividade" aria-selected="false"><span data-l="pt">Atividade</span><span data-l="en">Activity</span><span data-l="es">Actividad</span></button>
+    <button class="lt-tab" role="tab" id="tab-ritmo" data-tab="ritmo" aria-selected="false"><span data-l="pt">Ritmo</span><span data-l="en">Pace</span><span data-l="es">Ritmo</span></button>
     <button class="lt-tab" role="tab" id="tab-chat" data-tab="chat" aria-selected="false"><span data-l="pt">Chat</span><span data-l="en">Chat</span><span data-l="es">Chat</span><span class="lt-badge lt-online-n" title="online"></span></button>
   </nav>
 
@@ -394,6 +410,38 @@
       <p class="muted" style="margin-top:8px;max-width:70ch" data-l="en">A local script (coletar.py) reads the GitHub API, the commit history of the main branch and the text of the coordination issues: #7154 (boot roadmap and ladder) and #313 (D3D12 layer). The coordinators write those issues by hand, so the dashboard shows what they had recorded at that moment. The percentage is this dashboard's own estimate, not the project's. Look inspired by Vice City at night, with no art or branding from the game.</p>
       <p class="muted" style="margin-top:8px;max-width:70ch" data-l="es">Un script local (coletar.py) lee la API de GitHub, el historial de commits de la rama main y el texto de las issues de coordinación: #7154 (hoja de ruta y escalera del arranque) y #313 (capa D3D12). Los coordinadores escriben esas issues a mano, así que el panel muestra lo que habían registrado en ese momento. El porcentaje es una estimación de este panel, no del proyecto. Estética inspirada en Vice City de noche, sin arte ni marcas del juego.</p>
     </details>
+  </div>
+
+  <!-- ABA RITMO -->
+  <div class="lt-pane" id="ritmo" role="tabpanel" aria-labelledby="tab-ritmo" hidden>
+    <section id="ritmo-24h">
+      <h2><span data-l="pt">Quão rápido estão avançando</span><span data-l="en">How fast they are moving</span><span data-l="es">Qué tan rápido avanzan</span></h2>
+      <p class="lead" data-l="pt">Nas últimas 24 horas entraram <b data-draw="r-prs" data-source="ritmo" data-field="prs_24h" data-row="0">—</b> PRs na main, uma média de <b data-draw="r-prsh" data-source="ritmo" data-field="prs_por_hora" data-row="0">—</b> por hora, e <b data-draw="r-com" data-source="ritmo" data-field="commits_24h" data-row="0">—</b> commits.</p>
+      <p class="lead" data-l="en">In the last 24 hours <b data-draw="r-prs" data-source="ritmo" data-field="prs_24h" data-row="0">—</b> PRs were merged into main, an average of <b data-draw="r-prsh" data-source="ritmo" data-field="prs_por_hora" data-row="0">—</b> per hour, plus <b data-draw="r-com" data-source="ritmo" data-field="commits_24h" data-row="0">—</b> commits.</p>
+      <p class="lead" data-l="es">En las últimas 24 horas entraron <b data-draw="r-prs" data-source="ritmo" data-field="prs_24h" data-row="0">—</b> PRs en main, una media de <b data-draw="r-prsh" data-source="ritmo" data-field="prs_por_hora" data-row="0">—</b> por hora, y <b data-draw="r-com" data-source="ritmo" data-field="commits_24h" data-row="0">—</b> commits.</p>
+      <div class="lt-pace" data-draw="r-cards" data-source="ritmo"></div>
+    </section>
+
+    <section id="projecao" class="card lt-proj">
+      <h3><span data-l="pt">Se o ritmo continuar</span><span data-l="en">If the pace holds</span><span data-l="es">Si el ritmo se mantiene</span></h3>
+      <p data-draw="r-proj" data-source="ritmo">—</p>
+      <p class="muted" data-l="pt">Projeção simples deste painel, só para dar noção de velocidade: as últimas peças costumam ser as mais difíceis, e terminar a camada D3D12 não significa o jogo rodando.</p>
+      <p class="muted" data-l="en">A simple projection by this dashboard, only to give a sense of speed: the last pieces are usually the hardest, and finishing the D3D12 layer does not mean the game runs.</p>
+      <p class="muted" data-l="es">Proyección simple de este panel, solo para dar una idea de la velocidad: las últimas piezas suelen ser las más difíciles, y terminar la capa D3D12 no significa que el juego funcione.</p>
+    </section>
+
+    <section id="prs-hora">
+      <h2><span data-l="pt">PRs mergeados por hora · últimas 72 h</span><span data-l="en">PRs merged per hour · last 72 h</span><span data-l="es">PRs fusionados por hora · últimas 72 h</span></h2>
+      <div class="card"><div class="lt-chart" data-draw="r-prs-hora" data-source="linha"></div></div>
+    </section>
+
+    <section id="evolucao-tempo">
+      <h2><span data-l="pt">Evolução desde o começo</span><span data-l="en">Progress since the start</span><span data-l="es">Evolución desde el inicio</span></h2>
+      <p class="muted" data-l="pt">Reconstruída a partir do histórico do README, do plano D3D12 e das edições das issues #313 e #7154. Algumas séries começam mais tarde porque a fonte só passou a existir depois.</p>
+      <p class="muted" data-l="en">Rebuilt from the history of the README, the D3D12 plan and the edits to issues #313 and #7154. Some series start later because their source only appeared later.</p>
+      <p class="muted" data-l="es">Reconstruida a partir del historial del README, del plan D3D12 y de las ediciones de las issues #313 y #7154. Algunas series empiezan más tarde porque su fuente apareció después.</p>
+      <div class="lt-minis" data-draw="r-minis" data-source="linha"></div>
+    </section>
   </div>
 
   <!-- ABA CHAT -->
@@ -579,7 +627,7 @@ Object.assign(window.LT_I18N.es, {colFeito: 'Hecho', colAndamento: 'En curso', c
 
 /* Abas: só mostra/esconde as seções e guarda a aba no link. */
 (() => {
-  const ids = ['resumo', 'boot', 'pecas', 'atividade', 'chat'];
+  const ids = ['resumo', 'boot', 'pecas', 'atividade', 'ritmo', 'chat'];
   const abre = (id, link) => {
     if (!ids.includes(id)) id = 'resumo';
     document.querySelectorAll('.lt-pane').forEach((p) => { p.hidden = p.id !== id; });
@@ -900,6 +948,149 @@ window.ltDraw('autores', (el) => {
     bar.addEventListener('pointermove', show); bar.addEventListener('pointerdown', show); bar.addEventListener('pointerleave', () => tip.hide());
     row.appendChild(bar);
     el.insertBefore(row, el.lastChild);
+  });
+});
+</script>
+
+<script>
+dash.calc('linha', {inputs: ['leonida'], title: 'Linha do tempo', description: 'Uma linha por hora.', fn: (leonida) => (leonida && leonida.linha) || []});
+dash.calc('ritmo', {inputs: ['leonida'], title: 'Ritmo', description: 'Agora x 24 h atrás.', fn: (leonida) => (leonida && leonida.ritmo) || []});
+
+Object.assign(window.LT_I18N.pt, {
+  series: Object.assign(window.LT_I18N.pt.series, {}),
+  rs: {metodos_main: 'Métodos D3D12 na main', marcos_ok: 'Marcos D3D12 cumpridos', pecas_ok: 'Peças do port prontas', fases_ok: 'Fases do boot concluídas', chamadas: 'Chamadas D3D12 na escada de boot', degraus: 'Degraus da escada de boot', commits_acum: 'Commits na main (total)'},
+  em24: 'em 24 h', desde: 'desde', semMud: 'sem mudança', prsHora: ' PRs mergeados', de: ' de ',
+  proj: (pd, falta, dias) => ['No ritmo das últimas 24 horas (', pd, ' métodos D3D12 por dia), os ', falta, ' métodos que ainda faltam na camada D3D12 ficariam prontos em cerca de ', dias, '.'],
+  projDias: (d) => d < 1 ? Math.max(1, Math.round(d * 24)) + ' horas' : d.toLocaleString('pt-BR', {maximumFractionDigits: 1}) + ' dias',
+  projSem: 'Ainda não há avanço medido nos métodos D3D12 nas últimas 24 horas para projetar um ritmo.',
+  projFeito: 'Todos os métodos D3D12 contados na issue #313 já estão na main.'
+});
+Object.assign(window.LT_I18N.en, {
+  rs: {metodos_main: 'D3D12 methods on main', marcos_ok: 'D3D12 milestones met', pecas_ok: 'Port parts working', fases_ok: 'Boot phases done', chamadas: 'D3D12 calls on the boot ladder', degraus: 'Boot ladder steps', commits_acum: 'Commits on main (total)'},
+  em24: 'in 24 h', desde: 'since', semMud: 'no change', prsHora: ' PRs merged', de: ' of ',
+  proj: (pd, falta, dias) => ['At the pace of the last 24 hours (', pd, ' D3D12 methods per day), the ', falta, ' methods still missing from the D3D12 layer would be done in about ', dias, '.'],
+  projDias: (d) => d < 1 ? Math.max(1, Math.round(d * 24)) + ' hours' : d.toLocaleString('en-US', {maximumFractionDigits: 1}) + ' days',
+  projSem: 'No progress on D3D12 methods measured in the last 24 hours yet, so there is no pace to project.',
+  projFeito: 'Every D3D12 method counted in issue #313 is already on main.'
+});
+Object.assign(window.LT_I18N.es, {
+  rs: {metodos_main: 'Métodos D3D12 en main', marcos_ok: 'Hitos D3D12 cumplidos', pecas_ok: 'Piezas del port listas', fases_ok: 'Fases del arranque completadas', chamadas: 'Llamadas D3D12 en la escalera', degraus: 'Peldaños de la escalera', commits_acum: 'Commits en main (total)'},
+  em24: 'en 24 h', desde: 'desde', semMud: 'sin cambios', prsHora: ' PRs fusionados', de: ' de ',
+  proj: (pd, falta, dias) => ['Al ritmo de las últimas 24 horas (', pd, ' métodos D3D12 por día), los ', falta, ' métodos que aún faltan en la capa D3D12 estarían listos en unos ', dias, '.'],
+  projDias: (d) => d < 1 ? Math.max(1, Math.round(d * 24)) + ' horas' : d.toLocaleString('es-ES', {maximumFractionDigits: 1}) + ' días',
+  projSem: 'Todavía no hay avance medido en los métodos D3D12 en las últimas 24 horas para proyectar un ritmo.',
+  projFeito: 'Todos los métodos D3D12 contados en la issue #313 ya están en main.'
+});
+
+[['r-prs', 'ritmo', 'prs_24h'], ['r-prsh', 'ritmo', 'prs_por_hora'], ['r-com', 'ritmo', 'commits_24h']].forEach(([n, s, f]) => window.ltNum(n, s, f));
+
+window.ltDelta = (agora, antes, desde) => {
+  const T = window.ltT();
+  if (agora == null || antes == null) return window.ltEl('span', 'lt-delta flat', '—');
+  const d = agora - antes;
+  const quando = desde && window.ltRitmoDesde && desde > window.ltRitmoDesde ? T.desde + ' ' + window.ltData(desde) : T.em24;
+  if (!d) return window.ltEl('span', 'lt-delta flat', T.semMud + ' ' + quando);
+  return window.ltEl('span', 'lt-delta ' + (d > 0 ? 'up' : 'down'), (d > 0 ? '▲ +' : '▼ ') + window.ltFmt(d) + ' ' + quando);
+};
+
+window.ltDraw('r-cards', (el) => {
+  const d = dash.data('ritmo');
+  if (d.status !== 'ok' || !d.data[0]) { el.textContent = '—'; return; }
+  const r = d.data[0], T = window.ltT();
+  window.ltRitmoDesde = r.desde;
+  const cards = [['metodos_main', window.LT_REPO + '/issues/313'], ['marcos_ok', window.LT_REPO + '/blob/main/docs/d3d12_vulkan.md'], ['pecas_ok', window.LT_REPO + '#project-status'],
+    ['fases_ok', window.LT_REPO + '/issues/7154'], ['chamadas', window.LT_REPO + '/issues/7154'], ['degraus', window.LT_REPO + '/issues/7154']];
+  el.replaceChildren(...cards.map(([k, url]) => {
+    const c = window.ltA(url, null, 'card');
+    c.appendChild(window.ltEl('span', 'v', r[k] == null ? '—' : window.ltFmt(r[k])));
+    c.appendChild(window.ltEl('span', 'l', T.rs[k]));
+    c.appendChild(window.ltDelta(r[k], r[k + '_antes'], r[k + '_desde']));
+    return c;
+  }));
+});
+
+window.ltDraw('r-proj', (el) => {
+  const d = dash.data('ritmo');
+  if (d.status !== 'ok' || !d.data[0]) { el.textContent = '—'; return; }
+  const r = d.data[0], T = window.ltT();
+  el.replaceChildren();
+  if (r.metodos_faltam === 0) { el.textContent = T.projFeito; return; }
+  if (!r.metodos_por_dia || r.metodos_dias_restantes == null) { el.textContent = T.projSem; return; }
+  T.proj(window.ltFmt(r.metodos_por_dia), window.ltFmt(r.metodos_faltam), T.projDias(r.metodos_dias_restantes))
+    .forEach((p, i) => el.appendChild(i % 2 ? window.ltEl('b', null, p) : document.createTextNode(p)));
+});
+
+window.ltDraw('r-prs-hora', (el) => {
+  const d = dash.data('linha');
+  const T = window.ltT();
+  const rows = d.status === 'ok' ? d.data.filter((r) => r.prs_merg != null).slice(-72) : [];
+  if (!rows.length) { el.replaceChildren(); el.textContent = '—'; return; }
+  const W = Math.max(300, el.clientWidth || 600), H = 220, m = {l: 40, r: 8, t: 10, b: 26};
+  el.replaceChildren();
+  const tip = window.ltTip(el);
+  const svg = d3.select(el).insert('svg', ':first-child').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', T.rs.commits_acum);
+  const x = d3.scaleBand().domain(rows.map((r) => r.hora)).range([m.l, W - m.r]).padding(0.15);
+  const y = d3.scaleLinear().domain([0, d3.max(rows, (r) => r.prs_merg) || 1]).nice(4).range([H - m.b, m.t]);
+  y.ticks(4).forEach((t) => {
+    svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(t)).attr('y2', y(t)).style('stroke', 'var(--cds-chart-grid)');
+    svg.append('text').attr('x', m.l - 6).attr('y', y(t) + 4).attr('text-anchor', 'end').text(window.ltFmt(t));
+  });
+  const passo = W < 500 ? 24 : 12;
+  rows.forEach((r) => { if (new Date(r.hora).getHours() % passo === 0) svg.append('text').attr('x', x(r.hora) + x.bandwidth() / 2).attr('y', H - 8).attr('text-anchor', 'middle').text(new Date(r.hora).toLocaleString(T.loc, {day: '2-digit', month: '2-digit', hour: '2-digit'})); });
+  svg.selectAll('rect.b').data(rows).join('rect').attr('class', 'b').attr('x', (r) => x(r.hora)).attr('width', x.bandwidth())
+    .attr('y', (r) => y(r.prs_merg)).attr('height', (r) => y(0) - y(r.prs_merg)).style('fill', 'var(--n-pink)');
+  svg.selectAll('rect.h').data(rows).join('rect').attr('class', 'h').attr('x', (r) => x(r.hora) - x.step() * x.paddingInner() / 2).attr('width', x.step())
+    .attr('y', m.t).attr('height', H - m.b - m.t).style('fill', 'transparent')
+    .on('pointermove pointerdown', (ev, r) => tip.show(ev, [new Date(r.hora).toLocaleString(T.loc, {weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'}), window.ltFmt(r.prs_merg) + T.prsHora]))
+    .on('pointerleave', () => tip.hide());
+});
+
+window.ltDraw('r-minis', (el) => {
+  const d = dash.data('linha');
+  if (d.status !== 'ok' || !d.data.length) { el.textContent = '—'; return; }
+  const T = window.ltT();
+  const series = [['metodos_main', 'metodos_total', 'var(--n-teal)'], ['marcos_ok', 'marcos_total', 'var(--n-yellow)'], ['pecas_ok', 'pecas_total', 'var(--n-ok)'],
+    ['chamadas', null, 'var(--n-orange)'], ['fases_ok', null, 'var(--n-purple)'], ['commits_acum', null, 'var(--n-pink)']];
+  el.replaceChildren(...series.map(([k]) => {
+    const box = window.ltEl('div', 'card lt-mini');
+    box.appendChild(window.ltEl('h3', null, T.rs[k]));
+    box.appendChild(window.ltEl('div', 'lt-chart'));
+    return box;
+  }));
+  el.querySelectorAll('.lt-chart').forEach((wrap, idx) => {
+    const [k, kt, cor] = series[idx];
+    const pts = d.data.filter((r) => r[k] != null).map((r) => ({t: new Date(r.hora), v: r[k], tot: kt ? r[kt] : null}));
+    if (!pts.length) { wrap.textContent = '—'; return; }
+    if (pts.length === 1) pts.push({t: new Date(Date.now()), v: pts[0].v, tot: pts[0].tot});
+    const W = Math.max(240, wrap.clientWidth || 300), H = 150, m = {l: 44, r: 10, t: 10, b: 22};
+    const tip = window.ltTip(wrap);
+    const x = d3.scaleUtc().domain(d3.extent(pts, (p) => p.t)).range([m.l, W - m.r]);
+    const ymax = d3.max(pts, (p) => Math.max(p.v, p.tot || 0)) || 1;
+    const y = d3.scaleLinear().domain([0, ymax]).nice(3).range([H - m.b, m.t]);
+    const svg = d3.select(wrap).insert('svg', ':first-child').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', T.rs[k]);
+    y.ticks(3).forEach((t) => {
+      svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(t)).attr('y2', y(t)).style('stroke', 'var(--cds-chart-grid)');
+      svg.append('text').attr('x', m.l - 6).attr('y', y(t) + 4).attr('text-anchor', 'end').text(window.ltFmt(t));
+    });
+    const f = (dd) => dd.toLocaleDateString(T.loc, {day: '2-digit', month: '2-digit'});
+    svg.append('text').attr('x', m.l).attr('y', H - 4).text(f(pts[0].t));
+    svg.append('text').attr('x', W - m.r).attr('y', H - 4).attr('text-anchor', 'end').text(f(pts[pts.length - 1].t));
+    if (kt) {
+      const tots = pts.filter((p) => p.tot != null);
+      if (tots.length) svg.append('path').datum(tots).attr('d', d3.line().curve(d3.curveStepAfter).x((p) => x(p.t)).y((p) => y(p.tot)))
+        .style('fill', 'none').style('stroke', 'var(--n-mut)').style('stroke-dasharray', '4 4').style('opacity', 0.6);
+    }
+    svg.append('path').datum(pts).attr('d', d3.area().curve(d3.curveStepAfter).x((p) => x(p.t)).y0(H - m.b).y1((p) => y(p.v))).style('fill', cor).style('opacity', 0.14);
+    svg.append('path').datum(pts).attr('d', d3.line().curve(d3.curveStepAfter).x((p) => x(p.t)).y((p) => y(p.v))).style('fill', 'none').style('stroke', cor).style('stroke-width', 2.2);
+    const lp = pts[pts.length - 1];
+    svg.append('circle').attr('cx', x(lp.t)).attr('cy', y(lp.v)).attr('r', 4).style('fill', cor);
+    svg.append('rect').attr('x', m.l).attr('width', W - m.l - m.r).attr('height', H).style('fill', 'transparent')
+      .on('pointermove pointerdown', (ev) => {
+        const [mx] = d3.pointer(ev); const t = x.invert(mx);
+        let p = pts[0]; pts.forEach((q) => { if (q.t <= t) p = q; });
+        tip.show(ev, [p.t.toLocaleString(T.loc, {day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'}), T.rs[k] + ': ' + window.ltFmt(p.v) + (p.tot ? T.de + window.ltFmt(p.tot) : '')]);
+      })
+      .on('pointerleave', () => tip.hide());
   });
 });
 </script>
