@@ -31,8 +31,26 @@ jobs:
         run: |
           base="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}"
           for f in leonida.json historico.json; do
-            curl -fsSL "$base/$f?t=$(date +%s)" -o "/tmp/$f" && cp "/tmp/$f" "dados/$f" || echo "sem $f publicado, usando o do repositório"
+            curl -fsSL "$base/$f?t=$(date +%s)" -o "/tmp/$f" || echo "sem $f publicado, usando o do repositório"
           done
+          # Usa o publicado (mais novo), mas sem perder o cache do histórico que está no repositório.
+          python -I - <<'EOF'
+          import json, pathlib
+          for nome in ("leonida.json", "historico.json"):
+              pub, rep = pathlib.Path("/tmp") / nome, pathlib.Path("dados") / nome
+              if not pub.exists():
+                  continue
+              try:
+                  novo = json.loads(pub.read_text("utf-8"))
+              except ValueError:
+                  continue
+              if nome == "leonida.json" and rep.exists():
+                  velho = json.loads(rep.read_text("utf-8"))
+                  cache = dict(velho.get("_cache") or {})
+                  cache.update(novo.get("_cache") or {})
+                  novo["_cache"] = cache
+              rep.write_text(json.dumps(novo, ensure_ascii=False), "utf-8")
+          EOF
 
       - name: Coletar
         env:

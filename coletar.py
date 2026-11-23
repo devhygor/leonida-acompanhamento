@@ -37,12 +37,18 @@ _BUSCAS = []
 def busca(q):
     """Contagem pela API de busca, respeitando o limite de ~30 buscas por minuto."""
     import time
-    agora = time.time()
-    while len(_BUSCAS) >= 25 and agora - _BUSCAS[-25] < 61:
-        time.sleep(61 - (agora - _BUSCAS[-25]))
+    for tentativa in range(4):
         agora = time.time()
-    _BUSCAS.append(agora)
-    return gh(f"search/issues?q={q}&per_page=1")["total_count"]
+        while len(_BUSCAS) >= 20 and agora - _BUSCAS[-20] < 61:
+            time.sleep(61 - (agora - _BUSCAS[-20]))
+            agora = time.time()
+        _BUSCAS.append(agora)
+        try:
+            return gh(f"search/issues?q={q}&per_page=1")["total_count"]
+        except RuntimeError as e:
+            if "rate limit" not in str(e).lower() or tentativa == 3:
+                raise
+            time.sleep(62)  # o limite da busca é por minuto: espera e tenta de novo
 
 
 def limpa(md):
