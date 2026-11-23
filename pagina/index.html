@@ -179,6 +179,16 @@
 .relato.novo{color:var(--n-fg)}
 .lt-fresco{margin-top:10px}
 #escada-hist summary{cursor:pointer;color:var(--n-mut)}
+/* Modo dono */
+.lt-admin{margin-top:14px;border-top:1px dashed var(--n-line);padding-top:10px;display:flex;flex-direction:column;gap:8px}
+.lt-admin-link{appearance:none;background:none;border:0;color:var(--n-mut);font:inherit;font-size:12.5px;text-decoration:underline;cursor:pointer;align-self:flex-start;padding:0}
+.lt-admin-form{grid-template-columns:minmax(0,1fr) auto;max-width:420px}
+.lt-mod{display:inline-flex;gap:6px;margin-left:8px;vertical-align:middle}
+.lt-mod button,.lt-acoes button{appearance:none;border:1px solid var(--n-line);background:var(--n-bg);color:var(--n-fg);border-radius:6px;font:inherit;font-size:11.5px;padding:2px 8px;cursor:pointer}
+.lt-mod button:hover,.lt-acoes button:hover{border-color:var(--n-pink)}
+.lt-acoes{grid-column:2;display:flex;gap:8px;margin-top:4px}
+.lt-acoes .sim{border-color:var(--n-ok);color:var(--n-ok)}
+.lt-acoes .nao{border-color:var(--n-bad);color:var(--n-bad)}
 /* Ritmo */
 .lt-vid-form{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) auto}
 @media (max-width:560px){.lt-vid-form{grid-template-columns:minmax(0,1fr) auto}.lt-vid-form #lt-vid-url{grid-column:1 / 3}}
@@ -455,6 +465,24 @@
         <button type="submit" id="lt-vid-enviar">Sugerir</button>
       </form>
       <p class="muted" id="lt-vid-status" aria-live="polite"></p>
+      <div class="lt-admin" id="lt-admin">
+        <button type="button" class="lt-admin-link" id="lt-admin-abrir"><span data-l="pt">Área do dono</span><span data-l="en">Owner area</span><span data-l="es">Área del dueño</span></button>
+        <form class="lt-chat-form lt-admin-form" id="lt-admin-form" autocomplete="off" hidden>
+          <input type="password" id="lt-admin-chave" autocomplete="current-password" aria-label="Chave de administrador / Admin key" placeholder="••••••••">
+          <button type="submit" id="lt-admin-entrar"><span data-l="pt">Entrar</span><span data-l="en">Enter</span><span data-l="es">Entrar</span></button>
+        </form>
+        <div id="lt-admin-painel" hidden>
+          <div class="lt-news-top">
+            <h3><span data-l="pt">Modo dono: vídeos sugeridos</span><span data-l="en">Owner mode: suggested videos</span><span data-l="es">Modo dueño: videos sugeridos</span></h3>
+            <button type="button" class="lt-admin-link" id="lt-admin-sair"><span data-l="pt">Sair do modo dono</span><span data-l="en">Leave owner mode</span><span data-l="es">Salir del modo dueño</span></button>
+          </div>
+          <p class="muted" data-l="pt">Abra o link para conferir antes de aprovar. No chat, aparecem botões para apagar mensagens e banir.</p>
+          <p class="muted" data-l="en">Open the link to check it before approving. In the chat you get buttons to delete messages and ban.</p>
+          <p class="muted" data-l="es">Abre el enlace para comprobarlo antes de aprobar. En el chat aparecen botones para borrar mensajes y banear.</p>
+          <ol class="lt-talk-lista" id="lt-admin-lista"></ol>
+        </div>
+        <p class="muted" id="lt-admin-status" aria-live="polite"></p>
+      </div>
     </section>
 
     <section id="conversa" class="card lt-talk">

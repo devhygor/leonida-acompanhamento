@@ -121,6 +121,99 @@
     });
   }
 
+  var AT = {
+    pt: {errada: 'Chave incorreta (depois de 10 erros, bloqueia por 1 hora).', ativo: 'Modo dono ativo neste navegador.', nada: 'Nenhum vídeo sugerido ainda.',
+      aprovar: 'Aprovar', recusar: 'Recusar', remover: 'Tirar do site', aprovado: 'aprovado', pendente: 'aguardando', apagar: 'apagar', ban24: 'banir 24 h', banSempre: 'banir sempre',
+      confBan: 'Banir quem escreveu esta mensagem e apagar todas as mensagens dela?', confRec: 'Recusar e apagar esta sugestão?', falhou: 'Não deu certo. Tente de novo.'},
+    en: {errada: 'Wrong key (10 mistakes lock it for 1 hour).', ativo: 'Owner mode is on in this browser.', nada: 'No suggested videos yet.',
+      aprovar: 'Approve', recusar: 'Reject', remover: 'Remove from site', aprovado: 'approved', pendente: 'waiting', apagar: 'delete', ban24: 'ban 24 h', banSempre: 'ban forever',
+      confBan: 'Ban whoever wrote this message and delete all their messages?', confRec: 'Reject and delete this suggestion?', falhou: 'That did not work. Try again.'},
+    es: {errada: 'Clave incorrecta (tras 10 errores se bloquea 1 hora).', ativo: 'Modo dueño activo en este navegador.', nada: 'Aún no hay videos sugeridos.',
+      aprovar: 'Aprobar', recusar: 'Rechazar', remover: 'Quitar del sitio', aprovado: 'aprobado', pendente: 'esperando', apagar: 'borrar', ban24: 'banear 24 h', banSempre: 'banear siempre',
+      confBan: '¿Banear a quien escribió este mensaje y borrar todos sus mensajes?', confRec: '¿Rechazar y borrar esta sugerencia?', falhou: 'No funcionó. Inténtalo de nuevo.'}
+  };
+  var at = function () { return AT[window.ltLang] || AT.pt; };
+
+  function modoDono(sb) {
+    var abrir = $('lt-admin-abrir'), form = $('lt-admin-form'), campo = $('lt-admin-chave'), painel = $('lt-admin-painel'),
+      lista = $('lt-admin-lista'), sair = $('lt-admin-sair'), st = $('lt-admin-status');
+    if (!abrir || !form) return;
+    var chave = ls.get('lt-admin');
+
+    function botao(txt, cls, fn) { var b = document.createElement('button'); b.type = 'button'; if (cls) b.className = cls; b.textContent = txt; b.addEventListener('click', fn); return b; }
+
+    function modChat(li, id) {
+      if (!chave || li.querySelector('.lt-mod')) return;
+      var box = document.createElement('span'); box.className = 'lt-mod';
+      box.appendChild(botao(at().apagar, '', function () {
+        sb.rpc('leonida_admin_chat', {chave: chave, mensagem: Number(id), banir: false}).then(function (r) { if (r.error || r.data !== 'ok') alert(at().falhou); else li.remove(); });
+      }));
+      [[at().ban24, 24], [at().banSempre, null]].forEach(function (op) {
+        box.appendChild(botao(op[0], '', function () {
+          if (!confirm(at().confBan)) return;
+          sb.rpc('leonida_admin_chat', {chave: chave, mensagem: Number(id), banir: true, horas: op[1]}).then(function (r) { if (r.error || r.data !== 'ok') alert(at().falhou); });
+        }));
+      });
+      li.appendChild(box);
+    }
+
+    function carrega() {
+      sb.rpc('leonida_admin_videos', {chave: chave}).then(function (r) {
+        if (r.error) { st.textContent = at().falhou; return; }
+        var itens = (r.data || []).map(function (v) {
+          var li = document.createElement('li');
+          var q = document.createElement('span'); q.className = 'q'; q.textContent = window.ltQuando ? window.ltQuando(v.criado_em) : '';
+          var cab = document.createElement('span'); cab.className = 'cab';
+          var tag = document.createElement('span'); tag.className = 'lt-tag ' + (v.aprovado ? 'decided' : 'stop'); tag.textContent = v.aprovado ? at().aprovado : at().pendente; cab.appendChild(tag);
+          var host = document.createElement('b'); host.textContent = hostDe(v.url) + (v.apelido ? ' · ' + v.apelido : ''); cab.appendChild(host);
+          var tx = document.createElement('span'); tx.className = 'tx';
+          var a = document.createElement('a'); a.className = 'lk'; a.target = '_blank'; a.rel = 'noopener nofollow ugc'; if (/^https:\/\//i.test(v.url)) a.href = v.url; a.textContent = v.url; tx.appendChild(a);
+          if (v.comentario) tx.appendChild(document.createTextNode(' — ' + v.comentario));
+          var acoes = document.createElement('span'); acoes.className = 'lt-acoes';
+          if (!v.aprovado) acoes.appendChild(botao(at().aprovar, 'sim', function () { decide(v.id, true); }));
+          acoes.appendChild(botao(v.aprovado ? at().remover : at().recusar, 'nao', function () { if (confirm(at().confRec)) decide(v.id, false); }));
+          li.appendChild(q); li.appendChild(cab); li.appendChild(tx); li.appendChild(acoes);
+          return li;
+        });
+        if (!itens.length) { var vz = document.createElement('li'); vz.className = 'muted'; vz.textContent = at().nada; itens.push(vz); }
+        lista.replaceChildren.apply(lista, itens);
+      });
+    }
+
+    function decide(id, aprovar) {
+      sb.rpc('leonida_admin_video', {chave: chave, video: id, aprovar: aprovar}).then(function (r) {
+        if (r.error || r.data !== 'ok') { st.textContent = at().falhou; return; }
+        carrega();
+        if (window.ltVideosRecarrega) window.ltVideosRecarrega();
+      });
+    }
+
+    function ativa() {
+      abrir.hidden = true; form.hidden = true; painel.hidden = false; st.textContent = at().ativo;
+      window.ltAdminMod = modChat;
+      document.querySelectorAll('#lt-chat-lista li[data-id]').forEach(function (li) { modChat(li, li.dataset.id); });
+      carrega();
+    }
+    function desativa() {
+      chave = null; try { localStorage.removeItem('lt-admin'); } catch (e) { /* sem armazenamento */ }
+      window.ltAdminMod = null;
+      document.querySelectorAll('.lt-mod').forEach(function (b) { b.remove(); });
+      painel.hidden = true; form.hidden = true; abrir.hidden = false; st.textContent = '';
+    }
+
+    abrir.addEventListener('click', function () { form.hidden = !form.hidden; if (!form.hidden) campo.focus(); });
+    sair.addEventListener('click', desativa);
+    form.addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      var c = campo.value.trim(); if (!c) return;
+      sb.rpc('leonida_admin_ok', {chave: c}).then(function (r) {
+        if (!r.error && r.data === true) { chave = c; ls.set('lt-admin', c); campo.value = ''; ativa(); }
+        else st.textContent = at().errada;
+      });
+    });
+    if (chave) sb.rpc('leonida_admin_ok', {chave: chave}).then(function (r) { if (!r.error && r.data === true) ativa(); else desativa(); });
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     if (!window.supabase || !window.supabase.createClient) { poeTodos('.lt-online-n', '—'); var st0 = $('lt-chat-status'); if (st0) st0.textContent = t().offline; return; }
     var sb = window.supabase.createClient(SUPA_URL, SUPA_KEY, {auth: {persistSession: false}});
@@ -128,8 +221,10 @@
     // Visitas
     sb.rpc('leonida_visita').then(function (r) { if (!r.error && r.data != null) poeTodos('.lt-visitas-n', fmt(r.data)); });
 
-    // Vídeos sugeridos pela comunidade (só aparecem depois de aprovados no Supabase)
+    // Vídeos sugeridos pela comunidade (só aparecem depois de aprovados)
     videosComunidade(sb);
+    // Modo dono: aprovar vídeos e moderar o chat pelo próprio site
+    modoDono(sb);
 
     // Online agora
     var meuId = ls.get('lt-id'); if (!meuId) { meuId = Math.random().toString(36).slice(2) + Date.now().toString(36); ls.set('lt-id', meuId); }
@@ -156,6 +251,7 @@
       var a = document.createElement('b'); a.textContent = m.apelido; a.style.color = CORES[m.cor] || CORES[0];
       var x = document.createElement('span'); x.className = 'x'; x.textContent = m.texto;
       li.appendChild(h); li.appendChild(a); li.appendChild(x);
+      if (window.ltAdminMod) window.ltAdminMod(li, m.id);
       lista.appendChild(li);
       while (lista.children.length > 200) lista.removeChild(lista.firstChild);
       rolaSePerto(forcar);
