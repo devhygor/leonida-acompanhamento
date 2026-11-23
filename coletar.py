@@ -731,6 +731,59 @@ def lista_videos(cache, guardar=40):
     return vids
 
 
+# ---------------------------------------------------------------- forge dos mantenedores (Forgejo, fora do GitHub)
+FORGE = "https://git.notrexed.dev"
+FORGE_REPO = "enx/leonida"
+
+
+def _forge(caminho, cabecalhos=False):
+    import urllib.request
+    req = urllib.request.Request(f"{FORGE}/api/v1/repos/{FORGE_REPO}{caminho}", headers={"Accept": "application/json",
+                                                                                      "User-Agent": "leonida-acompanhamento"})
+    with urllib.request.urlopen(req, timeout=40) as r:
+        corpo = json.loads(r.read().decode("utf-8"))
+        return (corpo, dict(r.headers)) if cabecalhos else corpo
+
+
+def coletar_forge(agora, anterior, cache):
+    """Estado da forge dos mantenedores. Se ela estiver fora do ar, mantém o último dado bom e marca quando caiu."""
+    try:
+        info = _forge("")
+        commits, cab = _forge("/commits?sha=main&limit=12&stat=false&verification=false&files=false", cabecalhos=True)
+        total = int(cab.get("X-Total-Count") or cab.get("x-total-count") or 0)
+        prs = _forge("/pulls?state=all&limit=50&sort=recentupdate")
+        recentes = _forge("/commits?sha=main&limit=100&stat=false&verification=false&files=false")
+    except Exception as e:  # forge fora do ar ou lenta
+        velho = dict(anterior or {})
+        velho["no_ar"] = False
+        velho["fora_desde"] = velho.get("fora_desde") or agora.isoformat().replace("+00:00", "Z")
+        velho["erro"] = corta(str(e), 120)
+        print("aviso: forge indisponível:", velho["erro"])
+        return velho
+    for p in prs:  # vídeos postados nos PRs da forge
+        guarda_videos(cache, {"em": p.get("created_at", ""), "autor": (p.get("user") or {}).get("login", ""),
+                              "url": p.get("html_url", ""), "issue": "forge !" + str(p.get("number")), "corpo": p.get("body") or ""})
+    importados = [c for c in recentes if c["commit"]["message"].startswith("Upstream PR #")]
+    return {
+        "no_ar": True,
+        "fora_desde": None,
+        "url": f"{FORGE}/{FORGE_REPO}",
+        "estrelas": info.get("stars_count"),
+        "atualizada": info.get("updated_at"),
+        "commits_main": total,
+        "prs_abertos": sum(p["state"] == "open" for p in prs),
+        "prs_mergeados": sum(bool(p.get("merged")) for p in prs),
+        "importados_ultimos100": len(importados),
+        "ultimos_commits": [{"em": c["created"], "autor": c["commit"]["author"]["name"],
+                             "titulo": corta(c["commit"]["message"].splitlines()[0], 140), "url": c["html_url"],
+                             "upstream": (re.match(r"Upstream PR #(\d+)", c["commit"]["message"]) or [None, None])[1]}
+                            for c in commits[:10]],
+        "ultimos_prs": [{"n": p["number"], "titulo": corta(p["title"], 140), "autor": (p.get("user") or {}).get("login", ""),
+                         "estado": "mergeado" if p.get("merged") else ("aberto" if p["state"] == "open" else "fechado"),
+                         "em": p.get("merged_at") or p.get("updated_at"), "url": p["html_url"]} for p in prs[:10]],
+    }
+
+
 def comentarios_boot(agora, cache, guardar=60):
     """Comentários relevantes da #7154. Busca só os novos desde a última coleta (parâmetro since)."""
     itens = cache.setdefault("v2:coments", {})
@@ -906,6 +959,7 @@ def main():
         "novidades": novidades(cache),
         "frente": [{"n": i + 1, "texto": t} for i, t in enumerate(boot["frente"])],
         "comentarios": comentarios_boot(agora, cache),
+        "forge": [coletar_forge(agora, (velho.get("forge") or [{}])[0], cache)],
         "videos": lista_videos(cache),
     }
     OUT.write_text(json.dumps(dados, ensure_ascii=False, separators=(",", ":")), "utf-8")

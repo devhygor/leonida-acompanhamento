@@ -162,6 +162,8 @@
 .lt-parte .br i{display:block;height:100%;background:linear-gradient(90deg,var(--n-teal),var(--n-pink))}
 .lt-parte:hover .nm{color:var(--n-teal)}
 /* Ritmo */
+.lt-pace.q4{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media (max-width:760px){.lt-pace.q4{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .lt-pace{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 @media (max-width:640px){.lt-pace{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .lt-pace .card{display:flex;flex-direction:column;gap:4px}
@@ -349,6 +351,27 @@
       <p class="muted" data-l="en">The points the coordinator lists as the boot frontier, in the current issue.</p>
       <p class="muted" data-l="es">Los puntos que el coordinador lista como la frontera del arranque, en la issue actual (traducido automáticamente del inglés).</p>
       <ol class="lt-asks" data-draw="frente" data-source="frente"></ol>
+    </section>
+
+    <section id="forge">
+      <div class="lt-news-top">
+        <h2><span data-l="pt">Forge dos mantenedores</span><span data-l="en">Maintainers' forge</span><span data-l="es">Forge de los mantenedores</span></h2>
+        <span data-draw="forge-status" data-source="forge"></span>
+      </div>
+      <p class="muted" data-l="pt">O repositório onde os mantenedores juntam os PRs do caminho de boot (<a class="lk" href="https://git.notrexed.dev/enx/leonida" target="_blank" rel="noopener">git.notrexed.dev/enx/leonida</a>), fora do GitHub. É a base usada nas execuções do jogo. Se ela cair, o site mostra o último dado conhecido.</p>
+      <p class="muted" data-l="en">The repository where the maintainers gather the boot-path PRs (<a class="lk" href="https://git.notrexed.dev/enx/leonida" target="_blank" rel="noopener">git.notrexed.dev/enx/leonida</a>), outside GitHub. It is the base for the game runs. If it goes down, the site shows the last known data.</p>
+      <p class="muted" data-l="es">El repositorio donde los mantenedores juntan los PRs del camino de arranque (<a class="lk" href="https://git.notrexed.dev/enx/leonida" target="_blank" rel="noopener">git.notrexed.dev/enx/leonida</a>), fuera de GitHub. Es la base de las ejecuciones del juego. Si se cae, el sitio muestra el último dato conocido.</p>
+      <div class="lt-pace q4" data-draw="forge-cards" data-source="forge"></div>
+      <div class="lt-two">
+        <div>
+          <h3><span data-l="pt">Últimos commits na main da forge</span><span data-l="en">Latest commits on the forge main</span><span data-l="es">Últimos commits en la main de la forge</span></h3>
+          <ol class="lt-talk-lista" data-draw="forge-commits" data-source="forge"></ol>
+        </div>
+        <div>
+          <h3><span data-l="pt">PRs na forge</span><span data-l="en">Forge PRs</span><span data-l="es">PRs en la forge</span></h3>
+          <ol class="lt-talk-lista" data-draw="forge-prs" data-source="forge"></ol>
+        </div>
+      </div>
     </section>
 
     <section id="fases-sec">
@@ -1401,5 +1424,65 @@ window.ltDraw('repo-nome', () => {
   const r = d.status === 'ok' && d.data[0] && d.data[0].repo;
   if (!r) return;
   document.querySelectorAll('a.lk-repo').forEach((a) => { a.textContent = r; a.href = 'https://github.com/' + r; });
+});
+</script>
+
+<script>
+dash.calc('forge', {inputs: ['leonida'], title: 'Forge dos mantenedores', description: 'Dados públicos da API do Forgejo em git.notrexed.dev/enx/leonida.', fn: (leonida) => (leonida && leonida.forge) || []});
+Object.assign(window.LT_I18N.pt, {fg: {noAr: 'no ar', fora: 'fora do ar desde ', commits: 'commits na main da forge', abertos: 'PRs abertos na forge', merg: 'PRs mergeados na forge', imp: 'dos últimos 100 commits são PRs do GitHub importados', upstream: 'PR do GitHub ', estados: {aberto: 'aberto', mergeado: 'mergeado', fechado: 'fechado'}}});
+Object.assign(window.LT_I18N.en, {fg: {noAr: 'online', fora: 'offline since ', commits: 'commits on the forge main', abertos: 'open PRs on the forge', merg: 'merged PRs on the forge', imp: 'of the last 100 commits are imported GitHub PRs', upstream: 'GitHub PR ', estados: {aberto: 'open', mergeado: 'merged', fechado: 'closed'}}});
+Object.assign(window.LT_I18N.es, {fg: {noAr: 'en línea', fora: 'caída desde ', commits: 'commits en la main de la forge', abertos: 'PRs abiertos en la forge', merg: 'PRs fusionados en la forge', imp: 'de los últimos 100 commits son PRs de GitHub importados', upstream: 'PR de GitHub ', estados: {aberto: 'abierto', mergeado: 'fusionado', fechado: 'cerrado'}}});
+
+window.ltForge = () => { const d = dash.data('forge'); return d.status === 'ok' && d.data[0] && Object.keys(d.data[0]).length ? d.data[0] : null; };
+
+window.ltDraw('forge-status', (el) => {
+  const f = window.ltForge(), T = window.ltT();
+  if (!f) { el.replaceChildren(); return; }
+  const p = f.no_ar ? window.ltEl('span', 'pill ok', T.fg.noAr) : window.ltEl('span', 'pill bad', T.fg.fora + window.ltQuando(f.fora_desde));
+  el.replaceChildren(p);
+});
+
+window.ltDraw('forge-cards', (el) => {
+  const f = window.ltForge(), T = window.ltT();
+  if (!f) { el.textContent = '—'; return; }
+  const cards = [[f.commits_main, T.fg.commits, f.url + '/commits/branch/main'], [f.prs_abertos, T.fg.abertos, f.url + '/pulls?state=open'],
+    [f.prs_mergeados, T.fg.merg, f.url + '/pulls?state=closed'], [f.importados_ultimos100, T.fg.imp, f.url + '/commits/branch/main']];
+  el.replaceChildren(...cards.map(([v, l, u]) => {
+    const c = window.ltA(u, null, 'card');
+    c.appendChild(window.ltEl('span', 'v', v == null ? '—' : window.ltFmt(v)));
+    c.appendChild(window.ltEl('span', 'l', l));
+    return c;
+  }));
+});
+
+window.ltDraw('forge-commits', (el) => {
+  const f = window.ltForge(), T = window.ltT();
+  if (!f || !(f.ultimos_commits || []).length) { el.replaceChildren(); return; }
+  el.replaceChildren(...f.ultimos_commits.map((c) => {
+    const li = document.createElement('li');
+    const q = window.ltEl('span', 'q', window.ltQuando(c.em)); q.title = window.ltData(c.em);
+    const cab = window.ltEl('span', 'cab');
+    cab.appendChild(window.ltEl('b', null, c.autor));
+    if (c.upstream) cab.appendChild(window.ltA(window.LT_REPO + '/pull/' + c.upstream, T.fg.upstream + '#' + c.upstream, 'lk'));
+    li.appendChild(q); li.appendChild(cab);
+    li.appendChild(window.ltA(c.url, c.titulo, 'lk tx'));
+    return li;
+  }));
+});
+
+window.ltDraw('forge-prs', (el) => {
+  const f = window.ltForge(), T = window.ltT();
+  if (!f || !(f.ultimos_prs || []).length) { el.replaceChildren(); return; }
+  const cls = {aberto: 'finding', mergeado: 'decided', fechado: 'stop'};
+  el.replaceChildren(...f.ultimos_prs.map((p) => {
+    const li = document.createElement('li');
+    const q = window.ltEl('span', 'q', window.ltQuando(p.em)); q.title = window.ltData(p.em);
+    const cab = window.ltEl('span', 'cab');
+    cab.appendChild(window.ltEl('span', 'lt-tag ' + (cls[p.estado] || 'finding'), T.fg.estados[p.estado] || p.estado));
+    cab.appendChild(window.ltEl('b', null, '!' + p.n + ' · ' + p.autor));
+    li.appendChild(q); li.appendChild(cab);
+    li.appendChild(window.ltA(p.url, p.titulo, 'lk tx'));
+    return li;
+  }));
 });
 </script>
