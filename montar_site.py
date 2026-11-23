@@ -13,7 +13,7 @@ RODAPE = """
 </div>
 <p class="lt-rodape">Painel não oficial, sem ligação com a Rockstar Games, a Take-Two ou o projeto Leonida.
 Unofficial tracker, not affiliated with Rockstar Games, Take-Two or the Leonida project.
-Dados: <a href="https://github.com/ItsNotRexed/Leonida" target="_blank" rel="noopener">ItsNotRexed/Leonida</a>.</p>
+Dados: <a href="https://github.com/ProjectLeonida/Leonida" target="_blank" rel="noopener">ProjectLeonida/Leonida</a>.</p>
 </body>
 </html>
 """

@@ -12,7 +12,7 @@ import pathlib
 import re
 import subprocess
 
-REPO = "ItsNotRexed/Leonida"
+REPO = "ItsNotRexed/Leonida"   # nome de partida; main() troca pelo nome atual (o repo já mudou de dono)
 BASE = pathlib.Path(__file__).resolve().parent
 CACHE = BASE / "cache" / "leonida.git"
 OUT = BASE / "dados" / "leonida.json"
@@ -309,6 +309,8 @@ def roadmap_boot(cache):
     vistas = {(m["de"], m["para"]) for m in cache.get("v2:mudancas", [])}
     cache["v2:mudancas"] = cache.get("v2:mudancas", []) + [m for m in resolve_issue.mudancas if (m["de"], m["para"]) not in vistas]
     body = issue["body"]
+    guarda_videos(cache, {"em": issue.get("updated_at") or issue.get("created_at"), "autor": (issue.get("user") or {}).get("login", ""),
+                          "url": issue["html_url"], "issue": issue["number"], "corpo": body or ""})
     fases, escada, pedidos, fronteira_em = parse_boot(body)
     frente, proxima = parse_frente(body)
     f5 = next((f for f in fases if f["n"] == 5), None)
@@ -440,8 +442,9 @@ def versoes_git(caminho, parser, cache, versao="v2"):
 
 
 def versoes_issue(numero, parser, cache, max_paginas=6, versao="v3"):
-    q = ('query($c:String){repository(owner:"ItsNotRexed",name:"Leonida"){issue(number:%d){'
-         'userContentEdits(first:100, after:$c){pageInfo{hasNextPage endCursor} nodes{editedAt diff}}}}}' % numero)
+    dono, nome = REPO.split("/")
+    q = ('query($c:String){repository(owner:"%s",name:"%s"){issue(number:%d){' % (dono, nome, numero) +
+         'userContentEdits(first:100, after:$c){pageInfo{hasNextPage endCursor} nodes{editedAt diff}}}}}')
     cursor, pares = None, []
     for _ in range(max_paginas):
         args = ["gh", "api", "graphql", "-f", f"query={q}"] + (["-f", f"c={cursor}"] if cursor else [])
@@ -541,7 +544,13 @@ def prs_por_hora(agora, cache):
         fechada = h + dt.timedelta(hours=1) <= agora - dt.timedelta(minutes=10)
         if k not in ph or not fechada:
             ini, fim = h.strftime("%Y-%m-%dT%H:00:00Z"), h.strftime("%Y-%m-%dT%H:59:59Z")
-            n = busca(f"repo:{REPO}+is:pr+is:merged+merged:{ini}..{fim}")
+            try:
+                n = busca(f"repo:{REPO}+is:pr+is:merged+merged:{ini}..{fim}")
+            except RuntimeError as e:  # falha pontual da API de busca: deixa a hora sem número e tenta na próxima coleta
+                print("aviso: busca de PRs da hora", k, "falhou:", str(e).splitlines()[-1][:120])
+                out[k] = ph.get(k)
+                h += dt.timedelta(hours=1)
+                continue
             if fechada:
                 ph[k] = n
             out[k] = n
@@ -672,6 +681,56 @@ def resumo_comentario(body):
     return None
 
 
+# ---------------------------------------------------------------- vídeos citados (só links)
+VIDEO_HOST = re.compile(
+    r"https?://(?:www\.|m\.)?(?:youtube\.com/(?:watch\?[^\s)\]>\"']*v=|shorts/|live/)[\w-]+[^\s)\]>\"']*|youtu\.be/[\w-]+[^\s)\]>\"']*"
+    r"|streamable\.com/[\w]+|(?:clips\.)?twitch\.tv/[^\s)\]>\"']+|vimeo\.com/\d+[^\s)\]>\"']*|medal\.tv/[^\s)\]>\"']+"
+    r"|(?:x|twitter)\.com/\w+/status/\d+[^\s)\]>\"']*|[^\s)\]>\"']+\.(?:mp4|webm|mov|mkv)(?:\?[^\s)\]>\"']*)?)", re.I)
+ANEXO_GH = re.compile(r"https://github\.com/user-attachments/assets/[0-9a-f-]{20,}", re.I)
+FALA_VIDEO = re.compile(r"\b(video|vídeo|clip|recording|recorded|footage|capture[ds]?|screen ?cap|gameplay|mp4)\b", re.I)
+
+
+def _host(url):
+    m = re.match(r"https?://(?:www\.|m\.|clips\.)?([^/]+)", url)
+    h = (m.group(1) if m else "").lower()
+    return {"youtu.be": "YouTube", "youtube.com": "YouTube", "streamable.com": "Streamable", "twitch.tv": "Twitch",
+            "vimeo.com": "Vimeo", "medal.tv": "Medal", "x.com": "X", "twitter.com": "X", "github.com": "GitHub"}.get(h, h)
+
+
+def videos_do_texto(texto):
+    """Links de vídeo num texto. Anexo do GitHub só conta se o texto fala em vídeo/gravação."""
+    corpo = texto or ""
+    achados = [m.group(0).rstrip(".,;:") for m in VIDEO_HOST.finditer(corpo)]
+    if FALA_VIDEO.search(corpo):
+        achados += ANEXO_GH.findall(corpo)
+    vistos, saida = set(), []
+    for u in achados:
+        if u.startswith("https://") and u not in vistos:
+            vistos.add(u)
+            # frase em volta do link, sem markdown
+            i = corpo.find(u)
+            trecho = corpo[max(0, i - 220): i + len(u) + 120]
+            trecho = re.sub(r"!?\[([^\]]*)\]\([^)]*\)", r"\1", trecho.replace(u, " "))
+            trecho = limpa(re.sub(r"https?://\S+", " ", trecho))
+            saida.append((u, corta(trecho.strip(" -:|"), 220)))
+    return saida
+
+
+def guarda_videos(cache, origem):
+    """origem: dict com em, autor, url (do comentário ou issue), issue, corpo."""
+    vids = cache.setdefault("v2:videos", {})
+    for url, contexto in videos_do_texto(origem["corpo"]):
+        if url not in vids:
+            vids[url] = {"url": url, "host": _host(url), "em": origem["em"], "autor": origem["autor"],
+                         "onde": origem["url"], "issue": origem["issue"], "contexto": contexto}
+
+
+def lista_videos(cache, guardar=40):
+    vids = sorted((cache.get("v2:videos") or {}).values(), key=lambda v: v["em"], reverse=True)[:guardar]
+    cache["v2:videos"] = {v["url"]: v for v in vids}
+    return vids
+
+
 def comentarios_boot(agora, cache, guardar=60):
     """Comentários relevantes da #7154. Busca só os novos desde a última coleta (parâmetro since)."""
     itens = cache.setdefault("v2:coments", {})
@@ -684,6 +743,9 @@ def comentarios_boot(agora, cache, guardar=60):
             lst = gh(f"repos/{REPO}/issues/{numero}/comments?per_page=100&page={pagina}&since={desde}")
             for c in lst:
                 ultimo = max(ultimo, c["updated_at"])
+                if (c.get("user") or {}).get("type") != "Bot":
+                    guarda_videos(cache, {"em": c["created_at"], "autor": c["user"]["login"], "url": c["html_url"],
+                                          "issue": numero, "corpo": c.get("body") or ""})
                 r = resumo_comentario(c.get("body") or "")
                 if not r or (c.get("user") or {}).get("type") == "Bot":
                     continue
@@ -726,8 +788,13 @@ def ritmo(linha):
 
 # ---------------------------------------------------------------- main
 def main():
+    global REPO
     agora = dt.datetime.now(UTC).replace(microsecond=0)
     repo = gh(f"repos/{REPO}")
+    if repo.get("full_name") and repo["full_name"] != REPO:
+        # o repositório foi transferido/renomeado: a API redireciona, mas a busca não. Usa o nome atual em tudo.
+        print(f"repositório agora é {repo['full_name']} (era {REPO})")
+        REPO = repo["full_name"]
     criado = dt.datetime.fromisoformat(repo["created_at"].replace("Z", "+00:00"))
     atualiza_clone()
     total_commits, commits_dia, horas, n_autores = atividade_git(agora)
@@ -796,6 +863,7 @@ def main():
         "ultimo_push": repo["pushed_at"],
         "roadmap_atualizado": fronteira_em,
         "comentarios_boot": coment_7154,
+        "repo": REPO,
         "issue_boot": boot["numero"],
         "progresso_pct": ind_pct,
         "issues_boot": boot["cadeia"],
@@ -838,6 +906,7 @@ def main():
         "novidades": novidades(cache),
         "frente": [{"n": i + 1, "texto": t} for i, t in enumerate(boot["frente"])],
         "comentarios": comentarios_boot(agora, cache),
+        "videos": lista_videos(cache),
     }
     OUT.write_text(json.dumps(dados, ensure_ascii=False, separators=(",", ":")), "utf-8")
     estado["_cache"] = cache

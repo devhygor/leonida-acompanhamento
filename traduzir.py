@@ -24,7 +24,7 @@ LINGUAS = ("pt", "es")
 CAMPOS = [("fases", "situacao"), ("fases", "o_que_destrava"), ("escada", "para_em"), ("escada", "libera"),
           ("pedidos", "pedido"), ("pedidos", "precisa"), ("frente", "texto"), ("comentarios", "texto"),
           ("componentes", "detalhe"), ("marcos", "objetivo"), ("marcos", "escopo"), ("longe", "resumo"),
-          ("resumo", "proxima_parada")]
+          ("resumo", "proxima_parada"), ("videos", "contexto")]
 
 # pedaços que não devem ser traduzidos (código, PRs, nomes de funções, números com unidade, links)
 PROTEGE = re.compile(

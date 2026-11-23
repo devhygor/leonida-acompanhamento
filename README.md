@@ -1,6 +1,6 @@
 # Leonida em andamento
 
-Painel não oficial que acompanha o [ItsNotRexed/Leonida](https://github.com/ItsNotRexed/Leonida), o port de GTA VI (Xbox Series) para rodar nativo no PC: o que já funciona, o que falta e quão perto o jogo está de rodar.
+Painel não oficial que acompanha o [ProjectLeonida/Leonida](https://github.com/ProjectLeonida/Leonida), o port de GTA VI (Xbox Series) para rodar nativo no PC: o que já funciona, o que falta e quão perto o jogo está de rodar.
 
 **Página:** https://devhygor.github.io/leonida-acompanhamento/ (português, English, español)
 
