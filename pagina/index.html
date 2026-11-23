@@ -1,0 +1,847 @@
+<meta name="dash-one-writer">
+<style>
+/* Vice City à noite: céu roxo, sol neon listrado, palmeiras em silhueta. Um visual só (escuro), cores explícitas. */
+#dash-root{--dash-gutter:0}
+.lt{
+  --n-bg:#0c0820; --n-bg2:#140d30; --n-panel:#1a1238; --n-line:#3a2a6e; --n-fg:#f7f1ff; --n-mut:#b9acdf;
+  --n-pink:#ff3d8b; --n-orange:#ff9a3c; --n-yellow:#ffd23f; --n-teal:#2de2e6; --n-purple:#8b3dff;
+  --n-ok:#39e6a0; --n-warn:#ffb238; --n-bad:#ff4d6d;
+  --color-ok:var(--n-ok); --color-warn:var(--n-warn); --color-bad:var(--n-bad); --color-fg:var(--n-fg); --color-bg:var(--n-bg);
+  --cds-chart-grid:#2c2158; --cds-text-secondary:var(--n-mut);
+  --f-disp:"Bebas Neue","Anton","Oswald",Impact,Haettenschweiler,"Arial Narrow Bold","Franklin Gothic Medium",sans-serif;
+  --f-body:var(--font-anthropic-sans),system-ui,sans-serif;
+  color-scheme:dark;
+  background:linear-gradient(180deg,var(--n-bg) 0%,var(--n-bg2) 100%);
+  color:var(--n-fg);font-family:var(--f-body);
+  display:flex;flex-direction:column;gap:0;border-radius:14px;overflow:hidden;
+}
+.lt [data-l]{display:none}
+.lt.l-pt [data-l="pt"],.lt.l-en [data-l="en"],.lt.l-es [data-l="es"]{display:revert}
+.lt p{margin:0}
+.lt a{color:var(--n-teal)}
+.lt .muted{color:var(--n-mut);font-size:var(--cds-font-size-caption)}
+.lt .num{font-variant-numeric:tabular-nums}
+.lt h2{font-family:var(--f-disp);font-weight:400;font-size:30px;line-height:1;letter-spacing:.02em;text-transform:uppercase;margin:0;text-wrap:balance}
+.lt h3{font-family:var(--f-disp);font-weight:400;font-size:22px;letter-spacing:.03em;text-transform:uppercase;margin:0}
+
+/* Herói */
+.lt-hero{position:relative;min-height:300px;display:flex;flex-direction:column;justify-content:flex-end;isolation:isolate}
+.lt-hero svg.scene{position:absolute;inset:0;width:100%;height:100%;z-index:-1}
+.lt-hero-in{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;padding:28px 24px 22px;background:linear-gradient(180deg,rgba(12,8,32,0) 0%,rgba(12,8,32,.55) 45%,rgba(12,8,32,.92) 100%)}
+.lt-hero-in > div{min-width:0;flex:1 1 320px}
+.lt-kicker{font-family:var(--f-disp);letter-spacing:.25em;font-size:14px;color:var(--n-yellow);text-transform:uppercase}
+.lt-title{font-family:var(--f-disp);font-weight:400;font-size:clamp(56px,11vw,112px);line-height:.85;margin:4px 0 8px;letter-spacing:.01em;text-transform:uppercase;
+  background:linear-gradient(180deg,var(--n-yellow) 0%,var(--n-orange) 40%,var(--n-pink) 75%,var(--n-purple) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 3px 0 rgba(0,0,0,.45))}
+.lt-sub{color:#e8defc;max-width:62ch;font-size:var(--cds-font-size-body);line-height:1.5}
+.lt-meta{margin-top:8px}
+.lt-lang{display:flex;flex-direction:column;gap:4px;color:var(--n-mut);font-size:var(--cds-font-size-caption)}
+.lt-lang select{background-color:rgba(20,13,48,.85);color:var(--n-fg);border:1px solid var(--n-pink);border-radius:8px}
+
+/* Abas */
+.lt-tabs{display:flex;gap:4px;overflow-x:auto;padding:0 16px;border-bottom:1px solid var(--n-line);background:var(--n-bg)}
+.lt-tab{appearance:none;background:none;border:0;border-bottom:3px solid transparent;color:var(--n-mut);font-family:var(--f-disp);font-size:20px;letter-spacing:.06em;text-transform:uppercase;padding:12px 14px 9px;cursor:pointer;white-space:nowrap}
+.lt-tab:hover{color:var(--n-fg)}
+.lt-tab[aria-selected="true"]{color:var(--n-fg);border-bottom-color:var(--n-pink);text-shadow:0 0 12px rgba(255,61,139,.6)}
+.lt-tab:focus-visible{outline:2px solid var(--n-teal);outline-offset:-2px}
+.lt-pane{display:flex;flex-direction:column;gap:28px;padding:24px 20px 28px;min-width:0}
+.lt-pane[hidden]{display:none}
+.lt section{display:flex;flex-direction:column;gap:12px;min-width:0}
+.lt .card{background:var(--n-panel);border:1px solid var(--n-line);border-radius:12px;padding:18px;min-width:0}
+.lt .lead{font-size:16px;line-height:1.6;max-width:72ch}
+.lt .lead b{color:var(--n-yellow);font-weight:600}
+
+/* Quão perto */
+.lt-gauge-row{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:24px;align-items:center}
+@media (max-width:700px){.lt-gauge-row{grid-template-columns:minmax(0,1fr)}}
+.lt-big{font-family:var(--f-disp);font-size:120px;line-height:.85;background:linear-gradient(180deg,var(--n-teal),var(--n-purple));-webkit-background-clip:text;background-clip:text;color:transparent}
+.lt-segs{display:flex;gap:4px;height:14px;min-height:14px}
+.lt-segs i{flex:1;border-radius:3px;background:var(--cds-chart-grid);transform:skewX(-18deg)}
+.lt-segs i.ok{background:var(--n-ok);box-shadow:0 0 10px rgba(57,230,160,.5)}
+.lt-segs i.warn{background:var(--n-warn);box-shadow:0 0 10px rgba(255,178,56,.45)}
+.lt-segs i.bad{background:var(--n-bad)}
+.lt-legend{display:flex;flex-wrap:wrap;gap:4px 14px}
+.lt-legend > span::before{content:"";display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;vertical-align:-1px;background:var(--lt-c)}
+
+/* Feito / em andamento / falta */
+.lt-board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media (max-width:760px){.lt-board{grid-template-columns:minmax(0,1fr)}}
+.lt-col{border-radius:12px;padding:16px;background:var(--n-panel);border:1px solid var(--n-line);border-top:4px solid var(--c);display:flex;flex-direction:column;gap:10px;min-width:0}
+.lt-col h3{color:var(--c)}
+.lt-col ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
+.lt-col li{font-size:14px;line-height:1.4;padding-left:16px;position:relative}
+.lt-col li::before{content:"";position:absolute;left:0;top:.45em;width:7px;height:7px;border-radius:2px;background:var(--c);transform:rotate(45deg)}
+.lt-col li small{display:block;color:var(--n-mut);font-size:12px}
+
+/* Fases */
+.lt-fases{display:flex;flex-direction:column}
+.lt-fase{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:4px 14px;padding:14px 0;border-top:1px solid var(--n-line)}
+.lt-fase:first-child{border-top:0;padding-top:0}
+.lt-fase .n{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-family:var(--f-disp);font-size:17px;border:1px solid var(--n-line)}
+.lt-fase .n.ok{background:var(--n-ok);color:var(--n-bg);border-color:transparent}
+.lt-fase .nome{font-weight:600}
+.lt-fase .det{grid-column:2 / 4;color:var(--n-mut);font-size:var(--cds-font-size-caption);line-height:1.5}
+.lt-fase .det b{color:var(--n-fg);font-weight:600}
+.pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;white-space:nowrap;border:1px solid currentColor;align-self:start}
+.pill.ok{color:var(--n-ok)}.pill.warn{color:var(--n-warn)}.pill.bad{color:var(--n-bad)}.pill.mut{color:var(--n-mut)}
+
+/* Números */
+.lt-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+.lt-kpi{display:flex;flex-direction:column;gap:2px}
+.lt-kpi .v{font-family:var(--f-disp);font-size:44px;line-height:1;color:var(--n-teal);font-variant-numeric:tabular-nums}
+.lt-kpi:nth-child(3n+2) .v{color:var(--n-pink)}
+.lt-kpi:nth-child(3n) .v{color:var(--n-yellow)}
+.lt-kpi .l{color:var(--n-mut);font-size:var(--cds-font-size-caption)}
+
+/* Gráficos e tabelas */
+.lt-chart{position:relative;min-height:220px}
+.lt-chart.small{min-height:120px}
+.lt-chart svg{display:block;overflow:visible}
+.lt-chart svg text{fill:var(--n-mut);font-size:11px;font-family:var(--f-body)}
+.lt-tip{position:absolute;pointer-events:none;background:#241a4d;border:1px solid var(--n-pink);box-shadow:0 6px 24px rgba(0,0,0,.5);border-radius:8px;padding:8px 10px;font-size:12px;max-width:300px;z-index:5;line-height:1.45;color:var(--n-fg)}
+.lt-tip b{display:block;font-weight:600}
+.lt-tip span{display:block;color:var(--n-mut)}
+.lt-scroll{overflow-x:auto}
+.lt table{width:100%;border-collapse:collapse;font-size:14px}
+.lt th{text-align:left;font-weight:600;color:var(--n-mut);font-size:12px;letter-spacing:.04em;text-transform:uppercase;padding:6px 8px;border-bottom:1px solid var(--n-line);white-space:nowrap}
+.lt td{padding:9px 8px;border-bottom:1px solid var(--n-line);vertical-align:top}
+.lt td.r,.lt th.r{text-align:right;font-variant-numeric:tabular-nums}
+.lt td.det{color:var(--n-mut);font-size:12px;min-width:220px}
+.lt-two{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:28px}
+.lt-marcos{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+.lt-marco{display:flex;flex-direction:column;gap:6px;padding:12px;border:1px solid var(--n-line);border-radius:10px;background:var(--n-panel)}
+.lt-marco .m{font-family:var(--f-disp);font-size:26px;color:var(--n-yellow)}
+.lt-marco .o{font-size:12px;color:var(--n-mut)}
+.lt-rows{display:flex;flex-direction:column;gap:12px;position:relative}
+.lt-row .top{display:flex;justify-content:space-between;gap:8px;font-size:13px}
+.lt-row .top span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lt-stack{display:flex;height:10px;border-radius:3px;overflow:hidden;background:var(--cds-chart-grid);margin-top:4px}
+.lt-stack i{display:block;height:100%}
+.lt-asks{display:flex;flex-direction:column;gap:14px;margin:0;padding:0;list-style:none}
+.lt-asks li{display:grid;grid-template-columns:48px minmax(0,1fr);gap:4px 10px}
+.lt-asks .id{font-family:var(--f-disp);font-size:20px;color:var(--n-pink)}
+.lt-asks .meta{grid-column:2;color:var(--n-mut);font-size:12px}
+.lt-now{border-left:4px solid var(--n-orange)}
+.lt-now p{font-size:16px;margin-top:4px}
+.lt-sparks{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:12px}
+.lt details summary{cursor:pointer;color:var(--n-mut)}
+@media (max-width:520px){.lt-pane{padding:20px 14px}.lt-hero-in{padding:24px 14px 18px}.lt-big{font-size:96px}}
+</style>
+
+<div class="lt l-pt" id="lt-root" lang="pt-BR">
+  <header class="lt-hero" id="topo">
+    <svg class="scene" viewBox="0 0 1200 380" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+      <defs>
+        <linearGradient id="lt-sky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#140a36"/><stop offset=".45" stop-color="#5b1f9e"/><stop offset=".72" stop-color="#e2337f"/><stop offset=".9" stop-color="#ff8a3d"/>
+        </linearGradient>
+        <linearGradient id="lt-sun" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#ffe14d"/><stop offset=".55" stop-color="#ff8a3d"/><stop offset="1" stop-color="#ff3d8b"/>
+        </linearGradient>
+        <linearGradient id="lt-sea" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#3a1466"/><stop offset="1" stop-color="#0c0820"/>
+        </linearGradient>
+        <clipPath id="lt-sunclip"><rect x="0" y="0" width="1200" height="300"/></clipPath>
+      </defs>
+      <rect width="1200" height="380" fill="url(#lt-sky)"/>
+      <g fill="#fff" opacity=".7"><circle cx="90" cy="40" r="1.2"/><circle cx="260" cy="70" r="1"/><circle cx="420" cy="30" r="1.4"/><circle cx="980" cy="50" r="1.2"/><circle cx="1120" cy="90" r="1"/><circle cx="700" cy="25" r="1"/><circle cx="860" cy="110" r="1"/></g>
+      <g clip-path="url(#lt-sunclip)">
+        <circle cx="820" cy="300" r="150" fill="url(#lt-sun)"/>
+        <g fill="#c22a74"><rect x="650" y="232" width="340" height="5"/><rect x="650" y="250" width="340" height="7"/><rect x="650" y="268" width="340" height="9"/><rect x="650" y="286" width="340" height="11"/></g>
+      </g>
+      <g fill="#1d0b3d">
+        <rect x="40" y="220" width="46" height="80"/><rect x="92" y="190" width="34" height="110"/><rect x="132" y="236" width="52" height="64"/><rect x="190" y="160" width="28" height="140"/><rect x="224" y="210" width="60" height="90"/>
+        <rect x="900" y="230" width="44" height="70"/><rect x="950" y="196" width="30" height="104"/><rect x="986" y="246" width="70" height="54"/><rect x="1062" y="176" width="36" height="124"/><rect x="1104" y="222" width="80" height="78"/>
+      </g>
+      <g fill="#ff3d8b" opacity=".55"><rect x="196" y="172" width="4" height="4"/><rect x="206" y="190" width="4" height="4"/><rect x="100" y="204" width="4" height="4"/><rect x="1070" y="190" width="4" height="4"/><rect x="1084" y="214" width="4" height="4"/><rect x="958" y="210" width="4" height="4"/></g>
+      <rect y="300" width="1200" height="80" fill="url(#lt-sea)"/>
+      <g fill="#ff9a3c" opacity=".55"><rect x="700" y="308" width="240" height="2"/><rect x="730" y="318" width="180" height="2"/><rect x="760" y="330" width="120" height="2"/><rect x="790" y="344" width="60" height="2"/></g>
+      <g fill="none" stroke="#0c0820" stroke-linecap="round">
+        <path d="M330 380 C 338 320 326 260 352 196" stroke-width="11"/>
+        <path d="M352 196 C 320 176 288 178 262 200" stroke-width="7"/><path d="M352 196 C 330 160 300 150 276 156" stroke-width="7"/>
+        <path d="M352 196 C 366 160 392 148 420 156" stroke-width="7"/><path d="M352 196 C 388 182 420 190 440 214" stroke-width="7"/>
+        <path d="M352 196 C 346 170 350 150 362 132" stroke-width="7"/>
+        <path d="M470 380 C 474 336 466 296 480 252" stroke-width="8"/>
+        <path d="M480 252 C 458 238 436 240 418 256" stroke-width="5"/><path d="M480 252 C 494 230 514 226 532 232" stroke-width="5"/>
+        <path d="M480 252 C 504 248 520 258 530 274" stroke-width="5"/><path d="M480 252 C 470 232 470 218 478 204" stroke-width="5"/>
+        <path d="M1150 380 C 1140 320 1156 270 1130 210" stroke-width="10"/>
+        <path d="M1130 210 C 1100 196 1072 202 1050 224" stroke-width="6"/><path d="M1130 210 C 1112 178 1086 170 1064 176" stroke-width="6"/>
+        <path d="M1130 210 C 1150 178 1176 170 1200 178" stroke-width="6"/><path d="M1130 210 C 1126 186 1132 168 1144 154" stroke-width="6"/>
+      </g>
+    </svg>
+    <div class="lt-hero-in">
+      <div>
+        <div class="lt-kicker"><span data-l="pt">Acompanhamento do port · GTA VI no PC</span><span data-l="en">Port tracker · GTA VI on PC</span><span data-l="es">Seguimiento del port · GTA VI en PC</span></div>
+        <h1 class="lt-title">Leonida</h1>
+        <p class="lt-sub" data-l="pt">O grupo do <a href="https://github.com/ItsNotRexed/Leonida" target="_blank" rel="noopener">ItsNotRexed/Leonida</a> está recompilando a versão de Xbox Series para rodar nativo no Windows. A meta: o jogo ligar e ficar jogável no PC.</p>
+        <p class="lt-sub" data-l="en">The <a href="https://github.com/ItsNotRexed/Leonida" target="_blank" rel="noopener">ItsNotRexed/Leonida</a> group is recompiling the Xbox Series version to run natively on Windows. The goal: get the game to boot and be playable on PC.</p>
+        <p class="lt-sub" data-l="es">El grupo de <a href="https://github.com/ItsNotRexed/Leonida" target="_blank" rel="noopener">ItsNotRexed/Leonida</a> está recompilando la versión de Xbox Series para que funcione de forma nativa en Windows. La meta: que el juego arranque y sea jugable en PC.</p>
+        <p class="muted lt-meta"><span data-l="pt">Dados de</span><span data-l="en">Data from</span><span data-l="es">Datos del</span> <span data-draw="atualizado" data-source="resumo" data-field="gerado_em" data-row="0">—</span> · <span data-l="pt">roadmap revisado em</span><span data-l="en">roadmap revised on</span><span data-l="es">hoja de ruta revisada el</span> <span data-draw="roadmap-em" data-source="resumo" data-field="roadmap_atualizado" data-row="0">—</span></p>
+      </div>
+      <label class="lt-lang" for="lt-lang">
+        <span>Idioma · Language · Idioma</span>
+        <select class="dash-select" id="lt-lang">
+          <option value="pt">Português</option>
+          <option value="en">English</option>
+          <option value="es">Español</option>
+        </select>
+      </label>
+    </div>
+  </header>
+
+  <nav class="lt-tabs" role="tablist" aria-label="Seções">
+    <button class="lt-tab" role="tab" id="tab-resumo" data-tab="resumo" aria-selected="true"><span data-l="pt">Resumo</span><span data-l="en">Overview</span><span data-l="es">Resumen</span></button>
+    <button class="lt-tab" role="tab" id="tab-boot" data-tab="boot" aria-selected="false"><span data-l="pt">Boot</span><span data-l="en">Boot</span><span data-l="es">Arranque</span></button>
+    <button class="lt-tab" role="tab" id="tab-pecas" data-tab="pecas" aria-selected="false"><span data-l="pt">Peças</span><span data-l="en">Parts</span><span data-l="es">Piezas</span></button>
+    <button class="lt-tab" role="tab" id="tab-atividade" data-tab="atividade" aria-selected="false"><span data-l="pt">Atividade</span><span data-l="en">Activity</span><span data-l="es">Actividad</span></button>
+  </nav>
+
+  <!-- ABA RESUMO -->
+  <div class="lt-pane" id="resumo" role="tabpanel" aria-labelledby="tab-resumo">
+    <p class="lead" data-l="pt">Jogável hoje: <b data-draw="jogavel" data-source="componentes" data-field="estado" data-where="componente=Booting, story mode, anything playable">—</b>. Das <b data-draw="ft" data-source="resumo" data-field="fases_total" data-row="0">—</b> fases do caminho até o jogo rodar, <b data-draw="fc" data-source="resumo" data-field="fases_concluidas" data-row="0">—</b> estão concluídas e <b data-draw="fa" data-source="resumo" data-field="fases_andamento" data-row="0">—</b> em andamento. A execução que foi mais longe ficou <b data-draw="vivo" data-source="resumo" data-field="segundos_vivo" data-row="0">—</b> segundos rodando e criou <b data-draw="psos" data-source="resumo" data-field="psos_graficos" data-row="0">—</b> pipelines gráficos, mas a janela ainda fica branca.</p>
+    <p class="lead" data-l="en">Playable today: <b data-draw="jogavel" data-source="componentes" data-field="estado" data-where="componente=Booting, story mode, anything playable">—</b>. Of the <b data-draw="ft" data-source="resumo" data-field="fases_total" data-row="0">—</b> phases on the way to a running game, <b data-draw="fc" data-source="resumo" data-field="fases_concluidas" data-row="0">—</b> are done and <b data-draw="fa" data-source="resumo" data-field="fases_andamento" data-row="0">—</b> are in progress. The run that got furthest stayed up for <b data-draw="vivo" data-source="resumo" data-field="segundos_vivo" data-row="0">—</b> seconds and created <b data-draw="psos" data-source="resumo" data-field="psos_graficos" data-row="0">—</b> graphics pipelines, but the window is still white.</p>
+    <p class="lead" data-l="es">Jugable hoy: <b data-draw="jogavel" data-source="componentes" data-field="estado" data-where="componente=Booting, story mode, anything playable">—</b>. De las <b data-draw="ft" data-source="resumo" data-field="fases_total" data-row="0">—</b> fases del camino hasta que el juego funcione, <b data-draw="fc" data-source="resumo" data-field="fases_concluidas" data-row="0">—</b> están completadas y <b data-draw="fa" data-source="resumo" data-field="fases_andamento" data-row="0">—</b> en curso. La ejecución que llegó más lejos duró <b data-draw="vivo" data-source="resumo" data-field="segundos_vivo" data-row="0">—</b> segundos y creó <b data-draw="psos" data-source="resumo" data-field="psos_graficos" data-row="0">—</b> pipelines gráficos, pero la ventana sigue en blanco.</p>
+
+    <section id="quao-perto" class="card">
+      <div class="lt-gauge-row">
+        <div>
+          <h2><span data-l="pt">Quão perto</span><span data-l="en">How close</span><span data-l="es">Qué tan cerca</span></h2>
+          <div class="lt-big"><span data-draw="pct" data-source="progresso" data-field="pct" data-row="0">—</span>%</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <p class="muted" data-l="pt">do caminho até o jogo rodar, numa estimativa simples deste painel: cada fase concluída do roadmap de boot vale 1 e cada fase em andamento vale ½.</p>
+          <p class="muted" data-l="en">of the way to a running game, as this dashboard's simple estimate: each finished boot-roadmap phase counts 1 and each phase in progress counts ½.</p>
+          <p class="muted" data-l="es">del camino hasta que el juego funcione, como estimación simple de este panel: cada fase completada cuenta 1 y cada fase en curso cuenta ½.</p>
+          <div class="lt-segs" data-draw="segs" data-source="fases"></div>
+          <div class="lt-legend muted">
+            <span style="--lt-c:var(--n-ok)"><span data-l="pt">concluída</span><span data-l="en">done</span><span data-l="es">completada</span></span>
+            <span style="--lt-c:var(--n-warn)"><span data-l="pt">em andamento</span><span data-l="en">in progress</span><span data-l="es">en curso</span></span>
+            <span style="--lt-c:#2c2158"><span data-l="pt">não iniciada</span><span data-l="en">not started</span><span data-l="es">sin empezar</span></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="quadro">
+      <h2><span data-l="pt">O que já foi feito e o que falta</span><span data-l="en">What's done and what's left</span><span data-l="es">Qué está hecho y qué falta</span></h2>
+      <div class="lt-board" data-draw="quadro" data-source="fases componentes"></div>
+    </section>
+
+    <section id="agora" class="card lt-now">
+      <h3><span data-l="pt">Onde o jogo trava agora</span><span data-l="en">Where the game stops now</span><span data-l="es">Dónde se detiene el juego ahora</span></h3>
+      <p data-draw="parada" data-source="escada" data-field="para_em">—</p>
+      <p class="muted"><span data-l="pt">Detalhes na aba Boot.</span><span data-l="en">Details in the Boot tab.</span><span data-l="es">Detalles en la pestaña Arranque.</span></p>
+    </section>
+  </div>
+
+  <!-- ABA BOOT -->
+  <div class="lt-pane" id="boot" role="tabpanel" aria-labelledby="tab-boot" hidden>
+    <section id="fases-sec">
+      <h2><span data-l="pt">Roadmap do boot</span><span data-l="en">Boot roadmap</span><span data-l="es">Hoja de ruta del arranque</span></h2>
+      <p class="muted" data-l="pt">As fases que o executável precisa atravessar, como os coordenadores mantêm na issue #7154. "Concluída" lá significa medida em pelo menos duas máquinas, não necessariamente já na main. Trechos citados das issues ficam no inglês original.</p>
+      <p class="muted" data-l="en">The phases the executable has to get through, as the coordinators keep them in issue #7154. "Done" there means measured on at least two machines, not necessarily merged into main.</p>
+      <p class="muted" data-l="es">Las fases que el ejecutable tiene que atravesar, tal como los coordinadores las mantienen en la issue #7154. "Completada" significa medida en al menos dos máquinas, no necesariamente ya en main. Los fragmentos citados quedan en el inglés original.</p>
+      <div class="card"><div class="lt-fases" data-draw="fases" data-source="fases"></div></div>
+    </section>
+
+    <section id="escada-boot">
+      <h2><span data-l="pt">A escada de boot</span><span data-l="en">The boot ladder</span><span data-l="es">La escalera de arranque</span></h2>
+      <p class="muted" data-l="pt">Cada degrau é um PR somado aos anteriores. A barra mostra quantas chamadas D3D12 o jogo faz antes de parar (escala logarítmica). Passe o mouse para ver o que cada PR destrava e onde o jogo para.</p>
+      <p class="muted" data-l="en">Each step is a PR added on top of the previous ones. The bar shows how many D3D12 calls the game makes before it stops (log scale). Hover to see what each PR unlocks and where the game stops.</p>
+      <p class="muted" data-l="es">Cada peldaño es un PR sumado a los anteriores. La barra muestra cuántas llamadas D3D12 hace el juego antes de detenerse (escala logarítmica). Pasa el ratón para ver qué desbloquea cada PR y dónde se detiene.</p>
+      <div class="card"><div class="lt-chart" data-draw="escada" data-source="escada"></div></div>
+    </section>
+
+    <section id="mais-longe" class="card">
+      <h2><span data-l="pt">A execução que foi mais longe</span><span data-l="en">The run that got furthest</span><span data-l="es">La ejecución que llegó más lejos</span></h2>
+      <div class="lt-kpis">
+        <div class="lt-kpi"><span class="v" data-draw="l-vivo" data-source="longe" data-field="segundos_vivo" data-row="0">—</span><span class="l"><span data-l="pt">segundos rodando</span><span data-l="en">seconds running</span><span data-l="es">segundos en ejecución</span></span></div>
+        <div class="lt-kpi"><span class="v" data-draw="l-psos" data-source="longe" data-field="psos_graficos" data-row="0">—</span><span class="l"><span data-l="pt">pipelines gráficos criados</span><span data-l="en">graphics pipelines created</span><span data-l="es">pipelines gráficos creados</span></span></div>
+        <div class="lt-kpi"><span class="v" data-draw="l-cham" data-source="longe" data-field="max_chamadas_d3d12" data-row="0">—</span><span class="l"><span data-l="pt">maior número de chamadas D3D12 já citado numa execução</span><span data-l="en">most D3D12 calls reported in a single run</span><span data-l="es">mayor número de llamadas D3D12 citado en una ejecución</span></span></div>
+      </div>
+      <p class="muted" data-draw="l-resumo" data-source="longe" data-field="resumo" data-row="0">—</p>
+    </section>
+
+    <section id="pedidos">
+      <h2><span data-l="pt">O que estão pedindo agora</span><span data-l="en">What people are asking for now</span><span data-l="es">Qué se está pidiendo ahora</span></h2>
+      <p class="muted" data-l="pt">Os pedidos abertos na issue #7154, onde as pessoas (e muitos agentes de IA) combinam o próximo passo do boot.</p>
+      <p class="muted" data-l="en">The open asks in issue #7154, where people (and many AI agents) agree on the next boot step.</p>
+      <p class="muted" data-l="es">Los pedidos abiertos en la issue #7154, donde las personas (y muchos agentes de IA) acuerdan el siguiente paso del arranque.</p>
+      <ul class="lt-asks" data-draw="pedidos" data-source="pedidos"></ul>
+    </section>
+  </div>
+
+  <!-- ABA PEÇAS -->
+  <div class="lt-pane" id="pecas" role="tabpanel" aria-labelledby="tab-pecas" hidden>
+    <section id="componentes">
+      <h2><span data-l="pt">Peças do port</span><span data-l="en">Parts of the port</span><span data-l="es">Piezas del port</span></h2>
+      <p class="muted" data-l="pt">A tabela de status do README, peça por peça. O detalhe vem em inglês, como o projeto escreve.</p>
+      <p class="muted" data-l="en">The README status table, part by part, with the project's own details.</p>
+      <p class="muted" data-l="es">La tabla de estado del README, pieza por pieza. El detalle queda en inglés, como lo escribe el proyecto.</p>
+      <div class="lt-scroll card">
+        <table data-source="componentes" data-row-key="componente">
+          <thead><tr><th data-field="componente"><span data-l="pt">Peça</span><span data-l="en">Part</span><span data-l="es">Pieza</span></th><th data-field="estado"><span data-l="pt">Estado</span><span data-l="en">Status</span><span data-l="es">Estado</span></th><th data-field="detalhe"><span data-l="pt">Detalhe</span><span data-l="en">Details</span><span data-l="es">Detalle</span></th></tr></thead>
+          <tbody data-draw="componentes"></tbody>
+        </table>
+      </div>
+    </section>
+    <div class="lt-two">
+      <section id="marcos">
+        <h2><span data-l="pt">Marcos D3D12 → Vulkan</span><span data-l="en">D3D12 → Vulkan milestones</span><span data-l="es">Hitos D3D12 → Vulkan</span></h2>
+        <p class="muted" data-l="pt">M0 a M7 do plano em docs/d3d12_vulkan.md. "Sintético" quer dizer cumprido num teste próprio, ainda sem o jogo.</p>
+        <p class="muted" data-l="en">M0 to M7 from the plan in docs/d3d12_vulkan.md. "Synthetic" means met in the project's own test, not yet with the game.</p>
+        <p class="muted" data-l="es">M0 a M7 del plan en docs/d3d12_vulkan.md. "Sintético" significa cumplido en una prueba propia, todavía sin el juego.</p>
+        <div class="lt-marcos" data-draw="marcos" data-source="marcos"></div>
+      </section>
+      <section id="metodos">
+        <h2><span data-l="pt">Métodos D3D12</span><span data-l="en">D3D12 methods</span><span data-l="es">Métodos D3D12</span></h2>
+        <p class="muted"><span data-draw="m-main" data-source="resumo" data-field="metodos_d3d12_main" data-row="0">—</span> <span data-l="pt">de</span><span data-l="en">of</span><span data-l="es">de</span> <span data-draw="m-tot" data-source="resumo" data-field="metodos_d3d12_total" data-row="0">—</span> <span data-l="pt">métodos já estão na main (contagem da issue #313).</span><span data-l="en">methods are already on main (count from issue #313).</span><span data-l="es">métodos ya están en main (recuento de la issue #313).</span></p>
+        <div class="lt-legend muted">
+          <span style="--lt-c:var(--n-ok)"><span data-l="pt">na main</span><span data-l="en">on main</span><span data-l="es">en main</span></span>
+          <span style="--lt-c:var(--n-warn)"><span data-l="pt">em PRs abertos</span><span data-l="en">in open PRs</span><span data-l="es">en PRs abiertos</span></span>
+          <span style="--lt-c:var(--n-bad)"><span data-l="pt">faltando</span><span data-l="en">missing</span><span data-l="es">faltan</span></span>
+        </div>
+        <div class="lt-rows" data-draw="metodos" data-source="metodos"></div>
+      </section>
+    </div>
+  </div>
+
+  <!-- ABA ATIVIDADE -->
+  <div class="lt-pane" id="atividade" role="tabpanel" aria-labelledby="tab-atividade" hidden>
+    <section id="numeros">
+      <h2><span data-l="pt">O projeto em números</span><span data-l="en">The project in numbers</span><span data-l="es">El proyecto en números</span></h2>
+      <div class="lt-kpis">
+        <div class="card lt-kpi"><span class="v" data-draw="k-commits" data-source="resumo" data-field="commits" data-row="0">—</span><span class="l"><span data-l="pt">commits na main</span><span data-l="en">commits on main</span><span data-l="es">commits en main</span></span></div>
+        <div class="card lt-kpi"><span class="v" data-draw="k-merg" data-source="resumo" data-field="prs_mergeados" data-row="0">—</span><span class="l"><span data-l="pt">PRs mergeados, de</span><span data-l="en">PRs merged, out of</span><span data-l="es">PRs fusionados, de</span> <span data-draw="k-prtot" data-source="resumo" data-field="prs_total" data-row="0">—</span> <span data-l="pt">enviados</span><span data-l="en">opened</span><span data-l="es">enviados</span></span></div>
+        <div class="card lt-kpi"><span class="v" data-draw="k-abertos" data-source="resumo" data-field="prs_abertos" data-row="0">—</span><span class="l"><span data-l="pt">PRs abertos esperando revisão</span><span data-l="en">open PRs waiting for review</span><span data-l="es">PRs abiertos esperando revisión</span></span></div>
+        <div class="card lt-kpi"><span class="v" data-draw="k-autores" data-source="resumo" data-field="autores" data-row="0">—</span><span class="l"><span data-l="pt">pessoas com commit</span><span data-l="en">people with commits</span><span data-l="es">personas con commits</span></span></div>
+        <div class="card lt-kpi"><span class="v" data-draw="k-estrelas" data-source="resumo" data-field="estrelas" data-row="0">—</span><span class="l"><span data-l="pt">estrelas no GitHub</span><span data-l="en">GitHub stars</span><span data-l="es">estrellas en GitHub</span></span></div>
+        <div class="card lt-kpi"><span class="v" data-draw="k-dias" data-source="resumo" data-field="dias_de_projeto" data-row="0">—</span><span class="l"><span data-l="pt">dias desde a criação do repositório</span><span data-l="en">days since the repository was created</span><span data-l="es">días desde que se creó el repositorio</span></span></div>
+      </div>
+    </section>
+
+    <section id="ritmo">
+      <h2><span data-l="pt">Commits por hora · últimas 72 h</span><span data-l="en">Commits per hour · last 72 h</span><span data-l="es">Commits por hora · últimas 72 h</span></h2>
+      <div class="card"><div class="lt-chart" data-draw="horas" data-source="horas"></div></div>
+    </section>
+
+    <section id="por-dia">
+      <h2><span data-l="pt">Dia a dia</span><span data-l="en">Day by day</span><span data-l="es">Día a día</span></h2>
+      <div class="lt-scroll card">
+        <table data-source="dias" data-row-key="dia">
+          <thead><tr><th data-field="dia"><span data-l="pt">Dia (UTC)</span><span data-l="en">Day (UTC)</span><span data-l="es">Día (UTC)</span></th><th class="r" data-field="commits">Commits</th><th class="r" data-field="prs_abertos"><span data-l="pt">PRs enviados</span><span data-l="en">PRs opened</span><span data-l="es">PRs enviados</span></th><th class="r" data-field="prs_mergeados"><span data-l="pt">PRs mergeados</span><span data-l="en">PRs merged</span><span data-l="es">PRs fusionados</span></th><th class="r" data-field="issues_abertas"><span data-l="pt">Issues novas</span><span data-l="en">New issues</span><span data-l="es">Issues nuevas</span></th></tr></thead>
+          <tbody data-draw="dias"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="evolucao">
+      <h2><span data-l="pt">Evolução entre atualizações</span><span data-l="en">Change between updates</span><span data-l="es">Evolución entre actualizaciones</span></h2>
+      <p class="muted" data-draw="hist-vazio" data-source="historico">—</p>
+      <div class="lt-sparks" data-draw="hist" data-source="historico"></div>
+    </section>
+
+    <div class="lt-two">
+      <section id="merges">
+        <h2><span data-l="pt">Últimos PRs mergeados</span><span data-l="en">Latest merged PRs</span><span data-l="es">Últimos PRs fusionados</span></h2>
+        <div class="lt-scroll">
+          <table data-source="merges" data-row-key="pr">
+            <thead><tr><th data-field="pr">PR</th><th data-field="titulo"><span data-l="pt">Título</span><span data-l="en">Title</span><span data-l="es">Título</span></th><th data-field="autor"><span data-l="pt">Autor</span><span data-l="en">Author</span><span data-l="es">Autor</span></th></tr></thead>
+            <tbody data-draw="merges"></tbody>
+          </table>
+        </div>
+      </section>
+      <section id="autores">
+        <h2><span data-l="pt">Quem mais fez commits</span><span data-l="en">Top committers</span><span data-l="es">Quién hizo más commits</span></h2>
+        <div class="lt-rows" data-draw="autores" data-source="autores"></div>
+      </section>
+    </div>
+
+    <details id="como-ler">
+      <summary><span data-l="pt">Como estes números são medidos</span><span data-l="en">How these numbers are measured</span><span data-l="es">Cómo se miden estos números</span></summary>
+      <p class="muted" style="margin-top:8px;max-width:70ch" data-l="pt">Um script local (coletar.py) lê a API do GitHub, o histórico de commits da branch main e o texto das issues de coordenação: #7154 (roadmap e escada do boot) e #313 (camada D3D12). Essas issues são escritas à mão pelos coordenadores, então o painel mostra o que eles registraram naquele momento. A porcentagem é uma estimativa deste painel, não do projeto. Visual inspirado em Vice City à noite, sem nenhuma arte ou marca do jogo.</p>
+      <p class="muted" style="margin-top:8px;max-width:70ch" data-l="en">A local script (coletar.py) reads the GitHub API, the commit history of the main branch and the text of the coordination issues: #7154 (boot roadmap and ladder) and #313 (D3D12 layer). The coordinators write those issues by hand, so the dashboard shows what they had recorded at that moment. The percentage is this dashboard's own estimate, not the project's. Look inspired by Vice City at night, with no art or branding from the game.</p>
+      <p class="muted" style="margin-top:8px;max-width:70ch" data-l="es">Un script local (coletar.py) lee la API de GitHub, el historial de commits de la rama main y el texto de las issues de coordinación: #7154 (hoja de ruta y escalera del arranque) y #313 (capa D3D12). Los coordinadores escriben esas issues a mano, así que el panel muestra lo que habían registrado en ese momento. El porcentaje es una estimación de este panel, no del proyecto. Estética inspirada en Vice City de noche, sin arte ni marcas del juego.</p>
+    </details>
+  </div>
+</div>
+<script>
+dash.calc('resumo', {inputs: ['leonida'], title: 'Lista "resumo" de leonida.json', description: 'Linhas "resumo" do arquivo que o coletor gera.', fn: (leonida) => (leonida && leonida.resumo) || []});
+dash.calc('fases', {inputs: ['leonida'], title: 'Lista "fases" de leonida.json', description: 'Linhas "fases" do arquivo que o coletor gera.', fn: (leonida) => (leonida && leonida.fases) || []});
+dash.calc('escada', {inputs: ['leonida'], title: 'Lista "escada" de leonida.json', description: 'Linhas "escada" do arquivo que o coletor gera.', fn: (leonida) => (leonida && leonida.escada) || []});
+dash.calc('pedidos', {inputs: ['leonida'], title: 'Lista "pedidos" de leonida.json', description: 'Linhas "pedidos" do arquivo que o coletor gera.', fn: (leonida) => (leonida && leonida.pedidos) || []});
+dash.calc('componentes', {inputs: ['leonida'], title: 'Lista "componentes" de leonida.json', description: 'Linhas "componentes" do arquivo que o coletor gera.', fn: (leonida) => (leonida && leonida.componentes) || []});
+dash.calc('marcos', {inputs: ['leonida'], title: 'Lista "marcos" de leonida.json', description: 'Linhas "marcos" do arquivo que o coletor gera.', fn: (leonida) => (leonida && leonida.marcos) || []});
+dash.calc('metodos', {inputs: ['leonida'], title: 'Lista "metodos" de leonida.json', description: 'Linhas "metodos" do arquivo que o coletor gera.', fn: (leonida) => (leonida && leonida.metodos) || []});
+dash.calc('dias', {inputs: ['leonida'], title: 'Lista "dias" de leonida.json', description: 'Linhas "dias" do arquivo que o coletor gera.', fn: (leonida) => (leonida && leonida.dias) || []});
+dash.calc('horas', {inputs: ['leonida'], title: 'Lista "horas" de leonida.json', description: 'Linhas "horas" do arquivo que o coletor gera.', fn: (leonida) => (leonida && leonida.horas) || []});
+dash.calc('autores', {inputs: ['leonida'], title: 'Lista "autores" de leonida.json', description: 'Linhas "autores" do arquivo que o coletor gera.', fn: (leonida) => (leonida && leonida.autores) || []});
+dash.calc('merges', {inputs: ['leonida'], title: 'Lista "merges" de leonida.json', description: 'Linhas "merges" do arquivo que o coletor gera.', fn: (leonida) => (leonida && leonida.merges) || []});
+dash.calc('historico', {inputs: ['leonida'], title: 'Lista "historico" de leonida.json', description: 'Linhas "historico" do arquivo que o coletor gera.', fn: (leonida) => (leonida && leonida.historico) || []});
+dash.calc('longe', {inputs: ['leonida'], title: 'Lista "longe" de leonida.json', description: 'Linhas "longe" do arquivo que o coletor gera.', fn: (leonida) => (leonida && leonida.longe) || []});
+
+dash.calc('progresso', {
+  inputs: ['fases'],
+  title: 'Quão perto do objetivo',
+  description: 'Fases 1 a 6 do roadmap de boot: concluída vale 1, em andamento vale meio. A fase 7 (juntar na main) é processo e fica de fora.',
+  fn: (fases) => {
+    const jogo = fases.filter((f) => f.n <= 6);
+    const c = jogo.filter((f) => f.estado === 'concluída').length;
+    const a = jogo.filter((f) => f.estado === 'em andamento').length;
+    return [{pct: jogo.length ? Math.round(100 * (c + a / 2) / jogo.length) : 0, concluidas: c, andamento: a, total: jogo.length}];
+  }
+});
+
+/* Idioma: textos fixos estão no HTML em pt/en/es (data-l); aqui ficam só as palavras que os desenhos escrevem. */
+window.LT_I18N = {
+  pt: {
+    loc: 'pt-BR',
+    estado: {'concluída': 'concluída', 'em andamento': 'em andamento', 'não iniciada': 'não iniciada', 'gargalo': 'gargalo', 'funciona': 'funciona', 'parcial': 'parcial', 'não': 'não', 'medido': 'medido', 'concluído': 'concluído', 'sintético': 'sintético', 'aberto': 'aberto'},
+    fase: {1: 'Do início do processo ao device D3D12', 2: 'Device, filas, listas e heaps', 3: 'Shaders e pipelines', 4: 'Inicialização do áudio', 5: 'Primeiro frame na tela', 6: 'Jogo rodando (controle, saves, rede offline, streaming)', 7: 'Juntar tudo na main'},
+    comp: {
+      'Booting, story mode, anything playable': 'Boot, modo história, qualquer coisa jogável',
+      'Finding and checking your copy (Xbox Series 1.0.2.1)': 'Encontrar e verificar sua cópia (Xbox Series 1.0.2.1)',
+      'Shaders: carve, unpack native RDNA2 code, disassemble': 'Shaders: extrair, desempacotar o código RDNA2 nativo, desmontar',
+      'Shaders: RDNA2 → SPIR-V translation': 'Shaders: tradução RDNA2 → SPIR-V',
+      'SPIR-V validation (spirv-val)': 'Validação SPIR-V (spirv-val)',
+      'Shader translator checked on a real GPU': 'Tradutor de shaders testado em GPU real',
+      'Models (OBJ with real names, UVs, material references)': 'Modelos (OBJ com nomes reais, UVs, referências de material)',
+      'Texture dictionaries and world texture pools (DDS)': 'Dicionários de texturas e pools de texturas do mundo (DDS)',
+      'Audio banks (AWC: Opus, XMA2)': 'Bancos de áudio (AWC: Opus, XMA2)',
+      'Music/radio config': 'Configuração de músicas e rádios',
+      'PE loader and import shims': 'Carregador PE e shims de importação'
+    },
+    sim: 'sim', nao: 'ainda não', situacao: 'Situação: ', destrava: 'O que destrava: ', quem: 'Quem está nisso: ',
+    degrau: 'Degrau', libera: 'Libera: ', chamadas: 'Chamadas D3D12: ', paraEm: 'Para em: ', commitsHora: ' commits nessa hora',
+    naMain: 'Na main: ', emPrs: 'Em PRs abertos: ', faltam: 'Faltando: ', total: 'Total: ', commitsMain: ' commits na main',
+    mergeadoEm: 'Mergeado em ', precisa: 'Precisa: ', com: 'Com: ', palavras: 'Nas palavras do roadmap: ',
+    histUma: (n) => 'Por enquanto há ' + n + ' coleta. As linhas aparecem a partir da segunda.',
+    desde: ' desde a 1ª coleta', series: ['Estrelas', 'PRs mergeados', 'Commits', 'Métodos D3D12 na main'],
+    erroEscada: 'A escada de boot não carregou.', erroRoadmap: 'O roadmap não carregou.', erroAtiv: 'A atividade não carregou.',
+    ariaEscada: 'Chamadas D3D12 feitas pelo jogo antes de parar, a cada PR somado na escada de boot', ariaHoras: 'Commits por hora na branch main nas últimas 72 horas', ariaSeg: 'Estado de cada fase do boot', aoLongo: ' ao longo das coletas'
+  },
+  en: {
+    loc: 'en-US',
+    estado: {'concluída': 'done', 'em andamento': 'in progress', 'não iniciada': 'not started', 'gargalo': 'bottleneck', 'funciona': 'works', 'parcial': 'partial', 'não': 'no', 'medido': 'measured', 'concluído': 'done', 'sintético': 'synthetic', 'aberto': 'open'},
+    fase: {1: 'Process start to the D3D12 device', 2: 'Device, queues, lists and heaps', 3: 'Shaders and pipelines', 4: 'Audio init', 5: 'First frame on screen', 6: 'Game running (input, saves, offline network, streaming)', 7: 'Into main'},
+    comp: {},
+    sim: 'yes', nao: 'not yet', situacao: 'Status: ', destrava: 'What clears it: ', quem: 'Who is on it: ',
+    degrau: 'Step', libera: 'Clears: ', chamadas: 'D3D12 calls: ', paraEm: 'Stops at: ', commitsHora: ' commits in that hour',
+    naMain: 'On main: ', emPrs: 'In open PRs: ', faltam: 'Missing: ', total: 'Total: ', commitsMain: ' commits on main',
+    mergeadoEm: 'Merged on ', precisa: 'Needs: ', com: 'With: ', palavras: 'In the roadmap\'s words: ',
+    histUma: (n) => 'So far there is ' + n + ' snapshot. The lines appear from the second one on.',
+    desde: ' since the 1st snapshot', series: ['Stars', 'PRs merged', 'Commits', 'D3D12 methods on main'],
+    erroEscada: 'The boot ladder did not load.', erroRoadmap: 'The roadmap did not load.', erroAtiv: 'The activity did not load.',
+    ariaEscada: 'D3D12 calls the game makes before stopping, for each PR added on the boot ladder', ariaHoras: 'Commits per hour on the main branch over the last 72 hours', ariaSeg: 'Status of each boot phase', aoLongo: ' across snapshots'
+  },
+  es: {
+    loc: 'es-ES',
+    estado: {'concluída': 'completada', 'em andamento': 'en curso', 'não iniciada': 'sin empezar', 'gargalo': 'cuello de botella', 'funciona': 'funciona', 'parcial': 'parcial', 'não': 'no', 'medido': 'medido', 'concluído': 'completado', 'sintético': 'sintético', 'aberto': 'abierto'},
+    fase: {1: 'Del inicio del proceso al device D3D12', 2: 'Device, colas, listas y heaps', 3: 'Shaders y pipelines', 4: 'Inicialización del audio', 5: 'Primer frame en pantalla', 6: 'Juego funcionando (mando, partidas guardadas, red offline, streaming)', 7: 'Integrar todo en main'},
+    comp: {
+      'Booting, story mode, anything playable': 'Arranque, modo historia, algo jugable',
+      'Finding and checking your copy (Xbox Series 1.0.2.1)': 'Encontrar y verificar tu copia (Xbox Series 1.0.2.1)',
+      'Shaders: carve, unpack native RDNA2 code, disassemble': 'Shaders: extraer, desempaquetar el código RDNA2 nativo, desensamblar',
+      'Shaders: RDNA2 → SPIR-V translation': 'Shaders: traducción RDNA2 → SPIR-V',
+      'SPIR-V validation (spirv-val)': 'Validación SPIR-V (spirv-val)',
+      'Shader translator checked on a real GPU': 'Traductor de shaders probado en GPU real',
+      'Models (OBJ with real names, UVs, material references)': 'Modelos (OBJ con nombres reales, UVs, referencias de material)',
+      'Texture dictionaries and world texture pools (DDS)': 'Diccionarios de texturas y pools de texturas del mundo (DDS)',
+      'Audio banks (AWC: Opus, XMA2)': 'Bancos de audio (AWC: Opus, XMA2)',
+      'Music/radio config': 'Configuración de música y radios',
+      'PE loader and import shims': 'Cargador PE y shims de importación'
+    },
+    sim: 'sí', nao: 'todavía no', situacao: 'Situación: ', destrava: 'Qué lo desbloquea: ', quem: 'Quién está en ello: ',
+    degrau: 'Peldaño', libera: 'Desbloquea: ', chamadas: 'Llamadas D3D12: ', paraEm: 'Se detiene en: ', commitsHora: ' commits en esa hora',
+    naMain: 'En main: ', emPrs: 'En PRs abiertos: ', faltam: 'Faltan: ', total: 'Total: ', commitsMain: ' commits en main',
+    mergeadoEm: 'Fusionado el ', precisa: 'Necesita: ', com: 'Con: ', palavras: 'En palabras de la hoja de ruta: ',
+    histUma: (n) => 'Por ahora hay ' + n + ' recogida. Las líneas aparecen a partir de la segunda.',
+    desde: ' desde la 1.ª recogida', series: ['Estrellas', 'PRs fusionados', 'Commits', 'Métodos D3D12 en main'],
+    erroEscada: 'La escalera de arranque no se cargó.', erroRoadmap: 'La hoja de ruta no se cargó.', erroAtiv: 'La actividad no se cargó.',
+    ariaEscada: 'Llamadas D3D12 que hace el juego antes de detenerse, por cada PR sumado en la escalera de arranque', ariaHoras: 'Commits por hora en la rama main en las últimas 72 horas', ariaSeg: 'Estado de cada fase del arranque', aoLongo: ' a lo largo de las recogidas'
+  }
+};
+window.LT_DRAWS = [];
+window.ltLang = 'pt';
+window.ltT = () => window.LT_I18N[window.ltLang] || window.LT_I18N.pt;
+window.ltNF = () => new Intl.NumberFormat(window.ltT().loc);
+window.ltFmt = (v) => window.ltNF().format(v);
+window.ltDraw = (name, fn) => { window.LT_DRAWS.push(name); dash.draw(name, fn); };
+window.ltEstado = {
+  'concluída': 'ok', 'em andamento': 'warn', 'não iniciada': 'mut', 'gargalo': 'bad',
+  'funciona': 'ok', 'parcial': 'warn', 'não': 'bad', 'medido': 'mut',
+  'concluído': 'ok', 'sintético': 'warn', 'aberto': 'mut'
+};
+window.ltEl = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+window.ltPill = (estado) => window.ltEl('span', 'pill ' + (window.ltEstado[estado] || 'mut'), window.ltT().estado[estado] || estado);
+window.ltData = (iso) => { const d = new Date(iso); return isNaN(d) ? '—' : d.toLocaleString(window.ltT().loc, {day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'}); };
+window.ltTip = (host) => {
+  const t = window.ltEl('div', 'lt-tip'); t.hidden = true; host.appendChild(t);
+  return {
+    show(ev, lines) {
+      t.replaceChildren(...lines.filter(Boolean).map((s, i) => window.ltEl(i ? 'span' : 'b', null, s)));
+      t.hidden = false;
+      const hb = host.getBoundingClientRect();
+      let x = ev.clientX - hb.left + 14, y = ev.clientY - hb.top + 14;
+      if (x + t.offsetWidth > hb.width) x = Math.max(0, ev.clientX - hb.left - t.offsetWidth - 14);
+      if (y + t.offsetHeight > hb.height + 40) y = Math.max(0, ev.clientY - hb.top - t.offsetHeight - 14);
+      t.style.left = x + 'px'; t.style.top = y + 'px';
+    },
+    hide() { t.hidden = true; }
+  };
+};
+window.ltNum = (name, src, field) => window.ltDraw(name, (el) => {
+  const d = dash.data(src);
+  const v = d.status === 'ok' && d.data[0] ? d.data[0][field] : null;
+  el.textContent = v == null ? '—' : window.ltFmt(v);
+});
+
+/* Escolha do idioma: a salva por este leitor, senão a do navegador. */
+(() => {
+  let lang = null;
+  try { lang = localStorage.getItem('lt-lang'); } catch (e) { lang = null; }
+  if (!window.LT_I18N[lang]) {
+    const nav = ((navigator.languages && navigator.languages[0]) || navigator.language || 'en').toLowerCase();
+    lang = nav.startsWith('pt') ? 'pt' : nav.startsWith('es') ? 'es' : 'en';
+  }
+  const aplica = (l) => {
+    window.ltLang = l;
+    document.querySelectorAll('#lt-root').forEach((r) => { r.classList.remove('l-pt', 'l-en', 'l-es'); r.classList.add('l-' + l); });
+    document.querySelectorAll('#lt-lang').forEach((s) => { s.value = l; });
+  };
+  aplica(lang);
+  document.querySelectorAll('#lt-lang').forEach((s) => s.addEventListener('change', () => {
+    aplica(s.value);
+    try { localStorage.setItem('lt-lang', s.value); } catch (e) { /* sem armazenamento: só esta visita */ }
+    window.LT_DRAWS.forEach((n) => dash.draw(n));
+  }));
+})();
+</script>
+<script>
+Object.assign(window.LT_I18N.pt, {colFeito: 'Feito', colAndamento: 'Em andamento', colFalta: 'Falta', tipoFase: 'Fase do boot', tipoPeca: 'Peça do port', nada: 'Nada aqui por enquanto.'});
+Object.assign(window.LT_I18N.en, {colFeito: 'Done', colAndamento: 'In progress', colFalta: 'Still to do', tipoFase: 'Boot phase', tipoPeca: 'Part of the port', nada: 'Nothing here yet.'});
+Object.assign(window.LT_I18N.es, {colFeito: 'Hecho', colAndamento: 'En curso', colFalta: 'Falta', tipoFase: 'Fase del arranque', tipoPeca: 'Pieza del port', nada: 'Nada aquí por ahora.'});
+
+/* Abas: só mostra/esconde as seções e guarda a aba no link. */
+(() => {
+  const ids = ['resumo', 'boot', 'pecas', 'atividade'];
+  const abre = (id, link) => {
+    if (!ids.includes(id)) id = 'resumo';
+    document.querySelectorAll('.lt-pane').forEach((p) => { p.hidden = p.id !== id; });
+    document.querySelectorAll('.lt-tab').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === id)));
+    if (link) dash.setLink(id);
+  };
+  document.querySelectorAll('.lt-tab').forEach((b) => b.addEventListener('click', () => abre(b.dataset.tab, true)));
+  const h = (location.hash || '').slice(1);
+  let alvo = 'resumo';
+  if (ids.includes(h)) alvo = h;
+  else if (h) { const e = document.getElementById(h); const p = e && e.closest('.lt-pane'); if (p) alvo = p.id; }
+  abre(alvo, false);
+})();
+
+window.ltDraw('quadro', (el) => {
+  const f = dash.data('fases'), c = dash.data('componentes');
+  const T = window.ltT();
+  if (f.status !== 'ok' || c.status !== 'ok') { el.replaceChildren(); el.textContent = (f.status === 'error' || c.status === 'error') ? T.erroRoadmap : '—'; return; }
+  const cols = {feito: [], andamento: [], falta: []};
+  f.data.forEach((x) => {
+    const k = x.estado === 'concluída' ? 'feito' : (x.estado === 'em andamento' || x.estado === 'gargalo') ? 'andamento' : 'falta';
+    cols[k].push([T.fase[x.n] || x.fase, T.tipoFase + ' ' + x.n + (x.estado === 'gargalo' ? ' · ' + T.estado.gargalo : '')]);
+  });
+  c.data.forEach((x) => {
+    const k = (x.estado === 'funciona' || x.estado === 'medido') ? 'feito' : x.estado === 'parcial' ? 'andamento' : 'falta';
+    cols[k].push([T.comp[x.componente] || x.componente, T.tipoPeca]);
+  });
+  const def = [['feito', T.colFeito, 'var(--n-ok)'], ['andamento', T.colAndamento, 'var(--n-warn)'], ['falta', T.colFalta, 'var(--n-bad)']];
+  el.replaceChildren(...def.map(([k, nome, cor]) => {
+    const col = window.ltEl('div', 'lt-col'); col.style.setProperty('--c', cor);
+    col.appendChild(window.ltEl('h3', null, nome + ' · ' + cols[k].length));
+    const ul = window.ltEl('ul');
+    if (!cols[k].length) ul.appendChild(window.ltEl('li', null, T.nada));
+    cols[k].forEach(([titulo, tipo]) => { const li = window.ltEl('li', null, titulo); li.appendChild(window.ltEl('small', null, tipo)); ul.appendChild(li); });
+    col.appendChild(ul);
+    return col;
+  }));
+});
+</script>
+<script>
+[['ft','resumo','fases_total'],['fc','resumo','fases_concluidas'],['fa','resumo','fases_andamento'],['vivo','resumo','segundos_vivo'],['psos','resumo','psos_graficos'],
+ ['pct','progresso','pct'],['k-commits','resumo','commits'],['k-merg','resumo','prs_mergeados'],['k-prtot','resumo','prs_total'],['k-abertos','resumo','prs_abertos'],
+ ['k-autores','resumo','autores'],['k-estrelas','resumo','estrelas'],['k-dias','resumo','dias_de_projeto'],['l-vivo','longe','segundos_vivo'],['l-psos','longe','psos_graficos'],
+ ['l-cham','longe','max_chamadas_d3d12'],['m-main','resumo','metodos_d3d12_main'],['m-tot','resumo','metodos_d3d12_total']
+].forEach(([n, s, f]) => window.ltNum(n, s, f));
+
+window.ltDraw('atualizado', (el) => {
+  const d = dash.data('resumo');
+  el.textContent = d.status === 'ok' && d.data[0] ? window.ltData(d.data[0].gerado_em) : '—';
+});
+window.ltDraw('roadmap-em', (el) => {
+  const d = dash.data('resumo');
+  const s = d.status === 'ok' && d.data[0] ? d.data[0].roadmap_atualizado : null;
+  el.textContent = s ? window.ltData(s.replace(' UTC', 'Z').replace(' ', 'T')) : '—';
+});
+window.ltDraw('jogavel', (el) => {
+  const d = dash.data('componentes');
+  const r = d.status === 'ok' ? d.data.find((x) => x.componente.startsWith('Booting')) : null;
+  el.textContent = !r ? '—' : (r.estado === 'funciona' ? window.ltT().sim : window.ltT().nao);
+});
+window.ltDraw('l-resumo', (el) => {
+  const d = dash.data('longe');
+  el.textContent = d.status === 'ok' && d.data[0] && d.data[0].resumo ? window.ltT().palavras + d.data[0].resumo : '—';
+});
+window.ltDraw('parada', (el) => {
+  const d = dash.data('escada');
+  const r = d.status === 'ok' ? d.data[d.data.length - 1] : null;
+  el.textContent = r ? r.para_em : (d.status === 'error' ? window.ltT().erroEscada : '—');
+});
+
+window.ltDraw('segs', (el) => {
+  const d = dash.data('fases');
+  el.setAttribute('aria-label', window.ltT().ariaSeg);
+  if (d.status !== 'ok') { el.replaceChildren(); return; }
+  const cor = {'concluída': 'ok', 'em andamento': 'warn', 'gargalo': 'bad'};
+  const T = window.ltT();
+  el.replaceChildren(...d.data.filter((f) => f.n <= 6).map((f) => { const i = window.ltEl('i', cor[f.estado] || ''); i.title = f.n + '. ' + (T.fase[f.n] || f.fase) + ': ' + (T.estado[f.estado] || f.estado); return i; }));
+});
+
+window.ltDraw('fases', (el) => {
+  const d = dash.data('fases');
+  const T = window.ltT();
+  if (d.status !== 'ok') { el.textContent = d.status === 'error' ? T.erroRoadmap : '—'; return; }
+  el.replaceChildren(...d.data.map((f) => {
+    const row = window.ltEl('div', 'lt-fase');
+    row.appendChild(window.ltEl('span', 'n' + (f.estado === 'concluída' ? ' ok' : ''), f.estado === 'concluída' ? '✓' : String(f.n)));
+    const nome = window.ltEl('div');
+    nome.appendChild(window.ltEl('div', 'nome', f.n + '. ' + (T.fase[f.n] || f.fase)));
+    if (window.ltLang !== 'en') nome.appendChild(window.ltEl('div', 'muted', f.fase_original));
+    row.appendChild(nome);
+    row.appendChild(window.ltPill(f.estado));
+    const det = window.ltEl('div', 'det');
+    const sit = f.situacao && !/^(done|in progress|not started)$/i.test(f.situacao) ? f.situacao : null;
+    const linha = (rot, txt) => { const p = window.ltEl('p'); p.appendChild(window.ltEl('b', null, rot)); p.appendChild(document.createTextNode(txt)); det.appendChild(p); };
+    if (sit) linha(T.situacao, sit);
+    if (f.o_que_destrava) linha(T.destrava, f.o_que_destrava);
+    if (f.quem && f.quem !== 'open') linha(T.quem, f.quem);
+    row.appendChild(det);
+    return row;
+  }));
+});
+
+window.ltDraw('escada', (el) => {
+  const d = dash.data('escada');
+  const T = window.ltT();
+  if (d.status !== 'ok' || !d.data.length) { el.replaceChildren(); el.textContent = d.status === 'error' ? T.erroEscada : '—'; return; }
+  const rows = d.data, W = Math.max(300, el.clientWidth || 600), rowH = 30, labW = Math.min(190, Math.round(W * 0.36)), valW = 56, H = rows.length * rowH + 26;
+  el.replaceChildren();
+  const tip = window.ltTip(el);
+  const svg = d3.select(el).insert('svg', ':first-child').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`)
+    .attr('role', 'img').attr('aria-label', T.ariaEscada);
+  const max = d3.max(rows, (r) => r.chamadas_d3d12 || 1);
+  const x = d3.scaleLog().domain([1, Math.max(10, max)]).range([labW, W - valW]).clamp(true);
+  [1, 10, 100, 1000, 10000, 100000].filter((t) => t <= Math.max(10, max)).forEach((t) => {
+    svg.append('line').attr('x1', x(t)).attr('x2', x(t)).attr('y1', 0).attr('y2', rows.length * rowH).style('stroke', 'var(--cds-chart-grid)');
+    svg.append('text').attr('x', x(t)).attr('y', H - 6).attr('text-anchor', 'middle').text(window.ltFmt(t));
+  });
+  const maxCh = Math.floor((labW - 10) / 6.2);
+  rows.forEach((r, i) => {
+    const g = svg.append('g').attr('transform', `translate(0,${i * rowH})`);
+    const lab = r.pr.length > maxCh ? r.pr.slice(0, maxCh - 1) + '…' : r.pr;
+    g.append('text').attr('x', 0).attr('y', rowH / 2 + 4).text((i + 1) + '. ' + lab);
+    const v = r.chamadas_d3d12 || 1;
+    g.append('rect').attr('x', labW).attr('y', 7).attr('height', rowH - 14).attr('rx', 2)
+      .attr('width', Math.max(2, x(v) - labW)).style('fill', i === rows.length - 1 ? 'var(--color-warn)' : 'var(--n-teal)');
+    g.append('text').attr('x', x(v) + 6).attr('y', rowH / 2 + 4).style('fill', 'var(--color-fg)').text(window.ltFmt(v));
+    g.append('rect').attr('x', 0).attr('y', 0).attr('width', W).attr('height', rowH).style('fill', 'transparent')
+      .on('pointermove pointerdown', (ev) => tip.show(ev, [T.degrau + ' ' + (i + 1) + ': ' + r.pr, T.libera + r.libera, T.chamadas + window.ltFmt(v), T.paraEm + r.para_em]))
+      .on('pointerleave', () => tip.hide());
+  });
+});
+
+window.ltDraw('componentes', (el) => {
+  const d = dash.data('componentes');
+  if (d.status !== 'ok') { el.replaceChildren(); return; }
+  const T = window.ltT();
+  el.replaceChildren(...d.data.map((r) => {
+    const tr = document.createElement('tr');
+    tr.dataset.key = r.componente;
+    tr.appendChild(window.ltEl('td', null, T.comp[r.componente] || r.componente));
+    const td = window.ltEl('td'); td.appendChild(window.ltPill(r.estado)); tr.appendChild(td);
+    tr.appendChild(window.ltEl('td', 'det', r.detalhe));
+    return tr;
+  }));
+});
+
+window.ltDraw('marcos', (el) => {
+  const d = dash.data('marcos');
+  if (d.status !== 'ok') { el.textContent = '—'; return; }
+  el.replaceChildren(...d.data.map((m) => {
+    const c = window.ltEl('div', 'lt-marco');
+    const top = window.ltEl('div'); top.style.display = 'flex'; top.style.justifyContent = 'space-between'; top.style.alignItems = 'center';
+    top.appendChild(window.ltEl('span', 'm', m.marco)); top.appendChild(window.ltPill(m.estado));
+    c.appendChild(top);
+    c.appendChild(window.ltEl('span', 'o', m.objetivo || m.escopo));
+    c.title = m.escopo;
+    return c;
+  }));
+});
+
+window.ltDraw('metodos', (el) => {
+  const d = dash.data('metodos');
+  if (d.status !== 'ok') { el.textContent = '—'; return; }
+  const T = window.ltT();
+  el.replaceChildren();
+  const tip = window.ltTip(el);
+  d.data.forEach((r) => {
+    const row = window.ltEl('div', 'lt-row');
+    const top = window.ltEl('div', 'top');
+    top.appendChild(window.ltEl('span', null, r.interface));
+    top.appendChild(window.ltEl('span', 'num muted', r.na_main + ' / ' + r.metodos));
+    row.appendChild(top);
+    const bar = window.ltEl('div', 'lt-stack');
+    [['na_main', 'var(--color-ok)'], ['em_prs', 'var(--color-warn)'], ['faltam', 'var(--color-bad)']].forEach(([k, c]) => {
+      const s = window.ltEl('i'); s.style.width = (100 * r[k] / r.metodos) + '%'; s.style.background = c; bar.appendChild(s);
+    });
+    const show = (ev) => tip.show(ev, [r.interface, T.naMain + r.na_main, T.emPrs + r.em_prs, T.faltam + r.faltam, T.total + r.metodos]);
+    bar.addEventListener('pointermove', show); bar.addEventListener('pointerdown', show); bar.addEventListener('pointerleave', () => tip.hide());
+    row.appendChild(bar);
+    el.insertBefore(row, el.lastChild);
+  });
+});
+
+window.ltDraw('horas', (el) => {
+  const d = dash.data('horas');
+  const T = window.ltT();
+  if (d.status !== 'ok' || !d.data.length) { el.replaceChildren(); el.textContent = d.status === 'error' ? T.erroAtiv : '—'; return; }
+  const rows = d.data, W = Math.max(300, el.clientWidth || 600), H = 220, m = {l: 40, r: 8, t: 10, b: 26};
+  el.replaceChildren();
+  const tip = window.ltTip(el);
+  const svg = d3.select(el).insert('svg', ':first-child').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`)
+    .attr('role', 'img').attr('aria-label', T.ariaHoras);
+  const x = d3.scaleBand().domain(rows.map((r) => r.hora)).range([m.l, W - m.r]).padding(0.15);
+  const y = d3.scaleLinear().domain([0, d3.max(rows, (r) => r.commits) || 1]).nice(4).range([H - m.b, m.t]);
+  y.ticks(4).forEach((t) => {
+    svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(t)).attr('y2', y(t)).style('stroke', 'var(--cds-chart-grid)');
+    svg.append('text').attr('x', m.l - 6).attr('y', y(t) + 4).attr('text-anchor', 'end').text(window.ltFmt(t));
+  });
+  const fmtTick = (iso) => new Date(iso).toLocaleString(T.loc, {day: '2-digit', month: '2-digit', hour: '2-digit'});
+  const passo = W < 500 ? 24 : 12;
+  rows.forEach((r) => {
+    if (new Date(r.hora).getHours() % passo === 0) svg.append('text').attr('x', x(r.hora) + x.bandwidth() / 2).attr('y', H - 8).attr('text-anchor', 'middle').text(fmtTick(r.hora));
+  });
+  svg.selectAll('rect.b').data(rows).join('rect').attr('class', 'b')
+    .attr('x', (r) => x(r.hora)).attr('width', x.bandwidth())
+    .attr('y', (r) => y(r.commits)).attr('height', (r) => y(0) - y(r.commits)).style('fill', 'var(--n-teal)');
+  svg.selectAll('rect.h').data(rows).join('rect').attr('class', 'h')
+    .attr('x', (r) => x(r.hora) - x.step() * x.paddingInner() / 2).attr('width', x.step()).attr('y', m.t).attr('height', H - m.b - m.t).style('fill', 'transparent')
+    .on('pointermove pointerdown', (ev, r) => tip.show(ev, [new Date(r.hora).toLocaleString(T.loc, {weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'}), window.ltFmt(r.commits) + T.commitsHora]))
+    .on('pointerleave', () => tip.hide());
+});
+
+window.ltDraw('dias', (el) => {
+  const d = dash.data('dias');
+  if (d.status !== 'ok') { el.replaceChildren(); return; }
+  const T = window.ltT();
+  el.replaceChildren(...d.data.slice().reverse().map((r) => {
+    const tr = document.createElement('tr');
+    tr.dataset.key = r.dia;
+    tr.appendChild(window.ltEl('td', 'num', new Date(r.dia + 'T12:00:00Z').toLocaleDateString(T.loc, {timeZone: 'UTC', day: '2-digit', month: '2-digit', year: 'numeric'})));
+    ['commits', 'prs_abertos', 'prs_mergeados', 'issues_abertas'].forEach((k) => tr.appendChild(window.ltEl('td', 'r', window.ltFmt(r[k]))));
+    return tr;
+  }));
+});
+
+window.ltDraw('hist-vazio', (el) => {
+  const d = dash.data('historico');
+  el.hidden = d.status === 'ok' && d.data.length >= 2;
+  el.textContent = d.status !== 'ok' ? '—' : window.ltT().histUma(d.data.length);
+});
+
+window.ltDraw('hist', (el) => {
+  const d = dash.data('historico');
+  if (d.status !== 'ok' || d.data.length < 2) { el.replaceChildren(); return; }
+  const T = window.ltT();
+  const keys = ['estrelas', 'prs_mergeados', 'commits', 'metodos_d3d12_main'];
+  el.replaceChildren(...keys.map((k, idx) => {
+    const box = window.ltEl('div', 'card');
+    const pts = d.data.filter((r) => r[k] != null);
+    const last = pts[pts.length - 1], first = pts[0];
+    box.appendChild(window.ltEl('div', 'muted', T.series[idx]));
+    box.appendChild(window.ltEl('div', 'num', window.ltFmt(last[k]) + '  (' + (last[k] - first[k] >= 0 ? '+' : '') + window.ltFmt(last[k] - first[k]) + T.desde + ')'));
+    box.appendChild(window.ltEl('div', 'lt-chart small'));
+    return box;
+  }));
+  el.querySelectorAll('.lt-chart').forEach((wrap, idx) => {
+    const k = keys[idx];
+    const pts = d.data.filter((r) => r[k] != null);
+    const W = Math.max(200, wrap.clientWidth || 260), H = 110, m = {l: 4, r: 8, t: 8, b: 8};
+    const tip = window.ltTip(wrap);
+    const x = d3.scaleUtc().domain(d3.extent(pts, (r) => new Date(r.gerado_em))).range([m.l, W - m.r]);
+    const y = d3.scaleLinear().domain(d3.extent(pts, (r) => r[k])).nice().range([H - m.b, m.t]);
+    const svg = d3.select(wrap).insert('svg', ':first-child').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', T.series[idx] + T.aoLongo);
+    svg.append('path').datum(pts).attr('d', d3.area().x((r) => x(new Date(r.gerado_em))).y0(H - m.b).y1((r) => y(r[k]))).style('fill', 'var(--n-teal)').style('opacity', 0.12);
+    svg.append('path').datum(pts).attr('d', d3.line().x((r) => x(new Date(r.gerado_em))).y((r) => y(r[k]))).style('fill', 'none').style('stroke', 'var(--n-teal)').style('stroke-width', 2);
+    const lp = pts[pts.length - 1];
+    svg.append('circle').attr('cx', x(new Date(lp.gerado_em))).attr('cy', y(lp[k])).attr('r', 3.5).style('fill', 'var(--n-teal)');
+    svg.append('rect').attr('width', W).attr('height', H).style('fill', 'transparent')
+      .on('pointermove pointerdown', (ev) => {
+        const [mx] = d3.pointer(ev);
+        const t = x.invert(mx);
+        const r = pts.reduce((a, b) => Math.abs(new Date(b.gerado_em) - t) < Math.abs(new Date(a.gerado_em) - t) ? b : a);
+        tip.show(ev, [window.ltData(r.gerado_em), T.series[idx] + ': ' + window.ltFmt(r[k])]);
+      })
+      .on('pointerleave', () => tip.hide());
+  });
+});
+
+window.ltDraw('pedidos', (el) => {
+  const d = dash.data('pedidos');
+  if (d.status !== 'ok') { el.replaceChildren(); return; }
+  const T = window.ltT();
+  el.replaceChildren(...d.data.map((p) => {
+    const li = document.createElement('li');
+    li.appendChild(window.ltEl('span', 'id', p.id));
+    li.appendChild(window.ltEl('span', null, p.pedido));
+    li.appendChild(window.ltEl('span', 'meta', T.precisa + p.precisa + ' · ' + T.com + p.quem));
+    return li;
+  }));
+});
+
+window.ltDraw('merges', (el) => {
+  const d = dash.data('merges');
+  if (d.status !== 'ok') { el.replaceChildren(); return; }
+  const T = window.ltT();
+  el.replaceChildren(...d.data.map((p) => {
+    const tr = document.createElement('tr');
+    tr.dataset.key = String(p.pr);
+    const td = window.ltEl('td', 'num');
+    if (/^https:\/\//.test(p.url)) { const a = window.ltEl('a', null, String(p.pr)); a.href = p.url; a.target = '_blank'; a.rel = 'noopener'; td.appendChild(a); }
+    else td.textContent = String(p.pr);
+    tr.appendChild(td);
+    const tt = window.ltEl('td', null, p.titulo); tt.title = T.mergeadoEm + window.ltData(p.mergeado_em); tr.appendChild(tt);
+    tr.appendChild(window.ltEl('td', 'muted', p.autor));
+    return tr;
+  }));
+});
+
+window.ltDraw('autores', (el) => {
+  const d = dash.data('autores');
+  if (d.status !== 'ok') { el.textContent = '—'; return; }
+  const T = window.ltT();
+  const max = d3.max(d.data, (r) => r.commits) || 1;
+  el.replaceChildren();
+  const tip = window.ltTip(el);
+  d.data.forEach((r) => {
+    const row = window.ltEl('div', 'lt-row');
+    const top = window.ltEl('div', 'top');
+    top.appendChild(window.ltEl('span', null, r.autor));
+    top.appendChild(window.ltEl('span', 'num muted', window.ltFmt(r.commits)));
+    row.appendChild(top);
+    const bar = window.ltEl('div', 'lt-stack');
+    const s = window.ltEl('i'); s.style.width = (100 * r.commits / max) + '%'; s.style.background = 'var(--n-teal)'; bar.appendChild(s);
+    const show = (ev) => tip.show(ev, [r.autor, window.ltFmt(r.commits) + T.commitsMain]);
+    bar.addEventListener('pointermove', show); bar.addEventListener('pointerdown', show); bar.addEventListener('pointerleave', () => tip.hide());
+    row.appendChild(bar);
+    el.insertBefore(row, el.lastChild);
+  });
+});
+</script>
