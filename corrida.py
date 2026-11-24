@@ -193,10 +193,30 @@ def coletar_repo(nome, p):
     except RuntimeError:
         readme = ""
     p["_readme"] = readme[:16000]
+    p["videos_readme"] = extrair_videos(readme)
     p["_readme_novo"] = True
     p["readme_hash"] = hashlib.sha1(readme.encode("utf-8")).hexdigest()[:12]
     p["verificado_em"] = iso(agora())
     return p
+
+
+# ---------------------------------------------------------------- vídeos no README (o videos.py manda para a fila da IA)
+VIDEO_RE = re.compile(
+    r"https://(?:(?:www\.|mobile\.)?(?:x|twitter)\.com/[A-Za-z0-9_]{1,15}/status/\d{5,25}"
+    r"|(?:www\.|m\.)?youtube\.com/(?:watch\?v=|shorts/|live/)[A-Za-z0-9_-]{6,20}"
+    r"|youtu\.be/[A-Za-z0-9_-]{6,20}"
+    r"|streamable\.com/[A-Za-z0-9]{3,12}"
+    r"|vimeo\.com/\d{5,12})")
+
+
+def extrair_videos(texto):
+    vistos, out = set(), []
+    for u in VIDEO_RE.findall(texto or ""):
+        u = u.replace("mobile.twitter.com", "x.com").replace("twitter.com", "x.com")
+        if u.lower() not in vistos:
+            vistos.add(u.lower())
+            out.append(u)
+    return out[:10]
 
 
 # ---------------------------------------------------------------- avaliação
@@ -449,7 +469,7 @@ def main():
             continue
         if not p.get("verificado_em"):
             continue
-        q = {k: v for k, v in p.items() if not k.startswith("_") and k not in ("estrelas_hist", "aval_readme", "aval_commit", "commits_recentes")}
+        q = {k: v for k, v in p.items() if not k.startswith("_") and k not in ("estrelas_hist", "aval_readme", "aval_commit", "commits_recentes", "videos_enviados")}
         q["pontos"] = pontuacao(a)
         q["spark"] = [h[1] for h in p.get("estrelas_hist", [])][-48:]
         lista.append(q)

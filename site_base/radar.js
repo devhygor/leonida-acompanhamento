@@ -17,7 +17,7 @@
       corrida_sub: 'Cada projeto conferido direto na branch principal do GitHub. O marco vem do que o próprio projeto publica (README e commits), lido por uma IA; quando não há prova pública, aparece como autodeclarado.',
       f_todos: 'Todos', f_gta: 'Só GTA VI', f_geral: 'Qualquer jogo', o_pontos: 'Progresso', o_atividade: 'Atividade', o_estrelas: 'Estrelas',
       com_k: 'Ao vivo', com_t: 'Comunidade', com_sub: 'Vídeos e conversa de quem está acompanhando.',
-      vid_t: 'Vídeos', vid_sub: 'Viu um vídeo de algum projeto rodando o GTA VI (no X, YouTube...)? Cole o link. Ele aparece depois de aprovado. Só links: nada de vídeo do jogo é hospedado aqui.',
+      vid_t: 'Vídeos', vid_sub: 'Viu um vídeo de algum projeto rodando o GTA VI (no X, YouTube...)? Cole o link: uma IA assiste o vídeo e, se ele mostrar o GTA VI rodando no PC, publica sozinha. Também buscamos vídeos nos READMEs dos projetos. Só links: nada de vídeo do jogo é hospedado aqui.',
       dono: 'Área do dono', entrar: 'Entrar', dono_t: 'Modo dono: vídeos sugeridos', dono_sair: 'Sair do modo dono',
       chat_t: 'Chat', chat_sub: 'Sem links e sem flood; uma mensagem a cada poucos segundos. As mensagens somem depois de 7 dias.',
       golpe_t: 'Não existe download do GTA VI para PC',
@@ -40,7 +40,7 @@
       det_prep: 'Detalhes da preparação', p_loader: 'Loader e bibliotecas do sistema', p_shaders: 'Tradução de shaders', p_graficos: 'Camada gráfica', p_outro: 'Comprovado em outro jogo', comprovado: 'Comprovado em: ', ver_det: 'Ver detalhes', ocultar_det: 'Ocultar detalhes', aval_ia: 'Avaliado pela IA ', aval_reg: 'Estimativa automática ', sem_det: 'A IA ainda não avaliou este projeto.',
       verificado: 'conferido na branch principal ', github: 'Ver no GitHub', mais: function (n) { return 'Ver todos (' + n + ')'; }, menos: 'Mostrar menos',
       ev_novo: function (p) { return p + ' entrou no radar'; }, ev_removido: function (p) { return p + ' saiu do GitHub'; }, ev_voltou: function (p) { return p + ' voltou ao GitHub'; },
-      ev_marco: function (p, m) { return p + ' chegou em "' + m + '"'; }, ev_novidade: function (p) { return 'Novidade no ' + p; },
+      ev_marco: function (p, m) { return p + ' chegou em "' + m + '"'; }, ev_novidade: function (p) { return 'Novidade no ' + p; }, ev_video: function (p) { return p ? 'Vídeo novo do ' + p : 'Vídeo novo'; },
       ev_vazio: 'Nenhuma mudança registrada ainda. Assim que um projeto avançar de marco, entrar ou sair do radar, aparece aqui.',
       sem_dados: 'Carregando os dados do radar…', erro_dados: 'Não deu para carregar os dados agora. Tentando de novo em instantes.'
     },
@@ -60,7 +60,7 @@
       corrida_sub: 'Every project checked straight on its GitHub main branch. The milestone comes from what the project itself publishes (README and commits), read by an AI; without public proof it is marked self-reported.',
       f_todos: 'All', f_gta: 'GTA VI only', f_geral: 'Any game', o_pontos: 'Progress', o_atividade: 'Activity', o_estrelas: 'Stars',
       com_k: 'Live', com_t: 'Community', com_sub: 'Videos and chat from people following along.',
-      vid_t: 'Videos', vid_sub: 'Saw a video of a project running GTA VI (on X, YouTube...)? Paste the link. It shows up once approved. Links only: no game footage is hosted here.',
+      vid_t: 'Videos', vid_sub: 'Saw a video of a project running GTA VI (on X, YouTube...)? Paste the link: an AI watches it and, if it shows GTA VI running on PC, publishes it on its own. We also pick up videos from project READMEs. Links only: no game footage is hosted here.',
       dono: 'Owner area', entrar: 'Enter', dono_t: 'Owner mode: suggested videos', dono_sair: 'Leave owner mode',
       chat_t: 'Chat', chat_sub: 'No links, no flooding; one message every few seconds. Messages disappear after 7 days.',
       golpe_t: 'There is no GTA VI download for PC',
@@ -83,7 +83,7 @@
       det_prep: 'Preparation details', p_loader: 'Loader and system libraries', p_shaders: 'Shader translation', p_graficos: 'Graphics layer', p_outro: 'Proven on another game', comprovado: 'Proven on: ', ver_det: 'Show details', ocultar_det: 'Hide details', aval_ia: 'Assessed by AI ', aval_reg: 'Automatic estimate ', sem_det: 'The AI has not assessed this project yet.',
       verificado: 'checked on the main branch ', github: 'View on GitHub', mais: function (n) { return 'See all (' + n + ')'; }, menos: 'Show less',
       ev_novo: function (p) { return p + ' joined the radar'; }, ev_removido: function (p) { return p + ' is gone from GitHub'; }, ev_voltou: function (p) { return p + ' is back on GitHub'; },
-      ev_marco: function (p, m) { return p + ' reached "' + m + '"'; }, ev_novidade: function (p) { return 'News from ' + p; },
+      ev_marco: function (p, m) { return p + ' reached "' + m + '"'; }, ev_novidade: function (p) { return 'News from ' + p; }, ev_video: function (p) { return p ? 'New video of ' + p : 'New video'; },
       ev_vazio: 'No changes recorded yet. As soon as a project reaches a milestone, joins or leaves the radar, it shows up here.',
       sem_dados: 'Loading radar data…', erro_dados: 'Could not load the data right now. Trying again shortly.'
     },
@@ -103,7 +103,7 @@
       corrida_sub: 'Cada proyecto comprobado directamente en la rama principal de GitHub. El hito sale de lo que publica el propio proyecto (README y commits), leído por una IA; sin prueba pública, aparece como autodeclarado.',
       f_todos: 'Todos', f_gta: 'Solo GTA VI', f_geral: 'Cualquier juego', o_pontos: 'Progreso', o_atividade: 'Actividad', o_estrelas: 'Estrellas',
       com_k: 'En vivo', com_t: 'Comunidad', com_sub: 'Videos y conversación de quienes lo siguen.',
-      vid_t: 'Videos', vid_sub: '¿Viste un video de algún proyecto ejecutando GTA VI (en X, YouTube...)? Pega el enlace. Aparece después de aprobado. Solo enlaces: aquí no se aloja ningún video del juego.',
+      vid_t: 'Videos', vid_sub: '¿Viste un video de algún proyecto ejecutando GTA VI (en X, YouTube...)? Pega el enlace: una IA ve el video y, si muestra GTA VI corriendo en PC, lo publica sola. También buscamos videos en los README de los proyectos. Solo enlaces: aquí no se aloja ningún video del juego.',
       dono: 'Área del dueño', entrar: 'Entrar', dono_t: 'Modo dueño: videos sugeridos', dono_sair: 'Salir del modo dueño',
       chat_t: 'Chat', chat_sub: 'Sin enlaces y sin flood; un mensaje cada pocos segundos. Los mensajes desaparecen a los 7 días.',
       golpe_t: 'No existe descarga de GTA VI para PC',
@@ -126,7 +126,7 @@
       det_prep: 'Detalles de la preparación', p_loader: 'Loader y bibliotecas del sistema', p_shaders: 'Traducción de shaders', p_graficos: 'Capa gráfica', p_outro: 'Probado en otro juego', comprovado: 'Probado en: ', ver_det: 'Ver detalles', ocultar_det: 'Ocultar detalles', aval_ia: 'Evaluado por IA ', aval_reg: 'Estimación automática ', sem_det: 'La IA aún no evaluó este proyecto.',
       verificado: 'comprobado en la rama principal ', github: 'Ver en GitHub', mais: function (n) { return 'Ver todos (' + n + ')'; }, menos: 'Mostrar menos',
       ev_novo: function (p) { return p + ' entró en el radar'; }, ev_removido: function (p) { return p + ' salió de GitHub'; }, ev_voltou: function (p) { return p + ' volvió a GitHub'; },
-      ev_marco: function (p, m) { return p + ' llegó a "' + m + '"'; }, ev_novidade: function (p) { return 'Novedad en ' + p; },
+      ev_marco: function (p, m) { return p + ' llegó a "' + m + '"'; }, ev_novidade: function (p) { return 'Novedad en ' + p; }, ev_video: function (p) { return p ? 'Video nuevo de ' + p : 'Video nuevo'; },
       ev_vazio: 'Aún no hay cambios registrados. En cuanto un proyecto avance de hito, entre o salga del radar, aparecerá aquí.',
       sem_dados: 'Cargando los datos del radar…', erro_dados: 'No se pudieron cargar los datos ahora. Reintentando en breve.'
     }
@@ -253,8 +253,9 @@
     evs.forEach(function (e) {
       var p = nomeCurto(e.projeto), titulo, texto = tr(e.texto);
       if (e.tipo === 'novo') titulo = T().ev_novo(p); else if (e.tipo === 'removido') titulo = T().ev_removido(p);
-      else if (e.tipo === 'voltou') titulo = T().ev_voltou(p); else if (e.tipo === 'marco') titulo = T().ev_marco(p, marcoNome(e.para)); else titulo = T().ev_novidade(p);
-      var c = link('https://github.com/' + e.projeto, 'ev ' + e.tipo);
+      else if (e.tipo === 'voltou') titulo = T().ev_voltou(p); else if (e.tipo === 'marco') titulo = T().ev_marco(p, marcoNome(e.para)); else if (e.tipo === 'video') titulo = T().ev_video(e.projeto ? p : ''); else titulo = T().ev_novidade(p);
+      var c = link(e.tipo === 'video' && e.url ? e.url : 'https://github.com/' + e.projeto, 'ev ' + e.tipo);
+      if (e.tipo === 'video') c.rel = 'noopener nofollow ugc';
       var q = el('span', 'q'); q.appendChild(el('span', 'bola')); q.appendChild(document.createTextNode(window.ltQuando(e.em))); q.title = window.ltData(e.em);
       c.appendChild(q); c.appendChild(el('b', null, titulo)); if (texto) c.appendChild(el('p', null, texto));
       box.appendChild(c);

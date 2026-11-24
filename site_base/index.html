@@ -112,7 +112,7 @@ main section{padding:56px 0 8px}
 .ev:hover{border-color:var(--pink)}
 .ev .q{font-size:12px;color:var(--mut2);display:flex;align-items:center;gap:6px}
 .ev .bola{width:8px;height:8px;border-radius:50%;background:var(--teal)}
-.ev.marco .bola{background:var(--ok)} .ev.removido .bola{background:var(--bad)} .ev.novo .bola{background:var(--yellow)}
+.ev.video .bola{background:var(--pink)} .ev.marco .bola{background:var(--ok)} .ev.removido .bola{background:var(--bad)} .ev.novo .bola{background:var(--yellow)}
 .ev b{font-size:15px}
 .ev p{font-size:13.5px;color:#d8cfef}
 .agora-lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr));gap:10px;margin-top:14px}
@@ -252,7 +252,9 @@ main section{padding:56px 0 8px}
 .lista-v li{display:grid;grid-template-columns:auto minmax(0,1fr);gap:3px 12px;font-size:14px}
 .lista-v .q{color:var(--mut2);font-size:12px;white-space:nowrap;padding-top:2px}
 .lista-v .cab{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;font-size:12.5px;color:var(--mut)}
-.lista-v .tx{grid-column:2;overflow-wrap:anywhere}
+.lista-v .tx{grid-column:2;overflow-wrap:anywhere;display:flex;flex-direction:column;gap:3px}
+.lista-v .vt{font-size:15px}.lista-v .vr{color:#d8cfef}.lista-v .vp{font-size:12.5px;color:var(--mut2)}
+.lt-tag.ia{color:var(--ok)}
 .lista-v .muted,.lista-v li.muted{color:var(--mut);grid-column:1 / 3}
 .lt-tag{display:inline-block;padding:0 8px;border-radius:999px;font-size:11px;letter-spacing:.03em;text-transform:uppercase;border:1px solid currentColor}
 .lt-tag.destaque{color:var(--yellow)} .lt-tag.decided{color:var(--ok)} .lt-tag.stop{color:var(--orange)}
@@ -504,7 +506,7 @@ body::before{content:"";position:fixed;inset:-20vmax;z-index:-2;pointer-events:n
       <div class="comunidade">
         <div class="card" id="videos">
           <h3 data-i18n="vid_t">Vídeos</h3>
-          <p class="mut pequeno" data-i18n="vid_sub">Viu um vídeo de algum projeto rodando o GTA VI (no X, YouTube...)? Cole o link. Ele aparece depois de aprovado. Só links: nada de vídeo do jogo é hospedado aqui.</p>
+          <p class="mut pequeno" data-i18n="vid_sub">Viu um vídeo de algum projeto rodando o GTA VI (no X, YouTube...)? Cole o link: uma IA assiste o vídeo e, se ele mostrar o GTA VI rodando no PC, publica sozinha. Também buscamos vídeos nos READMEs dos projetos. Só links: nada de vídeo do jogo é hospedado aqui.</p>
           <ol class="lista-v" id="lt-vid-lista" aria-live="polite"></ol>
           <form class="form" id="lt-vid-form" autocomplete="off">
             <input id="lt-vid-url" class="largo" maxlength="300" inputmode="url" aria-label="Link do vídeo / Video link">

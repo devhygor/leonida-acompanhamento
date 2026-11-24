@@ -50,23 +50,26 @@
 
   var VT = {
     pt: {url: 'Link do vídeo (X, YouTube, Streamable, Twitch, Vimeo, Medal)', com: 'O que aparece no vídeo? (opcional)', enviar: 'Sugerir',
-      ok: 'Obrigado! O link aparece aqui depois de aprovado.', vazio: 'Cole o link do vídeo.', link: 'Esse link não é de um vídeo aceito (X, YouTube, Streamable, Twitch, Vimeo ou Medal).',
+      ok: 'Obrigado! A IA vai assistir o vídeo: se ele mostrar o GTA VI rodando no PC, aparece aqui em alguns minutos.', vazio: 'Cole o link do vídeo.', link: 'Esse link não é de um vídeo aceito (X, YouTube, Streamable, Twitch, Vimeo ou Medal).',
       link_texto: 'Não coloque links no comentário.', repetido: 'Esse vídeo já foi sugerido.', rapido: 'Espere uns segundos antes de sugerir outro.',
       limite: 'Você já sugeriu 10 vídeos hoje.', apelido: 'Esse apelido é reservado.', banido: 'Você foi bloqueado.', erro: 'Não deu para enviar. Tente de novo.',
-      nenhum: 'Nenhum vídeo aprovado ainda.', pend: function (n) { return n === 1 ? '1 sugestão aguardando aprovação.' : n + ' sugestões aguardando aprovação.'; },
-      abrir: 'Abrir vídeo no ', por: 'sugerido por '},
+      nenhum: 'Nenhum vídeo aprovado ainda.', pend: function (n) { return n === 1 ? '1 vídeo sendo analisado pela IA.' : n + ' vídeos sendo analisados pela IA.'; },
+      abrir: 'Abrir vídeo no ', por: 'sugerido por ', ia: '✓ conferido pela IA', readme: 'achado no README', mostra: 'mostra: ',
+      marcos: {exe: 'executável rodando', imagem: 'primeira imagem', menu: 'menu', jogo: 'gameplay'}},
     en: {url: 'Video link (X, YouTube, Streamable, Twitch, Vimeo, Medal)', com: 'What does the video show? (optional)', enviar: 'Suggest',
-      ok: 'Thanks! The link shows up here once approved.', vazio: 'Paste the video link.', link: 'That is not an accepted video link (X, YouTube, Streamable, Twitch, Vimeo or Medal).',
+      ok: 'Thanks! The AI will watch it: if it shows GTA VI running on PC, it shows up here in a few minutes.', vazio: 'Paste the video link.', link: 'That is not an accepted video link (X, YouTube, Streamable, Twitch, Vimeo or Medal).',
       link_texto: 'Please do not put links in the comment.', repetido: 'That video was already suggested.', rapido: 'Wait a few seconds before suggesting another one.',
       limite: 'You already suggested 10 videos today.', apelido: 'That nickname is reserved.', banido: 'You have been blocked.', erro: 'Could not send. Try again.',
-      nenhum: 'No approved videos yet.', pend: function (n) { return n === 1 ? '1 suggestion waiting for approval.' : n + ' suggestions waiting for approval.'; },
-      abrir: 'Open video on ', por: 'suggested by '},
+      nenhum: 'No approved videos yet.', pend: function (n) { return n === 1 ? '1 video being checked by the AI.' : n + ' videos being checked by the AI.'; },
+      abrir: 'Open video on ', por: 'suggested by ', ia: '✓ checked by AI', readme: 'found in the README', mostra: 'shows: ',
+      marcos: {exe: 'exe running', imagem: 'first image', menu: 'menu', jogo: 'gameplay'}},
     es: {url: 'Enlace del video (X, YouTube, Streamable, Twitch, Vimeo, Medal)', com: '¿Qué muestra el video? (opcional)', enviar: 'Sugerir',
-      ok: '¡Gracias! El enlace aparece aquí cuando se apruebe.', vazio: 'Pega el enlace del video.', link: 'Ese enlace no es de un video aceptado (X, YouTube, Streamable, Twitch, Vimeo o Medal).',
+      ok: '¡Gracias! La IA verá el video: si muestra GTA VI corriendo en PC, aparece aquí en unos minutos.', vazio: 'Pega el enlace del video.', link: 'Ese enlace no es de un video aceptado (X, YouTube, Streamable, Twitch, Vimeo o Medal).',
       link_texto: 'No pongas enlaces en el comentario.', repetido: 'Ese video ya fue sugerido.', rapido: 'Espera unos segundos antes de sugerir otro.',
       limite: 'Ya sugeriste 10 videos hoy.', apelido: 'Ese apodo está reservado.', banido: 'Fuiste bloqueado.', erro: 'No se pudo enviar. Inténtalo de nuevo.',
-      nenhum: 'Aún no hay videos aprobados.', pend: function (n) { return n === 1 ? '1 sugerencia esperando aprobación.' : n + ' sugerencias esperando aprobación.'; },
-      abrir: 'Abrir video en ', por: 'sugerido por '}
+      nenhum: 'Aún no hay videos aprobados.', pend: function (n) { return n === 1 ? '1 video en análisis por la IA.' : n + ' videos en análisis por la IA.'; },
+      abrir: 'Abrir video en ', por: 'sugerido por ', ia: '✓ revisado por IA', readme: 'hallado en el README', mostra: 'muestra: ',
+      marcos: {exe: 'ejecutable corriendo', imagem: 'primera imagen', menu: 'menú', jogo: 'gameplay'}}
   };
   var vt = function () { return VT[window.ltLang] || VT.pt; };
 
@@ -89,14 +92,24 @@
         var li = document.createElement('li');
         var q = document.createElement('span'); q.className = 'q';
         q.textContent = window.ltQuando ? window.ltQuando(v.criado_em) : new Date(v.criado_em).toLocaleDateString();
-        var cab = document.createElement('span'); cab.className = 'cab';
-        var tag = document.createElement('span'); tag.className = 'lt-tag destaque'; tag.textContent = hostDe(v.url); cab.appendChild(tag);
-        if (v.apelido) { var b = document.createElement('b'); b.textContent = vt().por + v.apelido; cab.appendChild(b); }
-        var tx = document.createElement('span'); tx.className = 'tx';
-        var a = document.createElement('a'); a.className = 'lk'; a.target = '_blank'; a.rel = 'noopener nofollow ugc';
+        var mk = function (tag, cls, txt) { var e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
+        var cab = mk('span', 'cab');
+        cab.appendChild(mk('span', 'lt-tag destaque', hostDe(v.url)));
+        if (v.ia_status === 'aprovado') cab.appendChild(mk('span', 'lt-tag ia', vt().ia));
+        if (v.ia_projeto) cab.appendChild(mk('span', 'lt-tag', v.ia_projeto.split('/').pop()));
+        if (v.ia_marco && vt().marcos[v.ia_marco]) cab.appendChild(mk('span', 'lt-tag', vt().mostra + vt().marcos[v.ia_marco]));
+        var tx = mk('span', 'tx');
+        if (v.ia_titulo) tx.appendChild(mk('b', 'vt', v.ia_titulo));
+        var res = v.ia_resumo && (v.ia_resumo[window.ltLang] || v.ia_resumo.pt);
+        if (res) tx.appendChild(mk('span', 'vr', res));
+        else if (v.comentario) tx.appendChild(mk('span', 'vr', v.comentario));
+        var pe = mk('span', 'vp');
+        var a = mk('a', 'lk'); a.target = '_blank'; a.rel = 'noopener nofollow ugc';
         if (/^https:\/\//i.test(v.url)) a.href = v.url;
-        a.textContent = vt().abrir + hostDe(v.url) + ' ↗'; tx.appendChild(a);
-        if (v.comentario) tx.appendChild(document.createTextNode(' — ' + v.comentario));
+        a.textContent = vt().abrir + hostDe(v.url) + ' ↗'; pe.appendChild(a);
+        var quem = v.origem === 'readme' ? vt().readme : (v.apelido ? vt().por + v.apelido : '');
+        if (quem) pe.appendChild(document.createTextNode(' · ' + quem));
+        tx.appendChild(pe);
         li.appendChild(q); li.appendChild(cab); li.appendChild(tx);
         return li;
       });
@@ -116,7 +129,7 @@
       var u = url.value.trim();
       st.className = 'muted';
       if (!u) { st.textContent = vt().vazio; return; }
-      btn.disabled = true; st.textContent = ''; meuEnvio = Date.now();
+      btn.disabled = true; st.textContent = '';
       var nick = $('lt-chat-nick') ? $('lt-chat-nick').value.trim().slice(0, 24) : '';
       sb.rpc('leonida_sugerir_video', {url: u, comentario: com.value.trim().slice(0, 200), apelido: nick}).then(function (r) {
         btn.disabled = false;
