@@ -89,11 +89,21 @@ def midia_de(u, meta):
     return f"yt:{y}" if y else None
 
 
+class Removido(Exception):
+    """O X tirou o vídeo do ar (DMCA ou apagado): não adianta tentar de novo."""
+
+
 def sobe_video(mp4):
     """Baixa o mp4 (até 60 MB) e manda para a File API do Gemini; devolve (uri, nome) já pronto para uso."""
     req = urllib.request.Request(mp4, headers={"User-Agent": "Mozilla/5.0"})
-    with urllib.request.urlopen(req, timeout=60) as r:
-        dados = r.read(60 * 1024 * 1024 + 1)
+    try:
+        with urllib.request.urlopen(req, timeout=60) as r:
+            dados = r.read(60 * 1024 * 1024 + 1)
+    except urllib.error.HTTPError as e:
+        corpo = e.read().decode("utf-8", "replace")
+        if e.code in (403, 404, 410) and ("dmca" in corpo.lower() or e.code != 403):
+            raise Removido("removido por DMCA" if "dmca" in corpo.lower() else f"vídeo sumiu ({e.code})")
+        raise
     if len(dados) > 60 * 1024 * 1024:
         raise RuntimeError("vídeo grande demais")
     base = "https://generativelanguage.googleapis.com"
@@ -151,7 +161,9 @@ def avaliar(v, projetos_txt, meta):
     partes, enviado = [], None
     vid = youtube_id(v["url"]) if "youtu" in v["url"] else None
     if vid:
-        partes.append({"file_data": {"file_uri": f"https://www.youtube.com/watch?v={vid}"}})
+        # lives de horas estouram a cota: assiste só os primeiros 15 min, a 0,5 quadro/s
+        partes.append({"file_data": {"file_uri": f"https://www.youtube.com/watch?v={vid}"},
+                       "video_metadata": {"end_offset": "900s", "fps": 0.5}})
     elif meta.get("_mp4"):
         uri, enviado = sobe_video(meta["_mp4"])
         partes.append({"file_data": {"mime_type": "video/mp4", "file_uri": uri}})
@@ -165,23 +177,24 @@ def avaliar(v, projetos_txt, meta):
     corpo = {"contents": [{"role": "user", "parts": partes}],
              "generationConfig": {"temperature": 0.1, "responseMimeType": "application/json",
                                   **({"mediaResolution": "MEDIA_RESOLUTION_LOW"} if vid else {})}}
-    d, erro = None, None
+    d, erro, ocupado = None, None, None
+    modelos = C.MODELOS_IA[:1] if "youtu" in v["url"] else C.MODELOS_IA  # o lite não aceita link do YouTube (403)
     try:
-        for tentativa in range(3):  # o flash vive dando 503 (sobrecarga): tenta de novo e cai para o lite
-            for m in C.MODELOS_IA:
-                try:
-                    d = C._gerar(m, corpo)
-                    break
-                except urllib.error.HTTPError as e:
-                    erro = e
-                    if e.code not in (429, 500, 503):
-                        raise
-            if d:
+        for m in modelos:  # uma passada só: insistir queima a cota grátis do dia
+            try:
+                d = C._gerar(m, corpo)
                 break
-            time.sleep(10)
+            except urllib.error.HTTPError as e:
+                erro = e
+                if e.code in (429, 500, 503):
+                    ocupado = 429 if (e.code == 429 or ocupado == 429) else 503
+                else:
+                    raise
     finally:
         if enviado:
             apaga_video(enviado)
+    if not d and ocupado:
+        raise C.IAOcupada(ocupado)
     if not d:
         raise erro or RuntimeError("sem resposta")
     txt = d["candidates"][0]["content"]["parts"][0]["text"]
@@ -191,7 +204,7 @@ def avaliar(v, projetos_txt, meta):
 def decidir(a, viu):
     conf = float(a.get("confianca") or 0)
     bom = a.get("mostra_gta_vi") and a.get("rodando_no_pc") and not a.get("enganoso")
-    if bom and conf >= (0.7 if viu else 0.6):
+    if bom and conf >= (0.5 if viu else 0.6):  # viu o jogo rodando no PC sem enganação: aprova mesmo se travar logo
         return "aprovado"
     if not bom and conf >= 0.7:
         return "recusado"
@@ -223,6 +236,9 @@ def main():
                    key=lambda x: -C.pontuacao(x[1].get("aval")))[:25]
     projetos_txt = "\n".join(f"- {n}: {(p.get('aval') or {}).get('marco', 'preparacao')}" for n, p in lista)
     eventos, feitos = [], 0
+    if C.ia_pausada(est):
+        print("videos: IA pausada até", est["ia_pausa_ate"], "- fila fica para a próxima rodada")
+        fila = []
     for v in fila[:MAX_POR_RODADA]:
         meta = metadados(v["url"])
         if meta.get("sem_video_no_post") or "404" in (meta.get("erro") or ""):
@@ -240,6 +256,14 @@ def main():
                 continue
         try:
             a, viu = avaliar(v, projetos_txt, meta)
+        except C.IAOcupada as e:
+            C.pausa_ia(est, e.codigo)  # não gasta tentativa: o vídeo volta na próxima janela
+            break
+        except Removido as e:
+            rpc("leonida_robo_decide", {"chave": ROBO, "video": v["id"], "status": "recusado", "resumo": None,
+                                        "projeto": None, "marco": None, "titulo": None})
+            print(f"vídeo {v['id']}: recusado ({e})")
+            continue
         except Exception as e:
             print("aviso: vídeo", v["id"], "não avaliado:", str(e)[:120])
             rpc("leonida_robo_decide", {"chave": ROBO, "video": v["id"], "status": "erro", "resumo": None,

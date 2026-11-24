@@ -263,6 +263,25 @@ MODELOS_IA = ["models/gemini-flash-latest", "models/gemini-flash-lite-latest"]
 _modelos_ruins = set()
 
 
+class IAOcupada(Exception):
+    """Gemini sobrecarregado (503) ou cota grátis esgotada (429): pausa a IA em vez de insistir."""
+    def __init__(self, codigo):
+        super().__init__(f"Gemini respondeu {codigo}")
+        self.codigo = codigo
+
+
+def pausa_ia(estado, codigo):
+    minutos = 120 if codigo == 429 else 15
+    ate = iso(agora() + dt.timedelta(minutes=minutos))
+    if (estado.get("ia_pausa_ate") or "") < ate:
+        estado["ia_pausa_ate"] = ate
+    print(f"aviso: Gemini {codigo}; IA pausada até {estado['ia_pausa_ate']}")
+
+
+def ia_pausada(estado):
+    return (estado.get("ia_pausa_ate") or "") > iso(agora())
+
+
 def _gemini_modelo():
     return MODELOS_IA[0] if GEMINI else None
 
@@ -303,21 +322,22 @@ def avaliar_ia(modelo, p):
     corpo = {"contents": [{"role": "user", "parts": [{"text": PROMPT + "\n\n" + entrada}]}],
              "generationConfig": {"temperature": 0.2, "responseMimeType": "application/json"}}
     d, erro = None, None
-    for tentativa in range(2):
-        for m in MODELOS_IA:
-            if m in _modelos_ruins:
-                continue
-            try:
-                d = _gerar(m, corpo)
-                usado = m
-                break
-            except urllib.error.HTTPError as e:
-                erro = e
-                if e.code in (400, 403, 404):
-                    _modelos_ruins.add(m)
-        if d:
+    ocupado = None
+    for m in MODELOS_IA:  # uma passada só: insistir queima a cota grátis do dia
+        if m in _modelos_ruins:
+            continue
+        try:
+            d = _gerar(m, corpo)
+            usado = m
             break
-        time.sleep(8)
+        except urllib.error.HTTPError as e:
+            erro = e
+            if e.code in (400, 403, 404):
+                _modelos_ruins.add(m)
+            elif e.code in (429, 500, 503):
+                ocupado = 429 if (e.code == 429 or ocupado == 429) else 503
+    if not d and ocupado:
+        raise IAOcupada(ocupado)
     if not d:
         raise erro or RuntimeError("nenhum modelo respondeu")
     txt = d["candidates"][0]["content"]["parts"][0]["text"]
@@ -436,13 +456,16 @@ def main():
         precisa = not p.get("aval") or defasada or (mudou and velha) or (modelo and (p.get("aval") or {}).get("fonte") == "regras")
         if precisa:
             try:
-                if modelo and avaliados < MAX_AVALIA:
+                if modelo and not ia_pausada(estado) and avaliados < MAX_AVALIA:
                     a = avaliar_ia(modelo, p)
                     avaliados += 1
                 elif not p.get("aval") or (p.get("aval") or {}).get("fonte") == "regras":
                     a = avaliar_regras(p)
                 else:
                     a = None
+            except IAOcupada as e:
+                pausa_ia(estado, e.codigo)
+                a = None if p.get("aval") else avaliar_regras(p)
             except Exception as e:
                 print("aviso: avaliação de", nome, "falhou:", str(e)[:160])
                 a = p.get("aval") or avaliar_regras(p)

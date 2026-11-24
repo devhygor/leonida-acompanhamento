@@ -38,18 +38,19 @@ jobs:
             fi
           done
 
+      - name: Vídeos (primeiro, para ter prioridade na cota da IA)
+        continue-on-error: true
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          ROBO_VIDEOS_KEY: ${{ secrets.ROBO_VIDEOS_KEY }}
+        run: python -I videos.py
+
       - name: Coletar a corrida (GitHub + IA)
         env:
           GH_TOKEN: ${{ github.token }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: python -I corrida.py
 
-      - name: Vídeos (a IA assiste e aprova sozinha)
-        continue-on-error: true
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          ROBO_VIDEOS_KEY: ${{ secrets.ROBO_VIDEOS_KEY }}
-        run: python -I videos.py
 
       - name: Montar o site
         run: python -I montar_site.py
