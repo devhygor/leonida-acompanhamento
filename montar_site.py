@@ -14,7 +14,7 @@ def main():
     if SITE.exists():
         shutil.rmtree(SITE)
     SITE.mkdir()
-    for nome in ("index.html", "radar.js", "ao-vivo.js"):
+    for nome in ("index.html", "radar.js", "ao-vivo.js", "meu-pc.js"):
         shutil.copy(BASE / "site_base" / nome, SITE / nome)
     for nome in ("corrida.json", "estado_corrida.json"):
         if (BASE / "dados" / nome).exists():

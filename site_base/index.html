@@ -15,10 +15,12 @@
 <script defer src="radar.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script defer src="ao-vivo.js"></script>
+<script defer src="meu-pc.js"></script>
 <style>
 /* Radar VI — noite neon: fundo quase preto arroxeado, acentos rosa/laranja/turquesa. Um tema só (escuro). */
 :root{
-  --bg:#0b0816; --bg2:#100c20; --panel:#141026; --panel2:#1b1534; --line:#2a2148; --fg:#f4efff; --mut:#a99fcf; --mut2:#7d73a6;
+  --bg:#0b0816; --bg2:#100c20; --panel:rgba(255,255,255,.055); --panel2:rgba(255,255,255,.1); --line:rgba(255,255,255,.12);
+  --vidro:blur(24px) saturate(180%); --brilho:inset 0 1px 0 rgba(255,255,255,.16),inset 0 0 0 1px rgba(255,255,255,.02),0 18px 50px -18px rgba(0,0,0,.6); --fg:#f4efff; --mut:#a99fcf; --mut2:#7d73a6;
   --pink:#ff3d8b; --orange:#ff9a3c; --yellow:#ffd23f; --teal:#2de2e6; --purple:#8b3dff; --ok:#39e6a0; --bad:#ff4d6d; --warn:#ffb238;
   --f:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   --r:16px; --wrap:1160px;
@@ -168,6 +170,42 @@ main section{padding:56px 0 8px}
 .btn-det,.btn-gh{font:inherit;font-size:13px;font-weight:600;padding:7px 14px;border-radius:9px;cursor:pointer;text-decoration:none}
 .btn-det{background:transparent;color:var(--fg);border:1px solid #3a2f5c}.btn-det:hover{border-color:var(--pink)}
 .btn-gh{background:#f1ecff;color:#140e26;border:1px solid #f1ecff}
+/* ---- Meu PC roda? ---- */
+.mp{display:grid;grid-template-columns:minmax(260px,340px) minmax(0,1fr);overflow:hidden;margin-top:20px}
+@media (max-width:820px){.mp{grid-template-columns:minmax(0,1fr)}}
+.mp-form{padding:22px;display:flex;flex-direction:column;gap:14px;border-right:1px solid var(--line)}
+@media (max-width:820px){.mp-form{border-right:0;border-bottom:1px solid var(--line)}}
+.mp-form label{display:flex;flex-direction:column;gap:6px;font-size:12.5px;color:var(--mut);font-weight:600}
+.mp-form select{font:inherit;font-size:14px;color:var(--fg);background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:12px;padding:10px 12px;width:100%}
+.mp-form select option,.mp-form select optgroup{background:#1b1534;color:var(--fg)}
+.mp-rl{display:flex;justify-content:space-between}.mp-rl b{color:var(--fg)}
+.mp-form input[type=range]{width:100%;accent-color:var(--pink)}
+.mp-sep{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut2);font-weight:700;margin-top:4px}
+.mp-det{color:var(--teal);font-weight:500}
+.mp-res{padding:22px 24px;display:flex;flex-direction:column;gap:18px}
+.mp-vazio{color:var(--mut)}
+.mp-topo{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap}
+.mp-veredito{font-size:clamp(30px,4.4vw,44px);font-weight:900;line-height:1.05;margin-top:6px}
+.mp-veredito.ok{color:var(--ok)}.mp-veredito.teal{color:var(--teal)}.mp-veredito.warn{color:var(--warn)}.mp-veredito.bad{color:var(--bad)}
+.mp-desc{margin:6px 0 0;color:var(--mut);max-width:52ch;font-size:14px}
+.mp-total{text-align:right}.mp-total b{display:block;font-size:44px;font-weight:900;line-height:1}
+.mp-total span{font-size:12.5px;color:var(--mut)}
+.mp-mais{color:var(--ok)}.mp-menos{color:var(--bad)}.mp-igual{color:var(--teal)}
+.mp-linhas{display:flex;flex-direction:column;gap:14px}
+.mp-lt{display:flex;justify-content:space-between;font-size:14px;font-weight:600;margin-bottom:6px}
+.mp-bar{position:relative;height:8px;border-radius:4px;background:rgba(255,255,255,.07)}
+.mp-bar i{position:absolute;left:0;top:0;bottom:0;border-radius:4px}
+.mp-bar i.mp-mais{background:linear-gradient(90deg,var(--purple),var(--ok))}.mp-bar i.mp-menos{background:linear-gradient(90deg,var(--purple),var(--bad))}.mp-bar i.mp-igual{background:linear-gradient(90deg,var(--purple),var(--teal))}
+.mp-bar em{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--fg);opacity:.7;border-radius:1px}
+.mp-cmp{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:12.5px;margin-top:5px}
+.mp-gargalo{margin:0;font-size:13.5px;color:var(--warn)}
+.mp-req h4{margin:0 0 10px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}
+.mp-req ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;font-size:14px}
+.mp-req li{display:flex;gap:10px}.mp-req .m{flex:none;font-weight:800;width:14px}
+.mp-req li.ok .m{color:var(--ok)}.mp-req li.bad .m{color:var(--bad)}.mp-req li.warn .m{color:var(--warn)}
+.mp-req small{display:block;color:var(--mut2);font-size:12.5px}
+.mp-req b{font-weight:600}
+.mp-nota{margin-top:10px;max-width:90ch}
 .duas{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
 @media (max-width:700px){.duas{grid-template-columns:minmax(0,1fr)}}
 .duas h4{margin:0 0 6px;font-size:12px;letter-spacing:.1em;text-transform:uppercase}
@@ -231,6 +269,31 @@ main section{padding:56px 0 8px}
 .escala p{font-size:13px;color:var(--mut)}
 footer{margin-top:60px;border-top:1px solid var(--line);padding:26px 0 40px;color:var(--mut2);font-size:12.5px}
 footer .wrap{display:flex;flex-direction:column;gap:6px}
+
+/* ---- Vidro (estilo "liquid glass"): painéis translúcidos com desfoque sobre um fundo de luzes neon ---- */
+body{background:var(--bg)}
+body::before{content:"";position:fixed;inset:-20vmax;z-index:-2;pointer-events:none;
+  background:
+    radial-gradient(38vmax 38vmax at 12% 18%,rgba(139,61,255,.34),transparent 62%),
+    radial-gradient(34vmax 34vmax at 88% 12%,rgba(255,61,139,.26),transparent 60%),
+    radial-gradient(40vmax 40vmax at 78% 78%,rgba(45,226,230,.16),transparent 62%),
+    radial-gradient(36vmax 36vmax at 20% 88%,rgba(255,154,60,.16),transparent 60%);
+  filter:blur(10px);animation:luzes 38s ease-in-out infinite alternate}
+@keyframes luzes{to{transform:translate3d(3vmax,-2vmax,0) rotate(8deg) scale(1.06)}}
+@media (prefers-reduced-motion:reduce){body::before{animation:none}}
+.card,.ev,.seg,.mais,.lider,.prep,.tag,select.idioma,.mp-form select,.btn-det{
+  -webkit-backdrop-filter:var(--vidro);backdrop-filter:var(--vidro)}
+.card,.ev,.lider{background:linear-gradient(160deg,rgba(255,255,255,.085),rgba(255,255,255,.03));border:1px solid var(--line);box-shadow:var(--brilho)}
+.card{border-radius:22px}.ev{border-radius:18px}
+.ev:hover,.proj:hover{border-color:rgba(255,255,255,.22)}
+.prep{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.09);border-radius:16px}
+.marcos i{background:rgba(255,255,255,.08)}
+.topo{background:rgba(11,8,22,.45);-webkit-backdrop-filter:blur(26px) saturate(180%);backdrop-filter:blur(26px) saturate(180%);border-bottom:1px solid rgba(255,255,255,.08)}
+.seg button[aria-pressed="true"]{background:rgba(255,255,255,.16);box-shadow:inset 0 1px 0 rgba(255,255,255,.2)}
+.btn-gh{background:rgba(255,255,255,.9)}
+.dica{background:rgba(36,26,77,.85);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  .card,.ev,.lider{background:#161129}}
 </style>
 </head>
 <body>
@@ -242,6 +305,7 @@ footer .wrap{display:flex;flex-direction:column;gap:6px}
     </a>
     <nav class="nav" aria-label="Seções">
       <a href="#corrida" data-i18n="nav_corrida">Corrida</a>
+      <a href="#meupc" data-mp="nav">Meu PC roda?</a>
       <a href="#mudou" data-i18n="nav_mudou">O que mudou</a>
       <a href="#comunidade" data-i18n="nav_comunidade">Comunidade</a>
       <a href="#golpes" data-i18n="nav_golpes">Golpes</a>
@@ -339,6 +403,29 @@ footer .wrap{display:flex;flex-direction:column;gap:6px}
         </div>
       </div>
       <div class="lista" id="lista"></div>
+    </section>
+
+    <section id="meupc">
+      <div class="rotulo" data-mp="k">Calculadora</div>
+      <h2 class="titulo" data-mp="t">Meu PC roda?</h2>
+      <p class="intro" data-mp="sub"></p>
+      <div class="mp card">
+        <form class="mp-form" onsubmit="return false">
+          <label><span data-mp="comparar">Comparar com</span><select id="mp-alvo"></select></label>
+          <div class="mp-sep" data-mp="seu_pc">Seu PC</div>
+          <label><span data-mp="cpu">Processador</span><select id="mp-cpu"></select></label>
+          <label><span data-mp="gpu">Placa de vídeo</span><select id="mp-gpu"></select><small id="mp-gpu-det" class="mp-det" hidden data-mp="detectada"></small></label>
+          <label><span class="mp-rl"><span data-mp="ram">Memória RAM</span><b id="mp-ram-v"></b></span><input type="range" id="mp-ram" min="4" max="128" step="4" value="16"></label>
+          <div id="mp-outro" hidden>
+            <div class="mp-sep" data-mp="o_outro">O outro PC</div>
+            <label><span data-mp="cpu">Processador</span><select id="mp-ocpu"></select></label>
+            <label><span data-mp="gpu">Placa de vídeo</span><select id="mp-ogpu"></select></label>
+            <label><span class="mp-rl"><span data-mp="ram">Memória RAM</span><b id="mp-oram-v"></b></span><input type="range" id="mp-oram" min="4" max="128" step="4" value="16"></label>
+          </div>
+        </form>
+        <div class="mp-res" id="mp-res" aria-live="polite"></div>
+      </div>
+      <p class="pequeno mut mp-nota"><span data-mp="aviso"></span> <span data-mp="indice"></span></p>
     </section>
 
     <section id="comunidade">
