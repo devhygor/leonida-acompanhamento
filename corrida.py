@@ -15,6 +15,7 @@ import pathlib
 import re
 import subprocess
 import time
+import urllib.error
 import urllib.request
 
 BASE = pathlib.Path(__file__).resolve().parent
@@ -23,7 +24,7 @@ EST = BASE / "dados" / "estado_corrida.json"
 UTC = dt.timezone.utc
 GEMINI = os.environ.get("GEMINI_API_KEY", "").strip().lstrip("\ufeff").strip()
 MAX_AVALIA = int(os.environ.get("CORRIDA_MAX_AVALIA", "8"))      # avaliações por IA por execução
-REAVALIA_HORAS = float(os.environ.get("CORRIDA_REAVALIA_H", "2"))  # só reavalia se mudou e passou esse tempo
+REAVALIA_HORAS = float(os.environ.get("CORRIDA_REAVALIA_H", "4"))  # só reavalia se mudou e passou esse tempo
 
 # Marcos, na nossa escala (0-100)
 MARCOS = ["preparacao", "exe", "imagem", "menu", "jogo", "estavel"]
@@ -227,20 +228,20 @@ Seja conservador: na dúvida, o marco menor. Escreva em linguagem simples, para 
 """
 
 
+# aliases que o Google mantém apontando para o flash atual; o "lite" é o reserva quando o principal dá 503 (sobrecarga)
+MODELOS_IA = ["models/gemini-flash-latest", "models/gemini-flash-lite-latest"]
+_modelos_ruins = set()
+
+
 def _gemini_modelo():
-    if not GEMINI:
-        return None
-    try:
-        req = urllib.request.Request("https://generativelanguage.googleapis.com/v1beta/models?pageSize=200", headers={"x-goog-api-key": GEMINI})
-        with urllib.request.urlopen(req, timeout=30) as r:
-            ms = json.loads(r.read().decode())["models"]
-        flash = [m["name"] for m in ms if "generateContent" in m.get("supportedGenerationMethods", [])
-                 and "flash" in m["name"] and not re.search(r"lite|image|tts|live|exp|preview|thinking|audio", m["name"])]
-        flash.sort(key=lambda n: [int(x) if x.isdigit() else x for x in re.split(r"[.-]", n)], reverse=True)
-        return flash[0] if flash else "models/gemini-2.5-flash"
-    except Exception as e:
-        print("aviso: não consegui listar modelos do Gemini:", str(e)[:120])
-        return "models/gemini-2.5-flash"
+    return MODELOS_IA[0] if GEMINI else None
+
+
+def _gerar(modelo, corpo):
+    req = urllib.request.Request(f"https://generativelanguage.googleapis.com/v1beta/{modelo}:generateContent",
+                                 data=json.dumps(corpo).encode(), headers={"Content-Type": "application/json", "x-goog-api-key": GEMINI})
+    with urllib.request.urlopen(req, timeout=120) as r:
+        return json.loads(r.read().decode())
 
 
 def avaliar_ia(modelo, p):
@@ -250,16 +251,31 @@ def avaliar_ia(modelo, p):
                f"\n\nREADME:\n{p.get('_readme', '')[:14000]}")
     corpo = {"contents": [{"role": "user", "parts": [{"text": PROMPT + "\n\n" + entrada}]}],
              "generationConfig": {"temperature": 0.2, "responseMimeType": "application/json"}}
-    req = urllib.request.Request(f"https://generativelanguage.googleapis.com/v1beta/{modelo}:generateContent",
-                                 data=json.dumps(corpo).encode(), headers={"Content-Type": "application/json", "x-goog-api-key": GEMINI})
-    with urllib.request.urlopen(req, timeout=90) as r:
-        d = json.loads(r.read().decode())
+    d, erro = None, None
+    for tentativa in range(2):
+        for m in MODELOS_IA:
+            if m in _modelos_ruins:
+                continue
+            try:
+                d = _gerar(m, corpo)
+                usado = m
+                break
+            except urllib.error.HTTPError as e:
+                erro = e
+                if e.code in (400, 403, 404):
+                    _modelos_ruins.add(m)
+        if d:
+            break
+        time.sleep(8)
+    if not d:
+        raise erro or RuntimeError("nenhum modelo respondeu")
     txt = d["candidates"][0]["content"]["parts"][0]["text"]
     txt = re.sub(r"^```(json)?|```$", "", txt.strip()).strip()
     a = json.loads(txt)
     if a.get("marco") not in MARCOS:
         a["marco"] = "preparacao"
     a["fonte"] = "ia"
+    a["modelo"] = usado.replace("models/", "")
     return a
 
 
