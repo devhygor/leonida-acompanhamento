@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Radar VI</title>
+<meta name="description" content="Radar VI: quem está mais perto de rodar o GTA VI no PC. Todos os projetos de port acompanhados ao vivo, direto do GitHub.">
+<meta property="og:title" content="Radar VI: o GTA VI já roda no PC?">
+<meta property="og:description" content="Todos os projetos que tentam rodar o GTA VI no PC, conferidos direto no GitHub a cada poucos minutos.">
+<meta name="theme-color" content="#0b0816">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23ffd23f'/%3E%3Cstop offset='.5' stop-color='%23ff3d8b'/%3E%3Cstop offset='1' stop-color='%238b3dff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='8' fill='%230b0816'/%3E%3Ccircle cx='16' cy='16' r='11' fill='none' stroke='url(%23g)' stroke-width='3'/%3E%3Ccircle cx='16' cy='16' r='5' fill='none' stroke='url(%23g)' stroke-width='2.4'/%3E%3Cpath d='M16 16 L25 9' stroke='%23ffd23f' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap">
+<script defer src="radar.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script defer src="ao-vivo.js"></script>
+<style>
+/* Radar VI — noite neon: fundo quase preto arroxeado, acentos rosa/laranja/turquesa. Um tema só (escuro). */
+:root{
+  --bg:#0b0816; --bg2:#100c20; --panel:#141026; --panel2:#1b1534; --line:#2a2148; --fg:#f4efff; --mut:#a99fcf; --mut2:#7d73a6;
+  --pink:#ff3d8b; --orange:#ff9a3c; --yellow:#ffd23f; --teal:#2de2e6; --purple:#8b3dff; --ok:#39e6a0; --bad:#ff4d6d; --warn:#ffb238;
+  --f:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --r:16px; --wrap:1160px;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:72px}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+p{margin:0}
+h1,h2,h3{margin:0;letter-spacing:-.03em;line-height:1.05;text-wrap:balance}
+[hidden]{display:none!important}
+.wrap{max-width:var(--wrap);margin:0 auto;padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px))}
+.mut{color:var(--mut)} .pequeno{font-size:12.5px}
+.num{font-variant-numeric:tabular-nums}
+
+/* Barra do topo */
+.topo{position:sticky;top:0;z-index:30;background:rgba(11,8,22,.82);backdrop-filter:blur(14px);border-bottom:1px solid rgba(42,33,72,.7)}
+.topo .wrap{display:flex;align-items:center;gap:22px;height:60px}
+.marca{display:flex;align-items:center;gap:9px;text-decoration:none;font-weight:900;font-size:19px;letter-spacing:-.02em;white-space:nowrap}
+.marca b{background:linear-gradient(90deg,var(--yellow),var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent}
+.nav{display:flex;gap:18px;font-size:14px;font-weight:500;color:var(--mut);overflow-x:auto;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.nav a{text-decoration:none;white-space:nowrap}
+.nav a:hover{color:var(--fg)}
+.topo-dir{margin-left:auto;display:flex;align-items:center;gap:12px;font-size:12.5px;color:var(--mut);white-space:nowrap}
+.ponto{width:8px;height:8px;border-radius:50%;background:var(--ok);display:inline-block;margin-right:6px;box-shadow:0 0 0 0 rgba(57,230,160,.6)}
+@media (prefers-reduced-motion:no-preference){.ponto{animation:pulso 1.8s infinite}}
+@keyframes pulso{0%{box-shadow:0 0 0 0 rgba(57,230,160,.55)}70%{box-shadow:0 0 0 7px rgba(57,230,160,0)}100%{box-shadow:0 0 0 0 rgba(57,230,160,0)}}
+select.idioma{font:inherit;font-size:13px;background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:999px;padding:5px 10px;cursor:pointer}
+@media (max-width:860px){.nav{display:none}.topo-dir .so-largo{display:none}}
+
+/* Herói */
+.heroi{position:relative;overflow:hidden;isolation:isolate;border-bottom:1px solid var(--line)}
+.heroi svg.cena{position:absolute;inset:0;width:100%;height:100%;z-index:-2}
+.heroi::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(11,8,22,.94) 0%,rgba(11,8,22,.78) 45%,rgba(11,8,22,.35) 100%),linear-gradient(180deg,rgba(11,8,22,0) 55%,var(--bg) 100%)}
+.heroi .wrap{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,.9fr);gap:36px;align-items:center;padding-top:64px;padding-bottom:70px}
+@media (max-width:900px){.heroi .wrap{grid-template-columns:minmax(0,1fr);padding-top:40px;padding-bottom:44px}}
+.selo{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#ffd0e2}
+.pergunta{font-size:clamp(40px,6.6vw,76px);font-weight:900;margin-top:14px}
+.resposta{font-size:clamp(46px,7.6vw,92px);font-weight:900;margin-top:6px;background:linear-gradient(90deg,var(--yellow),var(--orange) 40%,var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent}
+.resposta.sim{background:linear-gradient(90deg,var(--teal),var(--ok));-webkit-background-clip:text;background-clip:text}
+.heroi .sub{max-width:52ch;margin-top:16px;color:#d8cfef;font-size:16.5px}
+.lider{background:rgba(20,16,38,.78);border:1px solid rgba(255,255,255,.08);border-radius:var(--r);padding:20px 22px;backdrop-filter:blur(8px);box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.lider .k{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--yellow)}
+.lider .nome{font-size:30px;font-weight:900;margin-top:6px;letter-spacing:-.03em}
+.lider .repo{color:var(--mut);font-size:13px}
+.lider .linha{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-top:14px}
+.lider .pct{font-size:52px;font-weight:900;line-height:1;background:linear-gradient(135deg,var(--purple),var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent}
+.lider .marco{font-weight:700}
+.lider .ultimo{margin-top:12px;font-size:13px;color:var(--mut);border-top:1px solid var(--line);padding-top:10px}
+
+/* Seções */
+main section{padding:56px 0 8px}
+.rotulo{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--mut2)}
+.titulo{font-size:clamp(30px,4.2vw,46px);font-weight:900;margin-top:6px}
+.intro{max-width:66ch;color:var(--mut);margin-top:10px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+
+/* Placar */
+.placar{padding:26px 28px;margin-top:-34px;position:relative}
+.placar-cima{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:24px;align-items:end}
+@media (max-width:860px){.placar-cima{grid-template-columns:minmax(0,1fr)}}
+.grande{font-size:clamp(64px,10vw,104px);font-weight:900;line-height:.9;letter-spacing:-.05em;background:linear-gradient(135deg,var(--purple),var(--pink) 60%,var(--orange));-webkit-background-clip:text;background-clip:text;color:transparent}
+.grande small{font-size:.45em}
+.chips{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:640px){.chips{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.chip{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.chip b{display:block;font-size:22px;font-weight:800;letter-spacing:-.02em}
+.chip span{font-size:12px;color:var(--mut)}
+.trilha{position:relative;margin:34px 6px 6px;height:86px}
+.trilha .base{position:absolute;left:0;right:0;top:46px;height:8px;border-radius:99px;background:linear-gradient(90deg,#241c40,#2a2148)}
+.trilha .feito{position:absolute;left:0;top:46px;height:8px;border-radius:99px;background:linear-gradient(90deg,var(--purple),var(--pink),var(--orange))}
+.trilha .marca-t{position:absolute;top:60px;transform:translateX(-50%);text-align:center;font-size:11.5px;color:var(--mut);white-space:nowrap}
+.trilha .marca-t::before{content:"";display:block;width:2px;height:10px;background:var(--line);margin:-16px auto 6px}
+.trilha .marca-t b{display:block;color:var(--fg);font-size:12px}
+.trilha .pin{position:absolute;top:0;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:3px}
+.trilha .pin img,.trilha .pin .ini{width:30px;height:30px;border-radius:50%;border:2px solid var(--panel);background:var(--panel2);object-fit:cover;display:grid;place-items:center;font-size:11px;font-weight:800}
+.trilha .pin.primeiro img,.trilha .pin.primeiro .ini{border-color:var(--pink);box-shadow:0 0 0 3px rgba(255,61,139,.3)}
+@media (max-width:640px){.trilha .marca-t:nth-child(odd){display:none}.trilha .marca-t b{font-size:11px}}
+.graf{margin-top:20px;border-top:1px solid var(--line);padding-top:14px;position:relative}
+.graf svg{display:block;width:100%;height:90px}
+.dica{position:absolute;pointer-events:none;background:#241a4d;border:1px solid var(--pink);border-radius:8px;padding:6px 9px;font-size:12px;white-space:nowrap;z-index:5}
+
+/* O que mudou */
+.mudou{display:flex;gap:12px;overflow-x:auto;padding:4px 2px 12px;scroll-snap-type:x mandatory}
+.ev{flex:0 0 min(320px,82vw);scroll-snap-align:start;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;text-decoration:none}
+.ev:hover{border-color:var(--pink)}
+.ev .q{font-size:12px;color:var(--mut2);display:flex;align-items:center;gap:6px}
+.ev .bola{width:8px;height:8px;border-radius:50%;background:var(--teal)}
+.ev.marco .bola{background:var(--ok)} .ev.removido .bola{background:var(--bad)} .ev.novo .bola{background:var(--yellow)}
+.ev b{font-size:15px}
+.ev p{font-size:13.5px;color:#d8cfef}
+.agora-lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr));gap:10px;margin-top:14px}
+.agora-lista a{display:flex;gap:10px;align-items:baseline;text-decoration:none;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:13.5px}
+.agora-lista a:hover{border-color:var(--teal)}
+.agora-lista .q{color:var(--mut2);font-size:12px;white-space:nowrap}
+.agora-lista .p{font-weight:700;white-space:nowrap}
+.agora-lista .t{color:#d8cfef;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+
+/* Corrida */
+.filtros{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:22px}
+.seg{display:inline-flex;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:3px}
+.seg button{appearance:none;border:0;background:none;color:var(--mut);font:inherit;font-size:13.5px;font-weight:600;padding:7px 14px;border-radius:999px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--panel2);color:var(--fg)}
+.lista{display:flex;flex-direction:column;gap:14px;margin-top:18px}
+.proj{padding:20px 22px;display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:4px 16px}
+.proj .pos{font-size:28px;font-weight:900;color:var(--pink);line-height:1}
+.proj .cab{display:flex;gap:12px;align-items:center;min-width:0}
+.proj .cab img,.proj .cab .ini{width:40px;height:40px;border-radius:10px;background:var(--panel2);object-fit:cover;flex:0 0 auto;display:grid;place-items:center;font-weight:800}
+.proj .cab h3{font-size:21px}
+.proj .cab .repo{font-size:13px;color:var(--mut);text-decoration:none}
+.proj .cab .repo:hover{color:var(--teal)}
+.proj .nota{text-align:right}
+.proj .nota b{font-size:34px;font-weight:900;letter-spacing:-.04em}
+.proj .nota b small{font-size:.5em}
+.proj .nota span{display:block;font-size:12.5px;color:var(--mut)}
+.proj .corpo{grid-column:2 / 4;display:flex;flex-direction:column;gap:12px;margin-top:8px}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tag{font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:999px;background:var(--panel2);color:#d8cfef}
+.tag.auto{background:rgba(255,178,56,.15);color:var(--warn)}
+.tag.est{background:rgba(45,226,230,.12);color:var(--teal)}
+.tag.fora{background:rgba(255,77,109,.16);color:var(--bad)}
+.tag.roda{background:rgba(139,61,255,.18);color:#cdb4ff}
+.marcos{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px}
+.marcos i{display:block;height:8px;border-radius:3px;background:#241c40}
+.marcos i.ok{background:linear-gradient(90deg,var(--purple),var(--pink))}
+.marcos i.meio{background:linear-gradient(90deg,var(--purple) 0%,var(--pink) var(--p,50%),#241c40 var(--p,50%))}
+.marcos-nomes{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px;font-size:11px;color:var(--mut2)}
+.marcos-nomes span.ok{color:var(--fg);font-weight:600}
+@media (max-width:640px){.marcos-nomes{display:none}.proj{grid-template-columns:30px minmax(0,1fr) auto;padding:16px}.proj .corpo{grid-column:1 / 4}.proj .nota b{font-size:26px}.proj .cab h3{font-size:18px}}
+.duas{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+@media (max-width:700px){.duas{grid-template-columns:minmax(0,1fr)}}
+.duas h4{margin:0 0 6px;font-size:12px;letter-spacing:.1em;text-transform:uppercase}
+.duas .bom h4{color:var(--ok)} .duas .ruim h4{color:var(--bad)}
+.duas ul{margin:0;padding-left:18px;font-size:13.5px;color:#d8cfef;display:flex;flex-direction:column;gap:4px}
+.stats{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;color:var(--mut);align-items:center}
+.stats b{color:var(--fg)}
+.stats a{color:var(--teal);text-decoration:none}
+.stats a:hover{text-decoration:underline}
+.mais{appearance:none;border:1px solid var(--line);background:var(--panel);color:var(--fg);font:inherit;font-weight:600;border-radius:999px;padding:9px 18px;cursor:pointer;align-self:center}
+.mais:hover{border-color:var(--pink)}
+.proj.fora{opacity:.75;border-style:dashed}
+.proj details summary{cursor:pointer;color:var(--mut);font-size:13px}
+
+/* Comunidade */
+.comunidade{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;margin-top:20px}
+@media (max-width:900px){.comunidade{grid-template-columns:minmax(0,1fr)}}
+.comunidade .card{padding:20px}
+.comunidade h3{font-size:20px}
+.lista-v{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:10px}
+.lista-v li{display:grid;grid-template-columns:auto minmax(0,1fr);gap:3px 12px;font-size:14px}
+.lista-v .q{color:var(--mut2);font-size:12px;white-space:nowrap;padding-top:2px}
+.lista-v .cab{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;font-size:12.5px;color:var(--mut)}
+.lista-v .tx{grid-column:2;overflow-wrap:anywhere}
+.lista-v .muted,.lista-v li.muted{color:var(--mut);grid-column:1 / 3}
+.lt-tag{display:inline-block;padding:0 8px;border-radius:999px;font-size:11px;letter-spacing:.03em;text-transform:uppercase;border:1px solid currentColor}
+.lt-tag.destaque{color:var(--yellow)} .lt-tag.decided{color:var(--ok)} .lt-tag.stop{color:var(--orange)}
+.lk{color:inherit;text-decoration:underline;text-decoration-color:rgba(45,226,230,.5);text-underline-offset:3px}
+.lk:hover{color:var(--teal)}
+.form{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) auto;gap:8px;margin-top:12px}
+@media (max-width:560px){.form{grid-template-columns:minmax(0,1fr) auto}.form .largo{grid-column:1 / 3}}
+.form input{font:inherit;font-size:14px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg2);color:var(--fg);min-width:0}
+.form input:focus{outline:2px solid var(--teal);outline-offset:0;border-color:transparent}
+.form button,.botao{font:inherit;font-weight:700;font-size:14px;padding:10px 18px;border:0;border-radius:10px;cursor:pointer;color:#1a0b2e;background:linear-gradient(90deg,var(--yellow),var(--orange),var(--pink))}
+.form button:disabled{opacity:.6;cursor:wait}
+.status{min-height:1.2em;font-size:13px;color:var(--warn);margin-top:6px}
+.status.ok{color:var(--ok)}
+.chat-lista{list-style:none;margin:12px 0 0;padding:10px;height:min(52vh,460px);overflow-y:auto;background:var(--bg2);border:1px solid var(--line);border-radius:12px;display:flex;flex-direction:column;gap:6px}
+.chat-lista li{font-size:14px;line-height:1.45;overflow-wrap:anywhere}
+.chat-lista li .h{color:var(--mut2);font-size:11px;margin-right:6px}
+.chat-lista li b{margin-right:6px}
+.chat-lista li.vazio{color:var(--mut);text-align:center;margin:auto}
+.chat-form{grid-template-columns:minmax(0,150px) minmax(0,1fr) auto}
+@media (max-width:560px){.chat-form{grid-template-columns:minmax(0,1fr) auto}.chat-form #lt-chat-nick{grid-column:1 / 3}}
+.lt-admin{margin-top:14px;border-top:1px dashed var(--line);padding-top:10px;display:flex;flex-direction:column;gap:8px}
+.lt-admin-link{appearance:none;background:none;border:0;color:var(--mut2);font:inherit;font-size:12.5px;text-decoration:underline;cursor:pointer;align-self:flex-start;padding:0}
+.lt-mod{display:inline-flex;gap:6px;margin-left:8px;vertical-align:middle}
+.lt-mod button,.lt-acoes button{appearance:none;border:1px solid var(--line);background:var(--bg);color:var(--fg);border-radius:6px;font:inherit;font-size:11.5px;padding:2px 8px;cursor:pointer}
+.lt-acoes{grid-column:2;display:flex;gap:8px;margin-top:4px}
+.lt-acoes .sim{border-color:var(--ok);color:var(--ok)} .lt-acoes .nao{border-color:var(--bad);color:var(--bad)}
+
+/* Golpes e como funciona */
+.alerta{padding:20px 22px;border-color:rgba(255,77,109,.5);background:linear-gradient(90deg,rgba(255,77,109,.12),rgba(20,16,38,1) 60%);margin-top:20px}
+.alerta h3{font-size:20px;color:#ffd0d9}
+.alerta ul{margin:10px 0 0;padding-left:18px;color:#ecdde6;display:flex;flex-direction:column;gap:6px}
+.escala{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin-top:20px}
+@media (max-width:900px){.escala{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.escala .card{padding:14px}
+.escala b{display:block;font-size:22px;font-weight:900;background:linear-gradient(90deg,var(--purple),var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent}
+.escala h4{margin:2px 0 4px;font-size:15px}
+.escala p{font-size:13px;color:var(--mut)}
+footer{margin-top:60px;border-top:1px solid var(--line);padding:26px 0 40px;color:var(--mut2);font-size:12.5px}
+footer .wrap{display:flex;flex-direction:column;gap:6px}
+</style>
+</head>
+<body>
+<header class="topo">
+  <div class="wrap">
+    <a class="marca" href="#inicio" aria-label="Radar VI">
+      <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="gm" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffd23f"/><stop offset=".5" stop-color="#ff3d8b"/><stop offset="1" stop-color="#8b3dff"/></linearGradient></defs><circle cx="16" cy="16" r="12" fill="none" stroke="url(#gm)" stroke-width="3"/><circle cx="16" cy="16" r="5.5" fill="none" stroke="url(#gm)" stroke-width="2.4"/><path d="M16 16 L25.5 8.5" stroke="#ffd23f" stroke-width="2.6" stroke-linecap="round"/></svg>
+      <span>Radar <b>VI</b></span>
+    </a>
+    <nav class="nav" aria-label="Seções">
+      <a href="#corrida" data-i18n="nav_corrida">Corrida</a>
+      <a href="#mudou" data-i18n="nav_mudou">O que mudou</a>
+      <a href="#comunidade" data-i18n="nav_comunidade">Comunidade</a>
+      <a href="#golpes" data-i18n="nav_golpes">Golpes</a>
+      <a href="#como" data-i18n="nav_como">Como funciona</a>
+    </nav>
+    <div class="topo-dir">
+      <span class="so-largo"><span class="ponto" aria-hidden="true"></span><span id="atualizado">—</span></span>
+      <span class="so-largo"><b class="lt-online-n num">—</b> <span data-i18n="online">online</span></span>
+      <select class="idioma" id="lt-lang" aria-label="Idioma / Language">
+        <option value="pt">PT</option><option value="en">EN</option><option value="es">ES</option>
+      </select>
+    </div>
+  </div>
+</header>
+
+<main id="inicio">
+  <section class="heroi" style="padding:0">
+    <svg class="cena" viewBox="0 0 1200 520" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <defs>
+        <linearGradient id="ceu" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0d0828"/><stop offset=".5" stop-color="#3b1572"/><stop offset=".78" stop-color="#b8306f"/><stop offset=".95" stop-color="#ff8a3d"/></linearGradient>
+        <linearGradient id="sol" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe14d"/><stop offset=".55" stop-color="#ff8a3d"/><stop offset="1" stop-color="#ff3d8b"/></linearGradient>
+        <clipPath id="corta"><rect x="0" y="0" width="1200" height="420"/></clipPath>
+      </defs>
+      <rect width="1200" height="520" fill="url(#ceu)"/>
+      <g fill="#fff" opacity=".6"><circle cx="640" cy="60" r="1.2"/><circle cx="760" cy="110" r="1"/><circle cx="1040" cy="50" r="1.4"/><circle cx="1150" cy="140" r="1"/><circle cx="900" cy="30" r="1"/></g>
+      <g clip-path="url(#corta)"><circle cx="900" cy="420" r="190" fill="url(#sol)"/>
+        <g fill="#a3286a"><rect x="700" y="330" width="400" height="6"/><rect x="700" y="352" width="400" height="8"/><rect x="700" y="374" width="400" height="10"/><rect x="700" y="396" width="400" height="12"/></g></g>
+      <g fill="#170a33"><rect x="600" y="300" width="40" height="120"/><rect x="646" y="262" width="30" height="158"/><rect x="682" y="320" width="56" height="100"/><rect x="1040" y="280" width="44" height="140"/><rect x="1090" y="236" width="36" height="184"/><rect x="1132" y="306" width="68" height="114"/></g>
+      <rect y="420" width="1200" height="100" fill="#120a26"/>
+      <g fill="#ff9a3c" opacity=".5"><rect x="760" y="432" width="280" height="2"/><rect x="800" y="446" width="200" height="2"/><rect x="840" y="462" width="120" height="2"/></g>
+      <g fill="none" stroke="#0b0816" stroke-linecap="round">
+        <path d="M560 520 C 568 450 556 380 584 300" stroke-width="12"/><path d="M584 300 C 550 280 516 282 488 306" stroke-width="7"/><path d="M584 300 C 560 262 528 252 502 258" stroke-width="7"/><path d="M584 300 C 600 262 628 250 658 258" stroke-width="7"/><path d="M584 300 C 622 286 656 296 676 322" stroke-width="7"/><path d="M584 300 C 578 272 582 250 596 232" stroke-width="7"/>
+        <path d="M1170 520 C 1160 450 1176 396 1150 330" stroke-width="10"/><path d="M1150 330 C 1120 314 1090 320 1068 344" stroke-width="6"/><path d="M1150 330 C 1132 296 1104 288 1080 294" stroke-width="6"/><path d="M1150 330 C 1170 296 1196 288 1220 296" stroke-width="6"/>
+      </g>
+    </svg>
+    <div class="wrap">
+      <div>
+        <span class="selo"><span class="ponto" aria-hidden="true"></span><span data-i18n="selo">Radar ao vivo · ports de GTA VI para PC</span></span>
+        <h1 class="pergunta" data-i18n="pergunta">GTA VI já roda no PC?</h1>
+        <div class="resposta" id="resposta">Ainda não.</div>
+        <p class="sub" id="resposta-sub" data-i18n="sub">Acompanhamos todos os projetos que tentam rodar a versão de Xbox Series do GTA VI nativamente no PC, conferidos direto no GitHub a cada poucos minutos.</p>
+      </div>
+      <a class="lider" id="lider-card" href="#corrida" style="text-decoration:none">
+        <span class="k" data-i18n="lider_k">Mais perto de rodar agora</span>
+        <div class="nome" id="lider-nome">—</div>
+        <div class="repo" id="lider-repo"></div>
+        <div class="linha"><span class="pct" id="lider-pct">—</span><span class="marco" id="lider-marco"></span></div>
+        <div class="ultimo" id="lider-ultimo"></div>
+      </a>
+    </div>
+  </section>
+
+  <div class="wrap">
+    <div class="card placar">
+      <div class="placar-cima">
+        <div>
+          <div class="rotulo" data-i18n="placar_k">Progresso do projeto mais avançado</div>
+          <div class="grande num" id="placar-pct">—</div>
+          <p class="mut" id="placar-txt"></p>
+        </div>
+        <div class="chips">
+          <div class="chip"><b id="c-marco">—</b><span data-i18n="c_marco">marco mais avançado</span></div>
+          <div class="chip"><b id="c-exe" class="num">—</b><span data-i18n="c_exe">já rodam o exe do GTA VI</span></div>
+          <div class="chip"><b id="c-proj" class="num">—</b><span data-i18n="c_proj">projetos no radar</span></div>
+          <div class="chip"><b id="c-commits" class="num">—</b><span data-i18n="c_commits">commits nas últimas 24 h</span></div>
+        </div>
+      </div>
+      <div class="trilha" id="trilha" aria-label="Posição dos projetos na escala de marcos"></div>
+      <div class="graf" id="graf"><div class="rotulo" data-i18n="graf_k">Pontuação do líder ao longo do tempo</div></div>
+    </div>
+
+    <section id="mudou">
+      <div class="rotulo" data-i18n="mudou_k">Atualizado sozinho</div>
+      <h2 class="titulo" data-i18n="mudou_t">O que mudou</h2>
+      <div class="mudou" id="eventos" style="margin-top:18px"></div>
+      <h3 style="font-size:18px;margin-top:22px" data-i18n="agora_t">Agora nos repositórios</h3>
+      <p class="mut pequeno" data-i18n="agora_sub">Os commits mais recentes dos projetos mais ativos, direto da branch principal.</p>
+      <div class="agora-lista" id="agora"></div>
+    </section>
+
+    <section id="corrida">
+      <div class="rotulo" data-i18n="corrida_k">Ranking</div>
+      <h2 class="titulo" data-i18n="corrida_t">A corrida</h2>
+      <p class="intro" data-i18n="corrida_sub">Cada projeto conferido direto na branch principal do GitHub. O marco vem do que o próprio projeto publica (README e commits), lido por uma IA; quando não há prova pública, aparece como autodeclarado.</p>
+      <div class="filtros">
+        <div class="seg" id="f-alvo">
+          <button type="button" data-v="todos" aria-pressed="true" data-i18n="f_todos">Todos</button>
+          <button type="button" data-v="gta" aria-pressed="false" data-i18n="f_gta">Só GTA VI</button>
+          <button type="button" data-v="geral" aria-pressed="false" data-i18n="f_geral">Qualquer jogo</button>
+        </div>
+        <div class="seg" id="f-ordem">
+          <button type="button" data-v="pontos" aria-pressed="true" data-i18n="o_pontos">Progresso</button>
+          <button type="button" data-v="atividade" aria-pressed="false" data-i18n="o_atividade">Atividade</button>
+          <button type="button" data-v="estrelas" aria-pressed="false" data-i18n="o_estrelas">Estrelas</button>
+        </div>
+      </div>
+      <div class="lista" id="lista"></div>
+    </section>
+
+    <section id="comunidade">
+      <div class="rotulo" data-i18n="com_k">Ao vivo</div>
+      <h2 class="titulo" data-i18n="com_t">Comunidade</h2>
+      <p class="intro"><span data-i18n="com_sub">Vídeos e conversa de quem está acompanhando.</span> <b class="lt-online-n num">—</b> <span data-i18n="online_agora">online agora</span> · <b class="lt-visitas-n num">—</b> <span data-i18n="visitas">visitas</span></p>
+      <div class="comunidade">
+        <div class="card" id="videos">
+          <h3 data-i18n="vid_t">Vídeos</h3>
+          <p class="mut pequeno" data-i18n="vid_sub">Viu um vídeo de algum projeto rodando o GTA VI (no X, YouTube...)? Cole o link. Ele aparece depois de aprovado. Só links: nada de vídeo do jogo é hospedado aqui.</p>
+          <ol class="lista-v" id="lt-vid-lista" aria-live="polite"></ol>
+          <form class="form" id="lt-vid-form" autocomplete="off">
+            <input id="lt-vid-url" class="largo" maxlength="300" inputmode="url" aria-label="Link do vídeo / Video link">
+            <input id="lt-vid-com" maxlength="200" aria-label="Comentário / Comment">
+            <button type="submit" id="lt-vid-enviar">Sugerir</button>
+          </form>
+          <p class="status" id="lt-vid-status" aria-live="polite"></p>
+          <div class="lt-admin" id="lt-admin">
+            <button type="button" class="lt-admin-link" id="lt-admin-abrir" data-i18n="dono">Área do dono</button>
+            <form class="form" id="lt-admin-form" autocomplete="off" hidden style="grid-template-columns:minmax(0,1fr) auto;max-width:420px">
+              <input type="password" id="lt-admin-chave" autocomplete="current-password" aria-label="Chave de administrador / Admin key" placeholder="••••••••">
+              <button type="submit" id="lt-admin-entrar" data-i18n="entrar">Entrar</button>
+            </form>
+            <div id="lt-admin-painel" hidden>
+              <div style="display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap">
+                <h3 style="font-size:16px" data-i18n="dono_t">Modo dono: vídeos sugeridos</h3>
+                <button type="button" class="lt-admin-link" id="lt-admin-sair" data-i18n="dono_sair">Sair do modo dono</button>
+              </div>
+              <ol class="lista-v" id="lt-admin-lista"></ol>
+            </div>
+            <p class="status" id="lt-admin-status" aria-live="polite"></p>
+          </div>
+        </div>
+        <div class="card" id="chat">
+          <h3 data-i18n="chat_t">Chat</h3>
+          <p class="mut pequeno" data-i18n="chat_sub">Sem links e sem flood; uma mensagem a cada poucos segundos. As mensagens somem depois de 7 dias.</p>
+          <ol class="chat-lista" id="lt-chat-lista" aria-live="polite"></ol>
+          <form class="form chat-form" id="lt-chat-form" autocomplete="off">
+            <input id="lt-chat-nick" maxlength="24" aria-label="Apelido / Nickname">
+            <input id="lt-chat-texto" maxlength="280" aria-label="Mensagem / Message">
+            <button type="submit" id="lt-chat-enviar">Enviar</button>
+          </form>
+          <p class="status" id="lt-chat-status" aria-live="polite"></p>
+        </div>
+      </div>
+    </section>
+
+    <section id="golpes">
+      <div class="card alerta">
+        <h3 data-i18n="golpe_t">Não existe download do GTA VI para PC</h3>
+        <ul>
+          <li data-i18n="golpe_1">Nenhum projeto daqui hospeda o jogo, chaves ou um executável, e este site nunca aponta para nada disso.</li>
+          <li data-i18n="golpe_2">Repositórios e sites com "instalador", "versão PC" ou "emulador pronto" do GTA VI são golpe: trate como vírus.</li>
+          <li data-i18n="golpe_3">Vídeo de "GTA VI rodando liso no PC" quase sempre é falso: nenhum projeto chegou à parte jogável ainda.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="como">
+      <div class="rotulo" data-i18n="como_k">Metodologia</div>
+      <h2 class="titulo" data-i18n="como_t">Como funciona</h2>
+      <p class="intro" data-i18n="como_sub">Uma régua única para todos. A cada poucos minutos o Radar VI procura projetos novos no GitHub, confere cada um na branch principal (estrelas, commits, README) e uma IA lê o que o projeto publica para dizer em que marco ele está. Tudo automático; nada é escrito à mão.</p>
+      <div class="escala">
+        <div class="card"><b>0–20</b><h4 data-i18n="m_preparacao">Preparação</h4><p data-i18n="m_preparacao_d">A base ainda está sendo montada: carregador, sistema do console, shaders, gráficos.</p></div>
+        <div class="card"><b>20</b><h4 data-i18n="m_exe">Executável roda</h4><p data-i18n="m_exe_d">O código do próprio GTA VI começa a rodar no PC; a tela ainda fica preta ou trava cedo.</p></div>
+        <div class="card"><b>40</b><h4 data-i18n="m_imagem">Primeira imagem</h4><p data-i18n="m_imagem_d">Aparece algo do jogo: logos, vídeo de abertura, tela de carregamento.</p></div>
+        <div class="card"><b>60</b><h4 data-i18n="m_menu">Menu</h4><p data-i18n="m_menu_d">Os menus do jogo aparecem e respondem ao controle.</p></div>
+        <div class="card"><b>80</b><h4 data-i18n="m_jogo">Jogável</h4><p data-i18n="m_jogo_d">Dá para entrar no mundo e jogar.</p></div>
+        <div class="card"><b>100</b><h4 data-i18n="m_estavel">Estável</h4><p data-i18n="m_estavel_d">Roda por longos períodos, com desempenho aceitável.</p></div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span data-i18n="rodape_1">Radar VI é um rastreador independente e não oficial, sem ligação com a Rockstar Games, a Take-Two ou qualquer projeto listado. Arte própria; nenhuma imagem do jogo.</span>
+    <span id="rodape-ia" class="mut2"></span>
+  </div>
+</footer>
+</body>
+</html>

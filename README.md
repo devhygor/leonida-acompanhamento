@@ -1,22 +1,15 @@
-# Leonida em andamento
+# Radar VI
 
-Painel não oficial que acompanha o [ProjectLeonida/Leonida](https://github.com/ProjectLeonida/Leonida), o port de GTA VI (Xbox Series) para rodar nativo no PC: o que já funciona, o que falta e quão perto o jogo está de rodar.
+Rastreador independente e não oficial de **todos os projetos que tentam rodar o GTA VI (versão de Xbox Series) nativamente no PC**.
 
-**Página:** https://devhygor.github.io/leonida-acompanhamento/ (português, English, español)
+**Site:** https://devhygor.github.io/radar-vi/ (português, English, español)
 
 ## Como funciona
 
-- `.github/workflows/atualizar.yml` roda a cada 5 minutos (o GitHub pode atrasar alguns minutos nos horários cheios).
-- `coletar.py` lê a API do GitHub, o histórico da branch `main` do Leonida e o texto das issues de coordenação (#7154, roadmap e escada do boot; #313, camada D3D12 → Vulkan) e grava `dados/leonida.json` e `dados/historico.json`.
-- `montar_site.py` junta `site_base/` + `pagina/index.html` + os dados em `site/`, que o workflow publica no GitHub Pages.
-- A página recarrega os dados sozinha a cada 2 minutos.
+- `.github/workflows/atualizar.yml` roda a cada 5 minutos no GitHub Actions.
+- `corrida.py` procura projetos novos no GitHub, confere cada um direto na branch principal (estrelas, commits, último commit, README) e marca os que saíram do ar.
+- Uma IA (Gemini, chave gratuita no segredo `GEMINI_API_KEY`) lê o README e os commits e diz em que marco cada projeto está (preparação, executável roda, primeira imagem, menu, jogável, estável), o que funciona e o que trava, em pt/en/es. Sem a chave, os marcos são estimados por palavras-chave e aparecem como "estimativa automática".
+- `montar_site.py` junta `site_base/` com `dados/corrida.json` e o workflow publica no GitHub Pages.
+- Chat, contador de visitas, "online agora" e vídeos sugeridos (com aprovação do dono) usam o Supabase (`site_base/ao-vivo.js`).
 
-Rodar localmente:
-
-```
-python -I coletar.py
-python -I montar_site.py
-python -m http.server --directory site
-```
-
-Sem ligação com a Rockstar Games, a Take-Two ou o projeto Leonida. O visual é próprio e não usa arte nem marcas do jogo.
+Sem ligação com a Rockstar Games, a Take-Two ou qualquer projeto listado. Arte própria; nenhuma imagem do jogo; nenhum link para downloads.
