@@ -208,6 +208,7 @@ e responda SOMENTE com um JSON válido, sem markdown, com estes campos:
  "tipo": "camada de compatibilidade"|"emulador"|"recompilação estática"|"ferramenta"|"continuação de outro projeto"|"outro",
  "alvo": "GTA VI"|"qualquer jogo de Xbox Series",
  "marco": "preparacao"|"exe"|"imagem"|"menu"|"jogo"|"estavel",  // o mais avançado ALCANÇADO NO GTA VI, segundo o próprio projeto
+ "prova_gta": "trecho LITERAL copiado do README ou de um commit (até 200 caracteres) que mostra o marco no GTA VI, ou null",
  "marco_outros": "preparacao"|"exe"|"imagem"|"menu"|"jogo"|"estavel"|null,  // o mais avançado em OUTROS jogos de Xbox (Minecraft etc.)
  "preparacao_pct": 0-100,            // quanto da base (loader, shaders, gráficos) está pronta, se ainda em preparação
  "partes": {"loader": 0-100, "shaders": 0-100, "graficos": 0-100, "outro_jogo": 0-100},
@@ -237,7 +238,7 @@ Seja conservador: na dúvida, o marco menor. Escreva em linguagem simples, para 
 
 
 # aliases que o Google mantém apontando para o flash atual; o "lite" é o reserva quando o principal dá 503 (sobrecarga)
-PROMPT_VER = 4  # suba quando o PROMPT mudar: força reavaliar todos (aos poucos, MAX_AVALIA por rodada)
+PROMPT_VER = 5  # suba quando o PROMPT mudar: força reavaliar todos (aos poucos, MAX_AVALIA por rodada)
 MODELOS_IA = ["models/gemini-flash-latest", "models/gemini-flash-lite-latest"]
 _modelos_ruins = set()
 
@@ -251,6 +252,27 @@ def _gerar(modelo, corpo):
                                  data=json.dumps(corpo).encode(), headers={"Content-Type": "application/json", "x-goog-api-key": GEMINI})
     with urllib.request.urlopen(req, timeout=120) as r:
         return json.loads(r.read().decode())
+
+
+OUTROS_JOGOS = re.compile(r"minecraft|unicorn overlord|terraria|fortnite|xdefiant|freedoom|doom|matrix awakens|"
+                          r"concept destruction|sample app|triangle", re.I)
+
+
+def _norm(t):
+    return re.sub(r"[^a-z0-9]+", " ", (t or "").lower()).strip()
+
+
+def _prova_ok(prova, p):
+    """A IA precisa citar um trecho que exista de verdade no README/commits e que não seja sobre outro jogo."""
+    if not prova or OUTROS_JOGOS.search(prova):
+        return False
+    fonte = _norm(p.get("_readme", "") + " " + " ".join(p.get("commits_recentes", [])))
+    pal = _norm(prova).split()
+    if len(pal) < 4:
+        return False
+    # aceita se algum pedaço de 6 palavras seguidas (ou a frase inteira, se curta) aparece no texto
+    n = min(6, len(pal))
+    return any(" ".join(pal[i:i + n]) in fonte for i in range(0, len(pal) - n + 1))
 
 
 def avaliar_ia(modelo, p):
@@ -283,6 +305,8 @@ def avaliar_ia(modelo, p):
     a = json.loads(txt)
     if a.get("marco") not in MARCOS:
         a["marco"] = "preparacao"
+    if a["marco"] != "preparacao" and not _prova_ok(a.get("prova_gta"), p):
+        a["gta_testado"] = False
     if not a.get("gta_testado") and a["marco"] != "preparacao":
         a["marco_outros"] = a.get("marco_outros") or a["marco"]
         a["marco"] = "preparacao"
