@@ -207,7 +207,8 @@ e responda SOMENTE com um JSON válido, sem markdown, com estes campos:
  "relevante": true|false,            // é um esforço real (código) para rodar jogos de Xbox Series/GTA VI no PC? false para listas, trackers, golpes, repositórios vazios
  "tipo": "camada de compatibilidade"|"emulador"|"recompilação estática"|"ferramenta"|"continuação de outro projeto"|"outro",
  "alvo": "GTA VI"|"qualquer jogo de Xbox Series",
- "marco": "preparacao"|"exe"|"imagem"|"menu"|"jogo"|"estavel",  // o mais avançado ALCANÇADO no GTA VI, segundo o próprio projeto
+ "marco": "preparacao"|"exe"|"imagem"|"menu"|"jogo"|"estavel",  // o mais avançado ALCANÇADO NO GTA VI, segundo o próprio projeto
+ "marco_outros": "preparacao"|"exe"|"imagem"|"menu"|"jogo"|"estavel"|null,  // o mais avançado em OUTROS jogos de Xbox (Minecraft etc.)
  "preparacao_pct": 0-100,            // quanto da base (loader, shaders, gráficos) está pronta, se ainda em preparação
  "partes": {"loader": 0-100, "shaders": 0-100, "graficos": 0-100, "outro_jogo": 0-100},
    // quão pronta está cada peça da base, segundo o README/commits: loader = carregar o executável e as bibliotecas do sistema
@@ -223,12 +224,18 @@ e responda SOMENTE com um JSON válido, sem markdown, com estes campos:
 }
 Significado dos marcos: preparacao = ainda montando a base, o executável do GTA VI não roda; exe = o código do jogo roda
 (janela abre, frames pretos ou travamento cedo); imagem = aparece algo do jogo na tela (logos, intro, tela de carregamento);
-menu = menus/tela inicial aparecem e respondem; jogo = dá para jogar/andar no mundo; estavel = jogável por longos períodos.
+menu = menus/tela inicial aparecem e respondem (inclui carregar o mundo sem conseguir jogar: tela escura, travando, fps < 5);
+jogo = dá para controlar o personagem e andar no mundo de verdade; estavel = jogável por longos períodos.
+IMPORTANTE: "marco" mede SÓ o GTA VI. Se o projeto roda outros jogos (Minecraft, Unicorn Overlord, Terraria...) mas não
+diz que o executável do GTA VI chegou a algum ponto, "marco" é "preparacao" e o sucesso nos outros jogos vai em
+"marco_outros", "roda_outros" e "partes.outro_jogo". O GTA VI pode aparecer com outro nome (ex.: "jogo de varejo mais novo",
+"Leonida", "GTA6.exe", "Vice City"): conte isso como GTA VI. Em "funciona"/"travando" priorize o que diz respeito ao GTA VI.
 Seja conservador: na dúvida, o marco menor. Escreva em linguagem simples, para quem não é programador.
 """
 
 
 # aliases que o Google mantém apontando para o flash atual; o "lite" é o reserva quando o principal dá 503 (sobrecarga)
+PROMPT_VER = 3  # suba quando o PROMPT mudar: força reavaliar todos (aos poucos, MAX_AVALIA por rodada)
 MODELOS_IA = ["models/gemini-flash-latest", "models/gemini-flash-lite-latest"]
 _modelos_ruins = set()
 
@@ -274,7 +281,11 @@ def avaliar_ia(modelo, p):
     a = json.loads(txt)
     if a.get("marco") not in MARCOS:
         a["marco"] = "preparacao"
+    if not a.get("gta_testado") and a["marco"] != "preparacao":
+        a["marco_outros"] = a.get("marco_outros") or a["marco"]
+        a["marco"] = "preparacao"
     a["fonte"] = "ia"
+    a["versao"] = PROMPT_VER
     a["modelo"] = usado.replace("models/", "")
     return a
 
@@ -367,7 +378,8 @@ def main():
             continue
         if antes_removido:
             eventos.append({"em": iso(t0), "tipo": "voltou", "projeto": nome})
-        if not p.get("_readme_novo") and p.get("aval") and not (modelo and p["aval"].get("fonte") == "regras"):
+        defasada = bool(modelo) and (p.get("aval") or {}).get("fonte") == "ia" and (p.get("aval") or {}).get("versao") != PROMPT_VER
+        if not p.get("_readme_novo") and p.get("aval") and not defasada and not (modelo and p["aval"].get("fonte") == "regras"):
             continue  # nada novo desde a última olhada
         if not p.get("_readme_novo") and modelo:
             # avaliação por IA precisa do README: baixa agora
@@ -375,7 +387,7 @@ def main():
             coletar_repo(nome, p)
         mudou = (p.get("readme_hash") != p.get("aval_readme")) or ((p.get("ultimo_commit") or {}).get("sha") != p.get("aval_commit"))
         velha = not p.get("aval_em") or p["aval_em"] < iso(t0 - dt.timedelta(hours=REAVALIA_HORAS))
-        precisa = not p.get("aval") or (mudou and velha) or (modelo and (p.get("aval") or {}).get("fonte") == "regras")
+        precisa = not p.get("aval") or defasada or (mudou and velha) or (modelo and (p.get("aval") or {}).get("fonte") == "regras")
         if precisa:
             try:
                 if modelo and avaliados < MAX_AVALIA:

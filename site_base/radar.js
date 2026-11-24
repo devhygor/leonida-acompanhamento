@@ -36,7 +36,7 @@
       ia_off: 'Avaliação por IA desligada no momento: os marcos são estimados por palavras-chave e aparecem como "estimativa automática".',
       tipo: {'camada de compatibilidade': 'camada de compatibilidade', 'emulador': 'emulador', 'recompilação estática': 'recompilação estática', 'ferramenta': 'ferramenta', 'continuação de outro projeto': 'continuação de outro projeto', 'outro': 'outro'},
       alvo_gta: 'só GTA VI', alvo_geral: 'qualquer jogo de Xbox Series', autodecl: 'autodeclarado', estimativa: 'estimativa automática', removido: 'removido do GitHub',
-      roda: 'roda: ', funciona: 'O que funciona', travando: 'O que trava', estrelas: 'estrelas', commits24: 'commits em 24 h', ultimo: 'último commit',
+      roda: 'roda: ', funciona: 'O que funciona', travando: 'O que está travando', estrelas: 'estrelas', commits24: 'commits em 24 h', ultimo: 'último commit',
       det_prep: 'Detalhes da preparação', p_loader: 'Loader e bibliotecas do sistema', p_shaders: 'Tradução de shaders', p_graficos: 'Camada gráfica', p_outro: 'Comprovado em outro jogo', comprovado: 'Comprovado em: ', ver_det: 'Ver detalhes', ocultar_det: 'Ocultar detalhes', aval_ia: 'Avaliado pela IA ', aval_reg: 'Estimativa automática ', sem_det: 'A IA ainda não avaliou este projeto.',
       verificado: 'conferido na branch principal ', github: 'Ver no GitHub', mais: function (n) { return 'Ver todos (' + n + ')'; }, menos: 'Mostrar menos',
       ev_novo: function (p) { return p + ' entrou no radar'; }, ev_removido: function (p) { return p + ' saiu do GitHub'; }, ev_voltou: function (p) { return p + ' voltou ao GitHub'; },
