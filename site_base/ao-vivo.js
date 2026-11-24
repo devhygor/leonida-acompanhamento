@@ -54,21 +54,21 @@
       link_texto: 'Não coloque links no comentário.', repetido: 'Esse vídeo já foi sugerido.', rapido: 'Espere uns segundos antes de sugerir outro.',
       limite: 'Você já sugeriu 10 vídeos hoje.', apelido: 'Esse apelido é reservado.', banido: 'Você foi bloqueado.', erro: 'Não deu para enviar. Tente de novo.',
       nenhum: 'Nenhum vídeo aprovado ainda.', pend: function (n) { return n === 1 ? '1 vídeo sendo analisado pela IA.' : n + ' vídeos sendo analisados pela IA.'; },
-      abrir: 'Abrir vídeo no ', por: 'sugerido por ', ia: '✓ conferido pela IA', readme: 'achado no README', mostra: 'mostra: ',
+      assistir: 'Assistir', abrir: 'Abrir vídeo no ', por: 'sugerido por ', ia: '✓ conferido pela IA', readme: 'achado no README', mostra: 'mostra: ',
       marcos: {exe: 'executável rodando', imagem: 'primeira imagem', menu: 'menu', jogo: 'gameplay'}},
     en: {url: 'Video link (X, YouTube, Streamable, Twitch, Vimeo, Medal)', com: 'What does the video show? (optional)', enviar: 'Suggest',
       ok: 'Thanks! The AI will watch it: if it shows GTA VI running on PC, it shows up here in a few minutes.', vazio: 'Paste the video link.', link: 'That is not an accepted video link (X, YouTube, Streamable, Twitch, Vimeo or Medal).',
       link_texto: 'Please do not put links in the comment.', repetido: 'That video was already suggested.', rapido: 'Wait a few seconds before suggesting another one.',
       limite: 'You already suggested 10 videos today.', apelido: 'That nickname is reserved.', banido: 'You have been blocked.', erro: 'Could not send. Try again.',
       nenhum: 'No approved videos yet.', pend: function (n) { return n === 1 ? '1 video being checked by the AI.' : n + ' videos being checked by the AI.'; },
-      abrir: 'Open video on ', por: 'suggested by ', ia: '✓ checked by AI', readme: 'found in the README', mostra: 'shows: ',
+      assistir: 'Watch', abrir: 'Open video on ', por: 'suggested by ', ia: '✓ checked by AI', readme: 'found in the README', mostra: 'shows: ',
       marcos: {exe: 'exe running', imagem: 'first image', menu: 'menu', jogo: 'gameplay'}},
     es: {url: 'Enlace del video (X, YouTube, Streamable, Twitch, Vimeo, Medal)', com: '¿Qué muestra el video? (opcional)', enviar: 'Sugerir',
       ok: '¡Gracias! La IA verá el video: si muestra GTA VI corriendo en PC, aparece aquí en unos minutos.', vazio: 'Pega el enlace del video.', link: 'Ese enlace no es de un video aceptado (X, YouTube, Streamable, Twitch, Vimeo o Medal).',
       link_texto: 'No pongas enlaces en el comentario.', repetido: 'Ese video ya fue sugerido.', rapido: 'Espera unos segundos antes de sugerir otro.',
       limite: 'Ya sugeriste 10 videos hoy.', apelido: 'Ese apodo está reservado.', banido: 'Fuiste bloqueado.', erro: 'No se pudo enviar. Inténtalo de nuevo.',
       nenhum: 'Aún no hay videos aprobados.', pend: function (n) { return n === 1 ? '1 video en análisis por la IA.' : n + ' videos en análisis por la IA.'; },
-      abrir: 'Abrir video en ', por: 'sugerido por ', ia: '✓ revisado por IA', readme: 'hallado en el README', mostra: 'muestra: ',
+      assistir: 'Ver', abrir: 'Abrir video en ', por: 'sugerido por ', ia: '✓ revisado por IA', readme: 'hallado en el README', mostra: 'muestra: ',
       marcos: {exe: 'ejecutable corriendo', imagem: 'primera imagen', menu: 'menú', jogo: 'gameplay'}}
   };
   var vt = function () { return VT[window.ltLang] || VT.pt; };
@@ -77,6 +77,48 @@
     var m = /^https:\/\/(?:www\.|m\.|mobile\.|clips\.)?([^\/]+)/i.exec(u || ''); var h = m ? m[1].toLowerCase() : '';
     return {'x.com': 'X', 'twitter.com': 'X', 'youtube.com': 'YouTube', 'youtu.be': 'YouTube', 'streamable.com': 'Streamable',
       'twitch.tv': 'Twitch', 'vimeo.com': 'Vimeo', 'medal.tv': 'Medal'}[h] || h;
+  }
+
+  // ---- player dentro do site: player oficial de cada plataforma (nada é hospedado aqui) ----
+  function idDe(u, rx) { var m = rx.exec(u || ''); return m ? m[1] : null; }
+  function podeTocar(v) { return /youtu|x\.com\/|twitter\.com\/|streamable\.com|vimeo\.com/i.test(v.url || ''); }
+  var playerBox = null;
+  function fechaPlayer() { if (!playerBox) return; playerBox.hidden = true; playerBox.querySelector('.vpl-midia').replaceChildren(); document.body.classList.remove('sem-rolar'); }
+  function abrePlayer(v) {
+    if (!playerBox) {
+      playerBox = document.createElement('div'); playerBox.className = 'vpl'; playerBox.hidden = true;
+      playerBox.setAttribute('role', 'dialog'); playerBox.setAttribute('aria-modal', 'true');
+      playerBox.innerHTML = '<div class="vpl-caixa"><div class="vpl-topo"><b class="vpl-t"></b><a class="vpl-ext" target="_blank" rel="noopener nofollow ugc"></a><button type="button" class="vpl-x" aria-label="Fechar">✕</button></div><div class="vpl-midia"></div><p class="vpl-r"></p></div>';
+      document.body.appendChild(playerBox);
+      playerBox.addEventListener('click', function (e) { if (e.target === playerBox) fechaPlayer(); });
+      playerBox.querySelector('.vpl-x').addEventListener('click', fechaPlayer);
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && playerBox && !playerBox.hidden) fechaPlayer(); });
+    }
+    var midia = playerBox.querySelector('.vpl-midia'), u = v.url, el;
+    var yt = idDe(u, /(?:v=|youtu\.be\/|shorts\/|live\/)([A-Za-z0-9_-]{6,20})/), tw = idDe(u, /(?:x|twitter)\.com\/[A-Za-z0-9_]{1,15}\/status\/(\d{5,25})/),
+        st = idDe(u, /streamable\.com\/([A-Za-z0-9]{3,12})/), vm = idDe(u, /vimeo\.com\/(\d{5,12})/);
+    function iframe(src, alto) { var f = document.createElement('iframe'); f.src = src; f.allow = 'autoplay; fullscreen; picture-in-picture; encrypted-media'; f.allowFullscreen = true; f.referrerPolicy = 'strict-origin-when-cross-origin'; if (alto) f.className = 'alto'; return f; }
+    if (yt) el = iframe('https://www.youtube-nocookie.com/embed/' + yt + '?autoplay=1&rel=0');
+    else if (tw && v.ia_mp4 && /^https:\/\/video\.twimg\.com\//.test(v.ia_mp4)) {
+      // o X recusa o mp4 quando o pedido diz de qual site veio (Referer): toca num quadro isolado com no-referrer
+      var esc = function (x) { return String(x).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;'); };
+      el = document.createElement('iframe'); el.allow = 'autoplay; fullscreen; picture-in-picture'; el.allowFullscreen = true;
+      el.setAttribute('sandbox', 'allow-scripts allow-same-origin');
+      el.srcdoc = '<!doctype html><meta name="referrer" content="no-referrer"><style>html,body{margin:0;height:100%;background:#000}video{width:100%;height:100%;display:block}</style>' +
+        '<video controls autoplay playsinline src="' + esc(v.ia_mp4) + '"' + (v.ia_thumb ? ' poster="' + esc(v.ia_thumb) + '"' : '') + '></video>' +
+        '<script>document.querySelector("video").addEventListener("error",function(){parent.postMessage("rv-mp4-erro","*")})<\/script>';
+      var cai = function (e) { if (e.data === 'rv-mp4-erro' && e.source === el.contentWindow) { window.removeEventListener('message', cai); midia.replaceChildren(iframe('https://platform.twitter.com/embed/Tweet.html?id=' + tw + '&theme=dark&dnt=true', true)); } };
+      window.addEventListener('message', cai);
+    }
+    else if (tw) el = iframe('https://platform.twitter.com/embed/Tweet.html?id=' + tw + '&theme=dark&dnt=true', true);
+    else if (st) el = iframe('https://streamable.com/e/' + st + '?autoplay=1');
+    else if (vm) el = iframe('https://player.vimeo.com/video/' + vm + '?autoplay=1');
+    if (!el) { window.open(u, '_blank', 'noopener'); return; }
+    midia.replaceChildren(el);
+    playerBox.querySelector('.vpl-t').textContent = v.ia_titulo || hostDe(u);
+    var ext = playerBox.querySelector('.vpl-ext'); ext.href = u; ext.textContent = vt().abrir + hostDe(u) + ' ↗';
+    var res = v.ia_resumo && (v.ia_resumo[window.ltLang] || v.ia_resumo.pt); playerBox.querySelector('.vpl-r').textContent = res || '';
+    playerBox.hidden = false; document.body.classList.add('sem-rolar'); playerBox.querySelector('.vpl-x').focus();
   }
 
   function videosComunidade(sb) {
@@ -89,28 +131,33 @@
       var aprov = ultimo.filter(function (v) { return v.url; });
       var pend = ultimo.length ? (ultimo[0].pendentes || 0) : 0;
       var itens = aprov.map(function (v) {
-        var li = document.createElement('li');
-        var q = document.createElement('span'); q.className = 'q';
-        q.textContent = window.ltQuando ? window.ltQuando(v.criado_em) : new Date(v.criado_em).toLocaleDateString();
         var mk = function (tag, cls, txt) { var e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
-        var cab = mk('span', 'cab');
-        cab.appendChild(mk('span', 'lt-tag destaque', hostDe(v.url)));
+        var li = mk('li', 'vcard');
+        var th = mk('button', 'vthumb'); th.type = 'button'; th.setAttribute('aria-label', vt().assistir + (v.ia_titulo ? ': ' + v.ia_titulo : ''));
+        if (v.ia_thumb && /^https:\/\//i.test(v.ia_thumb)) { var im = mk('img'); im.src = v.ia_thumb; im.alt = ''; im.loading = 'lazy'; im.referrerPolicy = 'no-referrer'; th.appendChild(im); }
+        th.appendChild(mk('span', 'vplay', '▶'));
+        th.appendChild(mk('span', 'vhost', hostDe(v.url)));
+        if (podeTocar(v)) th.addEventListener('click', function () { abrePlayer(v); });
+        else th.addEventListener('click', function () { window.open(v.url, '_blank', 'noopener'); });
+        li.appendChild(th);
+        var info = mk('div', 'vinfo');
+        var cab = mk('div', 'cab');
         if (v.ia_status === 'aprovado') cab.appendChild(mk('span', 'lt-tag ia', vt().ia));
         if (v.ia_projeto) cab.appendChild(mk('span', 'lt-tag', v.ia_projeto.split('/').pop()));
         if (v.ia_marco && vt().marcos[v.ia_marco]) cab.appendChild(mk('span', 'lt-tag', vt().mostra + vt().marcos[v.ia_marco]));
-        var tx = mk('span', 'tx');
-        if (v.ia_titulo) tx.appendChild(mk('b', 'vt', v.ia_titulo));
+        info.appendChild(cab);
+        info.appendChild(mk('b', 'vt', v.ia_titulo || v.comentario || hostDe(v.url)));
         var res = v.ia_resumo && (v.ia_resumo[window.ltLang] || v.ia_resumo.pt);
-        if (res) tx.appendChild(mk('span', 'vr', res));
-        else if (v.comentario) tx.appendChild(mk('span', 'vr', v.comentario));
+        if (res) info.appendChild(mk('span', 'vr', res));
         var pe = mk('span', 'vp');
+        pe.appendChild(document.createTextNode((window.ltQuando ? window.ltQuando(v.criado_em) : '') + ' · '));
         var a = mk('a', 'lk'); a.target = '_blank'; a.rel = 'noopener nofollow ugc';
         if (/^https:\/\//i.test(v.url)) a.href = v.url;
         a.textContent = vt().abrir + hostDe(v.url) + ' ↗'; pe.appendChild(a);
         var quem = v.origem === 'readme' ? vt().readme : (v.apelido ? vt().por + v.apelido : '');
         if (quem) pe.appendChild(document.createTextNode(' · ' + quem));
-        tx.appendChild(pe);
-        li.appendChild(q); li.appendChild(cab); li.appendChild(tx);
+        info.appendChild(pe);
+        li.appendChild(info);
         return li;
       });
       if (!itens.length) { var vz = document.createElement('li'); vz.className = 'muted'; vz.textContent = vt().nenhum; itens.push(vz); }

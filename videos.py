@@ -58,7 +58,8 @@ def metadados(u):
     try:
         if "youtu" in u:
             d = get_json(f"https://www.youtube.com/oembed?url={q}&format=json")
-            return {"titulo": d.get("title"), "autor": d.get("author_name")}
+            return {"titulo": d.get("title"), "autor": d.get("author_name"),
+                    "_thumb": f"https://i.ytimg.com/vi/{youtube_id(u)}/hqdefault.jpg" if youtube_id(u) else d.get("thumbnail_url")}
         if "x.com/" in u:
             m = re.search(r"x\.com/([A-Za-z0-9_]{1,15})/status/(\d+)", u)
             d = get_json(f"https://api.fxtwitter.com/{m.group(1)}/status/{m.group(2)}")
@@ -66,13 +67,14 @@ def metadados(u):
             vids = (tw.get("media") or {}).get("videos") or []
             return {"titulo": None, "autor": (tw.get("author") or {}).get("screen_name"), "texto": (tw.get("text") or "")[:600],
                     "postado_em": tw.get("created_at"), "_mp4": vids[0].get("url") if vids else None,
+                    "_thumb": vids[0].get("thumbnail_url") if vids else None,
                     "duracao_s": vids[0].get("duration") if vids else None, "sem_video_no_post": not vids}
         if "streamable.com" in u:
             d = get_json(f"https://api.streamable.com/oembed.json?url={q}")
-            return {"titulo": d.get("title"), "autor": d.get("author_name")}
+            return {"titulo": d.get("title"), "autor": d.get("author_name"), "_thumb": d.get("thumbnail_url")}
         if "vimeo.com" in u:
             d = get_json(f"https://vimeo.com/api/oembed.json?url={q}")
-            return {"titulo": d.get("title"), "autor": d.get("author_name"), "texto": (d.get("description") or "")[:600]}
+            return {"titulo": d.get("title"), "autor": d.get("author_name"), "texto": (d.get("description") or "")[:600], "_thumb": d.get("thumbnail_url")}
     except Exception as e:
         return {"erro": str(e)[:120]}
     return {}
@@ -229,7 +231,8 @@ def main():
         st = decidir(a, viu)
         proj = a.get("projeto") if a.get("projeto") in projetos else None
         rpc("leonida_robo_decide", {"chave": ROBO, "video": v["id"], "status": st, "resumo": a.get("resumo"),
-                                    "projeto": proj, "marco": a.get("marco_visto"), "titulo": (a.get("titulo") or "")[:90] or None})
+                                    "projeto": proj, "marco": a.get("marco_visto"), "titulo": (a.get("titulo") or "")[:90] or None,
+                                    "thumb": meta.get("_thumb"), "mp4": meta.get("_mp4")})
         feitos += 1
         print(f"vídeo {v['id']} ({'viu' if viu else 'texto'}): {st} conf={a.get('confianca')} | {a.get('motivo', '')[:140]}")
         if st == "aprovado" and v.get("ia_status") != "aprovado":
