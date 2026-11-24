@@ -37,6 +37,7 @@
       tipo: {'camada de compatibilidade': 'camada de compatibilidade', 'emulador': 'emulador', 'recompilação estática': 'recompilação estática', 'ferramenta': 'ferramenta', 'continuação de outro projeto': 'continuação de outro projeto', 'outro': 'outro'},
       alvo_gta: 'só GTA VI', alvo_geral: 'qualquer jogo de Xbox Series', autodecl: 'autodeclarado', estimativa: 'estimativa automática', removido: 'removido do GitHub',
       roda: 'roda: ', funciona: 'O que funciona', travando: 'O que trava', estrelas: 'estrelas', commits24: 'commits em 24 h', ultimo: 'último commit',
+      det_prep: 'Detalhes da preparação', p_loader: 'Loader e bibliotecas do sistema', p_shaders: 'Tradução de shaders', p_graficos: 'Camada gráfica', p_outro: 'Comprovado em outro jogo', comprovado: 'Comprovado em: ', ver_det: 'Ver detalhes', ocultar_det: 'Ocultar detalhes', aval_ia: 'Avaliado pela IA ', aval_reg: 'Estimativa automática ', sem_det: 'A IA ainda não avaliou este projeto.',
       verificado: 'conferido na branch principal ', github: 'Ver no GitHub', mais: function (n) { return 'Ver todos (' + n + ')'; }, menos: 'Mostrar menos',
       ev_novo: function (p) { return p + ' entrou no radar'; }, ev_removido: function (p) { return p + ' saiu do GitHub'; }, ev_voltou: function (p) { return p + ' voltou ao GitHub'; },
       ev_marco: function (p, m) { return p + ' chegou em "' + m + '"'; }, ev_novidade: function (p) { return 'Novidade no ' + p; },
@@ -79,6 +80,7 @@
       tipo: {'camada de compatibilidade': 'compatibility layer', 'emulador': 'emulator', 'recompilação estática': 'static recompilation', 'ferramenta': 'tool', 'continuação de outro projeto': 'continuation of another project', 'outro': 'other'},
       alvo_gta: 'GTA VI only', alvo_geral: 'any Xbox Series game', autodecl: 'self-reported', estimativa: 'automatic estimate', removido: 'removed from GitHub',
       roda: 'runs: ', funciona: 'What works', travando: "What's blocking", estrelas: 'stars', commits24: 'commits in 24 h', ultimo: 'last commit',
+      det_prep: 'Preparation details', p_loader: 'Loader and system libraries', p_shaders: 'Shader translation', p_graficos: 'Graphics layer', p_outro: 'Proven on another game', comprovado: 'Proven on: ', ver_det: 'Show details', ocultar_det: 'Hide details', aval_ia: 'Assessed by AI ', aval_reg: 'Automatic estimate ', sem_det: 'The AI has not assessed this project yet.',
       verificado: 'checked on the main branch ', github: 'View on GitHub', mais: function (n) { return 'See all (' + n + ')'; }, menos: 'Show less',
       ev_novo: function (p) { return p + ' joined the radar'; }, ev_removido: function (p) { return p + ' is gone from GitHub'; }, ev_voltou: function (p) { return p + ' is back on GitHub'; },
       ev_marco: function (p, m) { return p + ' reached "' + m + '"'; }, ev_novidade: function (p) { return 'News from ' + p; },
@@ -121,6 +123,7 @@
       tipo: {'camada de compatibilidade': 'capa de compatibilidad', 'emulador': 'emulador', 'recompilação estática': 'recompilación estática', 'ferramenta': 'herramienta', 'continuação de outro projeto': 'continuación de otro proyecto', 'outro': 'otro'},
       alvo_gta: 'solo GTA VI', alvo_geral: 'cualquier juego de Xbox Series', autodecl: 'autodeclarado', estimativa: 'estimación automática', removido: 'eliminado de GitHub',
       roda: 'corre: ', funciona: 'Qué funciona', travando: 'Qué lo frena', estrelas: 'estrellas', commits24: 'commits en 24 h', ultimo: 'último commit',
+      det_prep: 'Detalles de la preparación', p_loader: 'Loader y bibliotecas del sistema', p_shaders: 'Traducción de shaders', p_graficos: 'Capa gráfica', p_outro: 'Probado en otro juego', comprovado: 'Probado en: ', ver_det: 'Ver detalles', ocultar_det: 'Ocultar detalles', aval_ia: 'Evaluado por IA ', aval_reg: 'Estimación automática ', sem_det: 'La IA aún no evaluó este proyecto.',
       verificado: 'comprobado en la rama principal ', github: 'Ver en GitHub', mais: function (n) { return 'Ver todos (' + n + ')'; }, menos: 'Mostrar menos',
       ev_novo: function (p) { return p + ' entró en el radar'; }, ev_removido: function (p) { return p + ' salió de GitHub'; }, ev_voltou: function (p) { return p + ' volvió a GitHub'; },
       ev_marco: function (p, m) { return p + ' llegó a "' + m + '"'; }, ev_novidade: function (p) { return 'Novedad en ' + p; },
@@ -292,14 +295,29 @@
       mk.appendChild(seg); nomes.appendChild(el('span', i <= idx ? 'ok' : '', marcoNome(m)));
     });
     corpo.appendChild(mk); corpo.appendChild(nomes);
-    var fn = trLista(a.funciona), tv = trLista(a.travando);
-    if (fn.length || tv.length) {
-      var det = el('details'); det.appendChild(el('summary', null, T().funciona + ' / ' + T().travando));
-      var duas = el('div', 'duas'); duas.style.marginTop = '10px';
-      [[fn, 'bom', T().funciona], [tv, 'ruim', T().travando]].forEach(function (x) {
-        if (!x[0].length) return; var d = el('div', x[1]); d.appendChild(el('h4', null, x[2])); var ul = el('ul'); x[0].forEach(function (s) { ul.appendChild(el('li', null, s)); }); d.appendChild(ul); duas.appendChild(d);
+    var fn = trLista(a.funciona), tv = trLista(a.travando), pt = a.partes || {};
+    var pecas = [['loader', 'p_loader'], ['shaders', 'p_shaders'], ['graficos', 'p_graficos'], ['outro_jogo', 'p_outro']]
+      .filter(function (x) { return typeof pt[x[0]] === 'number'; });
+    var det = null;
+    if (fn.length || tv.length || pecas.length) {
+      det = el('div', 'detalhes'); det.hidden = pos > 3 || !!p.removido;
+      var g = el('div', 'tres');
+      if (pecas.length) {
+        var bx = el('div', 'prep'); bx.appendChild(el('h4', null, T().det_prep));
+        pecas.forEach(function (x) {
+          var v = Math.max(0, Math.min(100, Math.round(pt[x[0]]))), lin = el('div', 'peca');
+          var top = el('div', 'peca-t'); top.appendChild(el('span', null, T()[x[1]])); top.appendChild(el('b', 'num', v + '%')); lin.appendChild(top);
+          var br = el('i'); br.style.setProperty('--p', v + '%'); lin.appendChild(br); bx.appendChild(lin);
+        });
+        if (a.roda_outros) bx.appendChild(el('p', 'obs', T().comprovado + a.roda_outros));
+        g.appendChild(bx);
+      }
+      [[fn, 'bom', T().funciona, '✓'], [tv, 'ruim', T().travando, '–']].forEach(function (x) {
+        if (!x[0].length) return; var d = el('div', x[1]); d.appendChild(el('h4', null, x[2])); var ul = el('ul');
+        x[0].forEach(function (s) { var li = el('li'); li.appendChild(el('span', 'm', x[3])); li.appendChild(el('span', null, s)); ul.appendChild(li); });
+        d.appendChild(ul); g.appendChild(d);
       });
-      det.appendChild(duas); corpo.appendChild(det);
+      det.appendChild(g); corpo.appendChild(det);
     }
     var st = el('div', 'stats');
     var s1 = el('span'); s1.appendChild(el('b', 'num', '★ ' + fmt(p.estrelas || 0))); if (p.estrelas_24h > 0) s1.appendChild(document.createTextNode(' (+' + fmt(p.estrelas_24h) + ' 24 h)')); st.appendChild(s1);
@@ -309,6 +327,15 @@
       if (p.verificado_em) st.appendChild(el('span', null, T().verificado + window.ltQuando(p.verificado_em)));
     } else if (p.removido_em) st.appendChild(el('span', null, T().removido + ' ' + window.ltQuando(p.removido_em)));
     corpo.appendChild(st);
+    var rod = el('div', 'rodcard');
+    rod.appendChild(el('span', 'avl', (a.fonte === 'ia' ? T().aval_ia : T().aval_reg) + (p.aval_em ? window.ltQuando(p.aval_em) : '')));
+    if (det) {
+      var bt = el('button', 'btn-det', det.hidden ? T().ver_det : T().ocultar_det); bt.type = 'button';
+      bt.onclick = function () { det.hidden = !det.hidden; bt.textContent = det.hidden ? T().ver_det : T().ocultar_det; };
+      rod.appendChild(bt);
+    }
+    rod.appendChild(link(p.url || ('https://github.com/' + p.nome), 'btn-gh', T().github));
+    corpo.appendChild(rod);
     c.appendChild(corpo);
     return c;
   }

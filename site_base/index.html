@@ -151,6 +151,23 @@ main section{padding:56px 0 8px}
 .marcos-nomes{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px;font-size:11px;color:var(--mut2)}
 .marcos-nomes span.ok{color:var(--fg);font-weight:600}
 @media (max-width:640px){.marcos-nomes{display:none}.proj{grid-template-columns:30px minmax(0,1fr) auto;padding:16px}.proj .corpo{grid-column:1 / 4}.proj .nota b{font-size:26px}.proj .cab h3{font-size:18px}}
+.detalhes{margin-top:4px}
+.tres{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr) minmax(0,1fr);gap:22px;align-items:start}
+@media (max-width:900px){.tres{grid-template-columns:minmax(0,1fr)}}
+.tres h4{margin:0 0 10px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}
+.tres .bom h4{color:var(--mut)} .tres .ruim h4{color:var(--mut)}
+.tres ul{margin:0;padding:0;list-style:none;font-size:14px;color:#d8cfef;display:flex;flex-direction:column;gap:9px;line-height:1.45}
+.tres li{display:flex;gap:9px}.tres li .m{flex:none;font-weight:700}
+.tres .bom .m{color:var(--ok)}.tres .ruim .m{color:var(--bad)}
+.prep{background:#15102a;border:1px solid #241c40;border-radius:12px;padding:14px 16px}
+.peca{margin-bottom:12px}.peca-t{display:flex;justify-content:space-between;font-size:14px;color:var(--fg);margin-bottom:5px}
+.peca i{display:block;height:6px;border-radius:3px;background:linear-gradient(90deg,var(--purple),#ff6a5c) 0/var(--p) 100% no-repeat,#241c40}
+.prep .obs{margin:4px 0 0;font-size:12.5px;color:var(--mut2)}
+.rodcard{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap;border-top:1px solid #241c40;padding-top:12px;margin-top:2px}
+.rodcard .avl{font-size:12.5px;color:var(--mut2);margin-right:auto}
+.btn-det,.btn-gh{font:inherit;font-size:13px;font-weight:600;padding:7px 14px;border-radius:9px;cursor:pointer;text-decoration:none}
+.btn-det{background:transparent;color:var(--fg);border:1px solid #3a2f5c}.btn-det:hover{border-color:var(--pink)}
+.btn-gh{background:#f1ecff;color:#140e26;border:1px solid #f1ecff}
 .duas{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
 @media (max-width:700px){.duas{grid-template-columns:minmax(0,1fr)}}
 .duas h4{margin:0 0 6px;font-size:12px;letter-spacing:.1em;text-transform:uppercase}

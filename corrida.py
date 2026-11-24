@@ -21,7 +21,7 @@ BASE = pathlib.Path(__file__).resolve().parent
 OUT = BASE / "dados" / "corrida.json"
 EST = BASE / "dados" / "estado_corrida.json"
 UTC = dt.timezone.utc
-GEMINI = os.environ.get("GEMINI_API_KEY", "").strip()
+GEMINI = os.environ.get("GEMINI_API_KEY", "").strip().lstrip("\ufeff").strip()
 MAX_AVALIA = int(os.environ.get("CORRIDA_MAX_AVALIA", "8"))      # avaliações por IA por execução
 REAVALIA_HORAS = float(os.environ.get("CORRIDA_REAVALIA_H", "2"))  # só reavalia se mudou e passou esse tempo
 
@@ -208,12 +208,16 @@ e responda SOMENTE com um JSON válido, sem markdown, com estes campos:
  "alvo": "GTA VI"|"qualquer jogo de Xbox Series",
  "marco": "preparacao"|"exe"|"imagem"|"menu"|"jogo"|"estavel",  // o mais avançado ALCANÇADO no GTA VI, segundo o próprio projeto
  "preparacao_pct": 0-100,            // quanto da base (loader, shaders, gráficos) está pronta, se ainda em preparação
+ "partes": {"loader": 0-100, "shaders": 0-100, "graficos": 0-100, "outro_jogo": 0-100},
+   // quão pronta está cada peça da base, segundo o README/commits: loader = carregar o executável e as bibliotecas do sistema
+   // do Xbox; shaders = tradução dos shaders; graficos = camada gráfica (D3D12/Vulkan); outro_jogo = já roda algum outro
+   // jogo de Xbox Series (0 se nenhum). Use null na peça que o projeto não menciona.
  "gta_testado": true|false,
  "autodeclarado": true|false,        // true se não há prova (vídeo, print, reprodução por terceiros), só o relato
  "roda_outros": "texto curto em inglês ou null",   // outros jogos de Xbox que o projeto diz rodar
  "resumo": {"pt": "...", "en": "...", "es": "..."},           // 1-2 frases simples sobre o estado atual
- "funciona": {"pt": ["..."], "en": ["..."], "es": ["..."]},   // até 3 itens
- "travando": {"pt": ["..."], "en": ["..."], "es": ["..."]},   // até 3 itens
+ "funciona": {"pt": ["..."], "en": ["..."], "es": ["..."]},   // até 3 itens concretos (o que já roda, com números quando houver)
+ "travando": {"pt": ["..."], "en": ["..."], "es": ["..."]},   // até 3 itens: o que impede o próximo marco
  "novidade": {"pt": "...", "en": "...", "es": "..."} | null    // o que mudou desde o resumo anterior abaixo; null se nada importante
 }
 Significado dos marcos: preparacao = ainda montando a base, o executável do GTA VI não roda; exe = o código do jogo roda
@@ -227,7 +231,7 @@ def _gemini_modelo():
     if not GEMINI:
         return None
     try:
-        req = urllib.request.Request(f"https://generativelanguage.googleapis.com/v1beta/models?key={GEMINI}&pageSize=200")
+        req = urllib.request.Request("https://generativelanguage.googleapis.com/v1beta/models?pageSize=200", headers={"x-goog-api-key": GEMINI})
         with urllib.request.urlopen(req, timeout=30) as r:
             ms = json.loads(r.read().decode())["models"]
         flash = [m["name"] for m in ms if "generateContent" in m.get("supportedGenerationMethods", [])
@@ -246,8 +250,8 @@ def avaliar_ia(modelo, p):
                f"\n\nREADME:\n{p.get('_readme', '')[:14000]}")
     corpo = {"contents": [{"role": "user", "parts": [{"text": PROMPT + "\n\n" + entrada}]}],
              "generationConfig": {"temperature": 0.2, "responseMimeType": "application/json"}}
-    req = urllib.request.Request(f"https://generativelanguage.googleapis.com/v1beta/{modelo}:generateContent?key={GEMINI}",
-                                 data=json.dumps(corpo).encode(), headers={"Content-Type": "application/json"})
+    req = urllib.request.Request(f"https://generativelanguage.googleapis.com/v1beta/{modelo}:generateContent",
+                                 data=json.dumps(corpo).encode(), headers={"Content-Type": "application/json", "x-goog-api-key": GEMINI})
     with urllib.request.urlopen(req, timeout=90) as r:
         d = json.loads(r.read().decode())
     txt = d["candidates"][0]["content"]["parts"][0]["text"]
@@ -289,8 +293,14 @@ def avaliar_regras(p):
     prep = min(100, 10 * sum(bool(re.search(k, texto)) for k in (
         r"pe loader|loader", r"shader", r"spir-?v|dxil", r"d3d12|vulkan", r"xgameruntime|gdk", r"xmem|kernelx",
         r"audio|xaudio|xma", r"input|gameinput", r"directstorage", r"present")))
+    def tem(*ks):
+        return sum(bool(re.search(k, texto)) for k in ks)
+    partes = {"loader": min(100, 35 * tem(r"pe loader|loader", r"xgameruntime|gdk|kernelx", r"xmem|import(s|ed)? (table|stub)")) or None,
+              "shaders": min(100, 35 * tem(r"shader", r"spir-?v|dxil|hlsl", r"rdna|gcn|isa")) or None,
+              "graficos": min(100, 35 * tem(r"d3d12|direct3d", r"vulkan", r"present|swapchain")) or None,
+              "outro_jogo": None}
     desc = p.get("descricao") or ""
-    return {"relevante": True, "tipo": "outro", "alvo": "GTA VI" if re.search(r"gta ?(vi|6)", desc, re.I) else "qualquer jogo de Xbox Series",
+    return {"partes": partes, "relevante": True, "tipo": "outro", "alvo": "GTA VI" if re.search(r"gta ?(vi|6)", desc, re.I) else "qualquer jogo de Xbox Series",
             "marco": marco, "preparacao_pct": prep, "gta_testado": gta, "autodeclarado": True, "roda_outros": None,
             "resumo": {"en": desc}, "funciona": {}, "travando": {}, "novidade": None, "fonte": "regras"}
 
