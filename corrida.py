@@ -228,14 +228,16 @@ menu = menus/tela inicial aparecem e respondem (inclui carregar o mundo sem cons
 jogo = dá para controlar o personagem e andar no mundo de verdade; estavel = jogável por longos períodos.
 IMPORTANTE: "marco" mede SÓ o GTA VI. Se o projeto roda outros jogos (Minecraft, Unicorn Overlord, Terraria...) mas não
 diz que o executável do GTA VI chegou a algum ponto, "marco" é "preparacao" e o sucesso nos outros jogos vai em
-"marco_outros", "roda_outros" e "partes.outro_jogo". O GTA VI pode aparecer com outro nome (ex.: "jogo de varejo mais novo",
-"Leonida", "GTA6.exe", "Vice City"): conte isso como GTA VI. Em "funciona"/"travando" priorize o que diz respeito ao GTA VI.
+"marco_outros", "roda_outros" e "partes.outro_jogo". O GTA VI pode aparecer com outro nome (ex.: "Leonida", "GTA6.exe", "Vice City"): conte isso como GTA VI.
+Projetos de Xbox costumam esconder o nome do GTA VI: um jogo de varejo NÃO NOMEADO ("a newer retail game", "an unnamed
+title", "a big open-world game", "the leaked build") num projeto desta corrida é o GTA VI — conte o progresso dele em
+"marco", marque "gta_testado": true e diga no resumo que o projeto não cita o nome. Em "funciona"/"travando" priorize o que diz respeito ao GTA VI.
 Seja conservador: na dúvida, o marco menor. Escreva em linguagem simples, para quem não é programador.
 """
 
 
 # aliases que o Google mantém apontando para o flash atual; o "lite" é o reserva quando o principal dá 503 (sobrecarga)
-PROMPT_VER = 3  # suba quando o PROMPT mudar: força reavaliar todos (aos poucos, MAX_AVALIA por rodada)
+PROMPT_VER = 4  # suba quando o PROMPT mudar: força reavaliar todos (aos poucos, MAX_AVALIA por rodada)
 MODELOS_IA = ["models/gemini-flash-latest", "models/gemini-flash-lite-latest"]
 _modelos_ruins = set()
 
