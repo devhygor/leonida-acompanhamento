@@ -64,6 +64,17 @@
     pc: { nome: null }
   };
 
+  // Links de afiliado do Mercado Livre (conta "hygorocha"), gerados no Gerador de links da Central de afiliados.
+  // Cada um abre a busca da peça no perfil do afiliado. Peça nova: gere o link lá e acrescente aqui.
+  var ML = 'https://meli.la/';
+  var OFERTAS = {
+    gpu: [['RX 6600', '2zZKqii'], ['RTX 3060', '2H4kQRg'], ['RTX 4060', '2MckBcr'], ['Arc B580', '1pDEEKu'], ['RX 9060 XT', '1Lffno6'],
+          ['RTX 5060 Ti', '2tXR5WE'], ['RTX 5070', '1Jc6bo7'], ['RX 9070 XT', '1uJLTwj']],
+    cpu: [['Core i5-12400F', '2dXKRj8'], ['Ryzen 5 5600', '2UdTeJR'], ['Ryzen 7 5700X', '2wJNq4z'], ['Ryzen 5 7600', '1au7Sv1'],
+          ['Core i5-14600K', '1FZNGvX'], ['Ryzen 7 7800X3D', '33xoVsH']],
+    ram: [['32 GB DDR4 (2×16)', '1rGaPaC'], ['32 GB DDR5 (2×16)', '2ZiF4KQ']]
+  };
+
   var I = {
     pt: {
       nav: 'Meu PC roda?', k: 'Calculadora', t: 'Meu PC roda?',
@@ -85,7 +96,12 @@
       r_ram_n: 'O xcl relata ~15 GB em uso só nos menus.', r_cores: 'Pelo menos 6 núcleos (o console tem 8)',
       aviso: 'Estimativa não oficial. Nenhum port do GTA VI é jogável hoje; os números comparam o poder bruto das peças, não garantem FPS.',
       indice: 'Índices aproximados de benchmarks públicos (placa: RTX 3060 = 100; processador: Ryzen 5 3600 = 100).',
-      vs: 'vs', gb: 'GB'
+      vs: 'vs', gb: 'GB',
+      up_t: 'Quer melhorar?', up_sub: 'Peças que deixam seu PC acima do console. Os preços mudam toda hora; confira no Mercado Livre.',
+      up_gpu: 'Placa de vídeo', up_cpu: 'Processador', up_ram: 'Memória RAM', up_ver: 'Ver preços →',
+      up_vs_seu: function (p) { return '+' + p + '% sobre a sua'; }, up_vs_c: function (p, n) { return (p >= 0 ? '+' : '−') + Math.abs(p) + '% vs ' + n; },
+      up_ram_n: '32 GB é o recomendado; o xcl usa ~15 GB só nos menus.', up_cpu_n: 'Confira o soquete da sua placa-mãe: Ryzen 5000 = AM4, Ryzen 7000 = AM5, Intel 12ª–14ª = LGA1700.',
+      up_aviso: 'Links de afiliado do Mercado Livre: se você comprar por eles, o Radar VI recebe uma pequena comissão, sem custo extra para você.'
     },
     en: {
       nav: 'Can my PC run it?', k: 'Calculator', t: 'Can my PC run it?',
@@ -255,6 +271,43 @@
       li.appendChild(tx); ul.appendChild(li);
     });
     rq.appendChild(ul); box.appendChild(rq);
+    if (alvoId !== 'pc') upgrades(box, cpu, gpu, ram, alvo, reqs);
+  }
+
+  function upgrades(box, cpu, gpu, ram, alvo, reqs) {
+    if (window.ltLang !== 'pt') return; // as lojas são do Mercado Livre Brasil
+    var t = T(), grupos = [];
+    var gIdx = function (n) { var x = acha(GPUS, n); return x ? x[1] : 0; }, cIdx = function (n) { var x = acha(CPUS, n); return x ? x[1] : 0; };
+    if (!gpu[3] || gpu[2] < 8 || gpu[1] < alvo.gpu * 1.25) {
+      var gs = OFERTAS.gpu.filter(function (o) { var v = gIdx(o[0]); return v >= Math.max(alvo.gpu, gpu[1] * 1.15); })
+        .sort(function (a, b) { return gIdx(a[0]) - gIdx(b[0]); }).slice(0, 3);
+      if (gs.length) grupos.push([t.up_gpu, gs.map(function (o) { var v = gIdx(o[0]); return [o[0], o[1], t.up_vs_seu(Math.round((v / gpu[1] - 1) * 100)), t.up_vs_c(Math.round((v / alvo.gpu - 1) * 100), alvo.nome)]; }), null]);
+    }
+    if (!cpu[4] || cpu[2] < 6 || cpu[1] < alvo.cpu * 1.3) {
+      var cs = OFERTAS.cpu.filter(function (o) { return cIdx(o[0]) >= Math.max(alvo.cpu * 1.3, cpu[1] * 1.15); })
+        .sort(function (a, b) { return cIdx(a[0]) - cIdx(b[0]); }).slice(0, 3);
+      if (cs.length) grupos.push([t.up_cpu, cs.map(function (o) { var v = cIdx(o[0]); return [o[0], o[1], t.up_vs_seu(Math.round((v / cpu[1] - 1) * 100)), t.up_vs_c(Math.round((v / alvo.cpu - 1) * 100), alvo.nome)]; }), t.up_cpu_n]);
+    }
+    if (ram < 32) grupos.push([t.up_ram, OFERTAS.ram.map(function (o) { return [o[0], o[1], null, null]; }), t.up_ram_n]);
+    if (!grupos.length) return;
+    var up = el('div', 'mp-up');
+    up.appendChild(el('h4', null, t.up_t)); up.appendChild(el('p', 'mp-up-sub', t.up_sub));
+    grupos.forEach(function (g) {
+      var gr = el('div', 'mp-up-g'); gr.appendChild(el('div', 'mp-up-k', g[0]));
+      var lst = el('div', 'mp-up-l');
+      g[1].forEach(function (o) {
+        var a = el('a', 'mp-up-i'); a.href = ML + o[1]; a.target = '_blank'; a.rel = 'sponsored noopener';
+        a.appendChild(el('b', null, o[0]));
+        if (o[2]) a.appendChild(el('span', 'mp-mais', o[2]));
+        if (o[3]) a.appendChild(el('span', 'mut', o[3]));
+        a.appendChild(el('em', null, t.up_ver));
+        lst.appendChild(a);
+      });
+      gr.appendChild(lst); if (g[2]) gr.appendChild(el('p', 'mp-up-n', g[2]));
+      up.appendChild(gr);
+    });
+    up.appendChild(el('p', 'mp-up-aviso', t.up_aviso));
+    box.appendChild(up);
   }
 
   function textos() {
