@@ -619,6 +619,8 @@ def novidades(cache, limite=40):
         # guarda o maior recorde já visto, para não registrar de novo um número que só sumiu do texto e voltou
         ant = dict(v, recorde_segundos=max(filter(None, [v.get("recorde_segundos"), (ant or {}).get("recorde_segundos")]), default=None),
                    recorde_chamadas=max(filter(None, [v.get("recorde_chamadas"), (ant or {}).get("recorde_chamadas")]), default=None))
+    for e in cache.get("v2:eventos_fonte", []):
+        ev.append(dict(e))
     for mv in cache.get("v2:mudancas", []):
         ev.append({"em": mv["em"], "tipo": "issue_mudou", "de": mv["de"], "para": mv["para"]})
     readme = sorted((v.get("_t", ""), v) for k, v in cache.items() if k.startswith("v2:README.md@") and v.get("estados"))
@@ -858,10 +860,91 @@ def ritmo(linha):
 
 
 # ---------------------------------------------------------------- main
+def _iso(t):
+    return t.isoformat().replace("+00:00", "Z")
+
+
+def dmca_leonida(cache, agora):
+    """Procura no registro público de DMCA do GitHub (github/dmca) um pedido que cite o Leonida.
+    Só abre os avisos novos cujo nome indica Take-Two/Rockstar; guarda os já vistos."""
+    if cache.get("v2:dmca_achado"):
+        return cache["v2:dmca_achado"]
+    vistos = set(cache.get("v2:dmca_vistos", []))
+    import base64
+    for mes in sorted({agora.strftime("%Y/%m"), (agora - dt.timedelta(days=4)).strftime("%Y/%m")}):
+        try:
+            lista = gh(f"repos/github/dmca/contents/{mes}")
+        except RuntimeError:
+            continue
+        for f in lista:
+            nome = f.get("name", "")
+            if nome in vistos or nome[:10] < "2026-11-22":
+                continue
+            vistos.add(nome)
+            if not re.search(r"take-?two|rockstar", nome, re.I):
+                continue
+            try:
+                texto = base64.b64decode(gh(f"repos/github/dmca/contents/{mes}/{nome}")["content"]).decode("utf-8", "replace")
+            except (RuntimeError, ValueError, KeyError):
+                vistos.discard(nome)  # tenta de novo na próxima coleta
+                continue
+            if re.search(r"leonida|ProjectLeonida|ItsNotRexed", texto, re.I):
+                cache["v2:dmca_achado"] = {"arquivo": nome, "url": f.get("html_url"), "em": nome[:10] + "T00:00:00Z"}
+                break
+    cache["v2:dmca_vistos"] = sorted(vistos)[-600:]
+    return cache.get("v2:dmca_achado")
+
+
+def modo_fora(agora):
+    """O repositório do Leonida não existe mais no GitHub: mantém os últimos dados bons, registra a queda
+    (horário, forge, pedido de DMCA) e continua verificando a cada coleta."""
+    velho = json.loads(OUT.read_text("utf-8")) if OUT.exists() else {}
+    estado = json.loads(EST.read_text("utf-8")) if EST.exists() else {}
+    cache = estado.get("_cache") or {}
+    ant = (velho.get("fonte") or [{}])[0]
+    r = (velho.get("resumo") or [{}])[0]
+    ultimo_ok = ant.get("ultimo_ok") if ant.get("no_ar") is False else r.get("gerado_em")
+    fonte = {"no_ar": False, "repo": r.get("repo") or REPO, "ultimo_ok": ultimo_ok,
+             "fora_desde": ant.get("fora_desde") if ant.get("no_ar") is False else ultimo_ok,
+             "detectado_em": ant.get("detectado_em") if ant.get("no_ar") is False else _iso(agora),
+             "conferido_em": _iso(agora), "dmca": dmca_leonida(cache, agora)}
+    velho["fonte"] = [fonte]
+    velho["forge"] = [coletar_forge(agora, (velho.get("forge") or [{}])[0], cache)]
+    extras = cache.setdefault("v2:eventos_fonte", [])
+    if not any(e["tipo"] == "projeto_fora" and e["em"] == fonte["fora_desde"] for e in extras):
+        extras.append({"em": fonte["fora_desde"], "tipo": "projeto_fora", "repo": fonte["repo"]})
+    if fonte["dmca"] and not any(e["tipo"] == "dmca" for e in extras):
+        extras.append({"em": fonte["dmca"]["em"], "tipo": "dmca", "url": fonte["dmca"]["url"]})
+    nov = [e for e in (velho.get("novidades") or []) if e.get("tipo") not in ("projeto_fora", "projeto_voltou", "dmca")]
+    velho["novidades"] = sorted(nov + extras, key=lambda e: e["em"], reverse=True)[:40]
+    OUT.write_text(json.dumps(velho, ensure_ascii=False, separators=(",", ":")), "utf-8")
+    estado["_cache"] = cache
+    EST.write_text(json.dumps(estado, ensure_ascii=False, separators=(",", ":")), "utf-8")
+    print(f"projeto fora do GitHub ({fonte['repo']}); últimos dados de {ultimo_ok}; forge no ar: {velho['forge'][0].get('no_ar')}; "
+          f"dmca: {bool(fonte['dmca'])}")
+
+
 def main():
     global REPO
     agora = dt.datetime.now(UTC).replace(microsecond=0)
-    repo = gh(f"repos/{REPO}")
+    candidatos = []
+    if OUT.exists():
+        try:
+            candidatos.append((json.loads(OUT.read_text("utf-8")).get("resumo") or [{}])[0].get("repo"))
+        except ValueError:
+            pass
+    candidatos += ["ProjectLeonida/Leonida", REPO]
+    repo = None
+    for nome in [c for i, c in enumerate(candidatos) if c and c not in candidatos[:i]]:
+        try:
+            repo = gh(f"repos/{nome}")
+            REPO = nome
+            break
+        except RuntimeError as e:
+            if "Not Found" not in str(e) and "404" not in str(e):
+                raise
+    if repo is None:
+        return modo_fora(agora)
     if repo.get("full_name") and repo["full_name"] != REPO:
         # o repositório foi transferido/renomeado: a API redireciona, mas a busca não. Usa o nome atual em tudo.
         print(f"repositório agora é {repo['full_name']} (era {REPO})")
@@ -892,6 +975,8 @@ def main():
     if not escada:  # a issue nova não tem mais a tabela da escada: mantém a última conhecida
         escada = velho.get("escada") or []
     metodos = cobertura_metodos(cache=cache)
+    if ((velho.get("fonte") or [{}])[0]).get("no_ar") is False:
+        cache.setdefault("v2:eventos_fonte", []).append({"em": _iso(agora), "tipo": "projeto_voltou", "repo": REPO})
     linha = linha_do_tempo(agora, criado, cache)
     rit = ritmo(linha)
     # Recordes: se o texto da issue deixou de citar um número, mantém o maior já visto.
@@ -978,6 +1063,7 @@ def main():
         "frente": [{"n": i + 1, "texto": t} for i, t in enumerate(boot["frente"])],
         "comentarios": comentarios_boot(agora, cache),
         "forge": [coletar_forge(agora, (velho.get("forge") or [{}])[0], cache)],
+        "fonte": [{"no_ar": True, "repo": REPO, "ultimo_ok": _iso(agora), "conferido_em": _iso(agora)}],
         "videos": lista_videos(cache),
     }
     OUT.write_text(json.dumps(dados, ensure_ascii=False, separators=(",", ":")), "utf-8")

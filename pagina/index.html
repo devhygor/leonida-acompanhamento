@@ -139,6 +139,8 @@
 .lt-news-lista li.rec .tx::before{content:"★ ";color:var(--n-yellow)}
 .lt-news-lista li.tela .tx::before{content:"▣ ";color:var(--n-teal)}
 .lt-news-lista li.fase .tx::before,.lt-news-lista li.peca .tx::before{content:"◆ ";color:var(--n-ok)}
+.lt-news-lista li.fora .tx::before{content:"⛔ ";color:var(--n-bad)}
+.lt-news-lista li.fora .tx{color:#ffd0d9}
 
 /* Comentários da issue */
 .lt-talk{border-left:4px solid var(--n-teal)}
@@ -189,6 +191,14 @@
 .lt-acoes{grid-column:2;display:flex;gap:8px;margin-top:4px}
 .lt-acoes .sim{border-color:var(--n-ok);color:var(--n-ok)}
 .lt-acoes .nao{border-color:var(--n-bad);color:var(--n-bad)}
+
+/* Aviso: projeto fora do GitHub */
+.lt-aviso-fonte:empty{display:none}
+.lt-aviso-fonte{margin:0;padding:18px 20px;background:linear-gradient(90deg,rgba(255,77,109,.22),rgba(255,61,139,.08));border-top:1px solid var(--n-bad);border-bottom:1px solid var(--n-bad);display:flex;flex-direction:column;gap:6px}
+.lt-aviso-fonte h2{color:#ffd0d9;font-size:30px}
+.lt-aviso-fonte p{max-width:80ch;line-height:1.55;font-size:15px}
+.lt-aviso-fonte .estado{display:flex;flex-wrap:wrap;gap:6px 10px;font-size:13px;color:var(--n-mut)}
+.lt-aviso-fonte .estado .pill{font-size:12px}
 /* Ritmo */
 .lt-vid-form{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) auto}
 @media (max-width:560px){.lt-vid-form{grid-template-columns:minmax(0,1fr) auto}.lt-vid-form #lt-vid-url{grid-column:1 / 3}}
@@ -304,6 +314,7 @@
     </div>
   </header>
 
+  <div class="lt-aviso-fonte" data-draw="aviso-fonte" data-source="fonte"></div>
   <nav class="lt-tabs" role="tablist" aria-label="Seções">
     <button class="lt-tab" role="tab" id="tab-resumo" data-tab="resumo" aria-selected="true"><span data-l="pt">Resumo</span><span data-l="en">Overview</span><span data-l="es">Resumen</span></button>
     <button class="lt-tab" role="tab" id="tab-boot" data-tab="boot" aria-selected="false"><span data-l="pt">Boot</span><span data-l="en">Boot</span><span data-l="es">Arranque</span></button>
@@ -1347,12 +1358,12 @@ window.ltDraw('novidades', (el) => {
   if (!d.data.length) { el.replaceChildren(window.ltEl('li', 'muted', T.semNov)); return; }
   const f = (v) => window.ltFmt(v);
   el.replaceChildren(...d.data.slice(0, 6).map((e) => {
-    const li = window.ltEl('li', e.tipo.startsWith('rec') ? 'rec' : (e.tipo === 'tela' || e.tipo === 'issue_mudou') ? 'tela' : e.tipo.startsWith('peca') ? 'peca' : 'fase');
+    const li = window.ltEl('li', e.tipo.startsWith('rec') ? 'rec' : (e.tipo === 'tela' || e.tipo === 'issue_mudou') ? 'tela' : e.tipo.startsWith('peca') ? 'peca' : (e.tipo === 'projeto_fora' || e.tipo === 'dmca') ? 'fora' : 'fase');
     const q = window.ltEl('span', 'q', window.ltQuando(e.em)); q.title = window.ltData(e.em);
     const tx = window.ltEl('span', 'tx');
     const partes = (T.nv[e.tipo] || (() => [e.tipo]))(e, f, T);
     partes.forEach((p, i) => tx.appendChild(i % 2 ? window.ltEl('b', null, p) : document.createTextNode(p)));
-    const url = e.tipo.startsWith('peca') ? window.LT_REPO + '#project-status' : e.tipo === 'issue_mudou' ? window.LT_REPO + '/issues/' + e.para : window.ltBootUrl();
+    const url = e.tipo.startsWith('peca') ? window.LT_REPO + '#project-status' : e.tipo === 'issue_mudou' ? window.LT_REPO + '/issues/' + e.para : e.tipo === 'dmca' ? (e.url || '') : (e.tipo === 'projeto_fora' || e.tipo === 'projeto_voltou') ? window.LT_REPO : window.ltBootUrl();
     const a = window.ltA(url, null, 'lk'); a.appendChild(tx);
     li.appendChild(q); li.appendChild(a);
     return li;
@@ -1611,9 +1622,65 @@ window.ltDraw('ultimo-stop', (el) => {
 window.ltDraw('frescor', (el) => {
   const d = dash.data('resumo'), T = window.ltT();
   const g = d.status === 'ok' && d.data[0] ? d.data[0].gerado_em : null;
+  const f = window.ltFonte && window.ltFonte();
+  if (f && f.no_ar === false) { el.textContent = T.fonte.titulo + ' · ' + T.fr.dados + window.ltData(f.ultimo_ok) + ' · ' + T.fonte.conferido + window.ltQuando(f.conferido_em); return; }
   el.textContent = g ? T.fr.dados + window.ltQuando(g) + ' (' + window.ltData(g) + ')' + T.fr.auto : '—';
 });
 </script>
 <script>
 document.querySelectorAll('#escada-hist').forEach((d) => d.addEventListener('toggle', () => { if (d.open) dash.draw('escada'); }));
+</script>
+
+<script>
+dash.calc('fonte', {inputs: ['leonida'], title: 'Situação do projeto no GitHub', description: 'Se o repositório do Leonida ainda existe.', fn: (leonida) => (leonida && leonida.fonte) || []});
+Object.assign(window.LT_I18N.pt, {fonte: {
+  titulo: 'O projeto saiu do GitHub',
+  texto: (repo, ult) => ['O repositório do Leonida (', repo, ') não existe mais no GitHub. Ele saiu do ar depois de ', ult, '. Tudo o que aparece abaixo são os últimos dados coletados antes da queda.'],
+  segue: 'O site continua verificando sozinho a cada ~5 minutos e volta a atualizar se o projeto reaparecer.',
+  repoFora: 'GitHub: fora do ar', forgeOk: 'forge dos mantenedores: no ar', forgeFora: 'forge dos mantenedores: fora do ar',
+  dmca: 'Pedido de remoção (DMCA) citando o Leonida publicado pelo GitHub', semDmca: 'Nenhum pedido de remoção (DMCA) citando o Leonida no registro público do GitHub até agora',
+  conferido: 'última verificação '}});
+Object.assign(window.LT_I18N.en, {fonte: {
+  titulo: 'The project is gone from GitHub',
+  texto: (repo, ult) => ['The Leonida repository (', repo, ') no longer exists on GitHub. It went down after ', ult, '. Everything below is the last data collected before that.'],
+  segue: 'The site keeps checking on its own every ~5 minutes and resumes updating if the project comes back.',
+  repoFora: 'GitHub: down', forgeOk: "maintainers' forge: online", forgeFora: "maintainers' forge: down",
+  dmca: 'Takedown request (DMCA) naming Leonida published by GitHub', semDmca: "No takedown request (DMCA) naming Leonida in GitHub's public record so far",
+  conferido: 'last checked '}});
+Object.assign(window.LT_I18N.es, {fonte: {
+  titulo: 'El proyecto salió de GitHub',
+  texto: (repo, ult) => ['El repositorio de Leonida (', repo, ') ya no existe en GitHub. Salió del aire después de ', ult, '. Todo lo que aparece abajo son los últimos datos recogidos antes de la caída.'],
+  segue: 'El sitio sigue comprobando solo cada ~5 minutos y vuelve a actualizarse si el proyecto reaparece.',
+  repoFora: 'GitHub: caído', forgeOk: 'forge de los mantenedores: en línea', forgeFora: 'forge de los mantenedores: caída',
+  dmca: 'Solicitud de retirada (DMCA) que menciona Leonida publicada por GitHub', semDmca: 'Ninguna solicitud de retirada (DMCA) que mencione Leonida en el registro público de GitHub por ahora',
+  conferido: 'última comprobación '}});
+window.LT_I18N.pt.nv.projeto_fora = (e) => ['O repositório do Leonida ', '(' + (e.repo || '') + ')', ' saiu do GitHub', '', ''];
+window.LT_I18N.en.nv.projeto_fora = (e) => ['The Leonida repository ', '(' + (e.repo || '') + ')', ' is gone from GitHub', '', ''];
+window.LT_I18N.es.nv.projeto_fora = (e) => ['El repositorio de Leonida ', '(' + (e.repo || '') + ')', ' salió de GitHub', '', ''];
+window.LT_I18N.pt.nv.projeto_voltou = (e) => ['O repositório do Leonida ', '(' + (e.repo || '') + ')', ' voltou ao GitHub', '', ''];
+window.LT_I18N.en.nv.projeto_voltou = (e) => ['The Leonida repository ', '(' + (e.repo || '') + ')', ' is back on GitHub', '', ''];
+window.LT_I18N.es.nv.projeto_voltou = (e) => ['El repositorio de Leonida ', '(' + (e.repo || '') + ')', ' volvió a GitHub', '', ''];
+window.LT_I18N.pt.nv.dmca = () => ['O GitHub publicou um ', 'pedido de remoção (DMCA)', ' que cita o Leonida', '', ''];
+window.LT_I18N.en.nv.dmca = () => ['GitHub published a ', 'takedown request (DMCA)', ' naming Leonida', '', ''];
+window.LT_I18N.es.nv.dmca = () => ['GitHub publicó una ', 'solicitud de retirada (DMCA)', ' que menciona Leonida', '', ''];
+
+window.ltFonte = () => { const d = dash.data('fonte'); return d.status === 'ok' && d.data[0] ? d.data[0] : null; };
+
+window.ltDraw('aviso-fonte', (el) => {
+  const f = window.ltFonte(), T = window.ltT();
+  if (!f || f.no_ar !== false) { el.replaceChildren(); return; }
+  const F = T.fonte;
+  const h = window.ltEl('h2', null, F.titulo);
+  const p = window.ltEl('p');
+  F.texto(f.repo, window.ltData(f.ultimo_ok)).forEach((x, i) => p.appendChild(i % 2 ? window.ltEl('b', null, x) : document.createTextNode(x)));
+  const p2 = window.ltEl('p', 'muted', F.segue);
+  const est = window.ltEl('div', 'estado');
+  est.appendChild(window.ltEl('span', 'pill bad', F.repoFora));
+  const fg = window.ltForge && window.ltForge();
+  if (fg) est.appendChild(window.ltEl('span', 'pill ' + (fg.no_ar ? 'ok' : 'bad'), fg.no_ar ? F.forgeOk : F.forgeFora));
+  if (f.dmca && /^https:\/\//.test(f.dmca.url || '')) est.appendChild(window.ltA(f.dmca.url, F.dmca + ' ↗', 'lk'));
+  else est.appendChild(window.ltEl('span', null, F.semDmca));
+  est.appendChild(window.ltEl('span', null, F.conferido + window.ltQuando(f.conferido_em)));
+  el.replaceChildren(h, p, p2, est);
+});
 </script>
