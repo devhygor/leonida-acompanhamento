@@ -10,19 +10,19 @@
       limite: 'Muitas mensagens seguidas. Espere um pouco.', mudo: 'Você enviou mensagens demais e ficou 15 minutos sem poder escrever.', repetido: 'Essa mensagem é igual à anterior.',
       link: 'Links não são permitidos no chat.', flood: 'Muitas letras repetidas. Escreva normalmente.', caps: 'Evite escrever tudo em maiúsculas.',
       apelido: 'Esse apelido é reservado. Escolha outro.', banido: 'Você foi bloqueado no chat.', erro: 'Não deu para enviar. Tente de novo.', semMsg: 'Nenhuma mensagem ainda. Comece a conversa!',
-      offline: 'Chat indisponível no momento.', somOn: 'Som de aviso ligado', somOff: 'Som de aviso desligado', fechar: 'Fechar',
+      offline: 'Chat indisponível no momento.', voceE: 'Você é', trocar: 'Trocar nome', salvar: 'Salvar', nickCurto: 'Escolha um apelido com pelo menos 2 letras.', somOn: 'Som de aviso ligado', somOff: 'Som de aviso desligado', fechar: 'Fechar',
       novas: function (n) { return n === 1 ? '↓ 1 mensagem nova' : '↓ ' + n + ' mensagens novas'; }},
     en: {enviar: 'Send', nick: 'Your nickname', msg: 'Write a message…', vazio: 'Write something before sending.', rapido: 'Easy: wait a few seconds between messages.',
       limite: 'Too many messages in a row. Wait a bit.', mudo: 'You sent too many messages and are muted for 15 minutes.', repetido: 'That message is the same as your last one.',
       link: 'Links are not allowed in the chat.', flood: 'Too many repeated characters. Write normally.', caps: 'Please avoid writing in all caps.',
       apelido: 'That nickname is reserved. Pick another one.', banido: 'You have been blocked from the chat.', erro: 'Could not send. Try again.', semMsg: 'No messages yet. Start the conversation!',
-      offline: 'Chat is unavailable right now.', somOn: 'Notification sound on', somOff: 'Notification sound off', fechar: 'Close',
+      offline: 'Chat is unavailable right now.', voceE: 'You are', trocar: 'Change name', salvar: 'Save', nickCurto: 'Pick a nickname with at least 2 letters.', somOn: 'Notification sound on', somOff: 'Notification sound off', fechar: 'Close',
       novas: function (n) { return n === 1 ? '↓ 1 new message' : '↓ ' + n + ' new messages'; }},
     es: {enviar: 'Enviar', nick: 'Tu apodo', msg: 'Escribe un mensaje…', vazio: 'Escribe algo antes de enviar.', rapido: 'Tranquilo: espera unos segundos entre mensajes.',
       limite: 'Demasiados mensajes seguidos. Espera un poco.', mudo: 'Enviaste demasiados mensajes y quedaste 15 minutos sin poder escribir.', repetido: 'Ese mensaje es igual al anterior.',
       link: 'No se permiten enlaces en el chat.', flood: 'Demasiadas letras repetidas. Escribe con normalidad.', caps: 'Evita escribir todo en mayúsculas.',
       apelido: 'Ese apodo está reservado. Elige otro.', banido: 'Fuiste bloqueado en el chat.', erro: 'No se pudo enviar. Inténtalo de nuevo.', semMsg: 'Aún no hay mensajes. ¡Empieza la conversación!',
-      offline: 'El chat no está disponible ahora.', somOn: 'Sonido de aviso activado', somOff: 'Sonido de aviso desactivado', fechar: 'Cerrar',
+      offline: 'El chat no está disponible ahora.', voceE: 'Eres', trocar: 'Cambiar nombre', salvar: 'Guardar', nickCurto: 'Elige un apodo de al menos 2 letras.', somOn: 'Sonido de aviso activado', somOff: 'Sonido de aviso desactivado', fechar: 'Cerrar',
       novas: function (n) { return n === 1 ? '↓ 1 mensaje nuevo' : '↓ ' + n + ' mensajes nuevos'; }}
   };
   var CORES = ['#2de2e6', '#ff3d8b', '#ffd23f', '#ff9a3c', '#39e6a0', '#b18cff', '#7dd3fc', '#f9a8d4'];
@@ -42,6 +42,9 @@
     if (n) n.placeholder = t().nick;
     if (m) m.placeholder = t().msg;
     if (b) b.textContent = t().enviar;
+    var k = $('chat-eu-k'); if (k) k.textContent = t().voceE;
+    var tt = $('chat-eu-trocar-t'); if (tt) tt.textContent = t().trocar;
+    var okb = $('chat-nick-ok'); if (okb) okb.textContent = t().salvar;
     var vazio = $('lt-chat-vazio'); if (vazio) vazio.textContent = t().semMsg;
   }
 
@@ -242,6 +245,30 @@
     var lang = $('lt-lang'); if (lang) lang.addEventListener('change', textos);
     var salvo = ls.get('lt-nick');
     nick.value = salvo || ('Turista' + Math.floor(1000 + Math.random() * 9000));
+    // apelido: mostra "Você é <nome>" e só vira campo quando a pessoa clica em trocar
+    var eu = $('chat-eu'), ed = $('chat-nick-ed'), euNome = $('chat-eu-nome'), av = $('chat-av');
+    function pintaEu() {
+      var n = nick.value.trim() || '?', c = CORES[corDe(n)];
+      euNome.textContent = n; av.textContent = n.charAt(0).toUpperCase();
+      eu.style.setProperty('--c', c); av.style.setProperty('--c', c);
+    }
+    function editaNick() { ed.hidden = false; eu.hidden = true; nick.dataset.antes = nick.value; nick.focus(); nick.select(); }
+    function fechaNick(salvar) {
+      if (salvar) {
+        var n = nick.value.trim().slice(0, 24);
+        if (n.length < 2) { st.textContent = t().nickCurto; nick.focus(); return; }
+        nick.value = n; ls.set('lt-nick', n); st.textContent = '';
+      } else nick.value = nick.dataset.antes || nick.value;
+      ed.hidden = true; eu.hidden = false; pintaEu(); texto.focus();
+    }
+    $('chat-eu-trocar').addEventListener('click', editaNick);
+    $('chat-nick-ok').addEventListener('click', function () { fechaNick(true); });
+    $('chat-nick-cancela').addEventListener('click', function () { fechaNick(false); });
+    nick.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); fechaNick(true); }
+      else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); fechaNick(false); }
+    });
+    pintaEu();
     var vistos = {};
 
     // ---- painel flutuante: abrir/fechar, não lidas, som e "novas mensagens" ----
@@ -335,6 +362,7 @@
     var espera = 0;
     form.addEventListener('submit', function (ev) {
       ev.preventDefault();
+      if (!ed.hidden) fechaNick(true);
       var n = nick.value.trim().slice(0, 24), m = texto.value.trim().slice(0, 280);
       if (!n || !m) { st.textContent = t().vazio; return; }
       if (Date.now() < espera) { st.textContent = t().rapido; return; }
