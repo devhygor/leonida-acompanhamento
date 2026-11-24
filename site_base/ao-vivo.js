@@ -10,17 +10,20 @@
       limite: 'Muitas mensagens seguidas. Espere um pouco.', mudo: 'Você enviou mensagens demais e ficou 15 minutos sem poder escrever.', repetido: 'Essa mensagem é igual à anterior.',
       link: 'Links não são permitidos no chat.', flood: 'Muitas letras repetidas. Escreva normalmente.', caps: 'Evite escrever tudo em maiúsculas.',
       apelido: 'Esse apelido é reservado. Escolha outro.', banido: 'Você foi bloqueado no chat.', erro: 'Não deu para enviar. Tente de novo.', semMsg: 'Nenhuma mensagem ainda. Comece a conversa!',
-      offline: 'Chat indisponível no momento.'},
+      offline: 'Chat indisponível no momento.', somOn: 'Som de aviso ligado', somOff: 'Som de aviso desligado', fechar: 'Fechar',
+      novas: function (n) { return n === 1 ? '↓ 1 mensagem nova' : '↓ ' + n + ' mensagens novas'; }},
     en: {enviar: 'Send', nick: 'Your nickname', msg: 'Write a message…', vazio: 'Write something before sending.', rapido: 'Easy: wait a few seconds between messages.',
       limite: 'Too many messages in a row. Wait a bit.', mudo: 'You sent too many messages and are muted for 15 minutes.', repetido: 'That message is the same as your last one.',
       link: 'Links are not allowed in the chat.', flood: 'Too many repeated characters. Write normally.', caps: 'Please avoid writing in all caps.',
       apelido: 'That nickname is reserved. Pick another one.', banido: 'You have been blocked from the chat.', erro: 'Could not send. Try again.', semMsg: 'No messages yet. Start the conversation!',
-      offline: 'Chat is unavailable right now.'},
+      offline: 'Chat is unavailable right now.', somOn: 'Notification sound on', somOff: 'Notification sound off', fechar: 'Close',
+      novas: function (n) { return n === 1 ? '↓ 1 new message' : '↓ ' + n + ' new messages'; }},
     es: {enviar: 'Enviar', nick: 'Tu apodo', msg: 'Escribe un mensaje…', vazio: 'Escribe algo antes de enviar.', rapido: 'Tranquilo: espera unos segundos entre mensajes.',
       limite: 'Demasiados mensajes seguidos. Espera un poco.', mudo: 'Enviaste demasiados mensajes y quedaste 15 minutos sin poder escribir.', repetido: 'Ese mensaje es igual al anterior.',
       link: 'No se permiten enlaces en el chat.', flood: 'Demasiadas letras repetidas. Escribe con normalidad.', caps: 'Evita escribir todo en mayúsculas.',
       apelido: 'Ese apodo está reservado. Elige otro.', banido: 'Fuiste bloqueado en el chat.', erro: 'No se pudo enviar. Inténtalo de nuevo.', semMsg: 'Aún no hay mensajes. ¡Empieza la conversación!',
-      offline: 'El chat no está disponible ahora.'}
+      offline: 'El chat no está disponible ahora.', somOn: 'Sonido de aviso activado', somOff: 'Sonido de aviso desactivado', fechar: 'Cerrar',
+      novas: function (n) { return n === 1 ? '↓ 1 mensaje nuevo' : '↓ ' + n + ' mensajes nuevos'; }}
   };
   var CORES = ['#2de2e6', '#ff3d8b', '#ffd23f', '#ff9a3c', '#39e6a0', '#b18cff', '#7dd3fc', '#f9a8d4'];
   var t = function () { return TXT[window.ltLang] || TXT.pt; };
@@ -110,7 +113,7 @@
       var u = url.value.trim();
       st.className = 'muted';
       if (!u) { st.textContent = vt().vazio; return; }
-      btn.disabled = true; st.textContent = '';
+      btn.disabled = true; st.textContent = ''; meuEnvio = Date.now();
       var nick = $('lt-chat-nick') ? $('lt-chat-nick').value.trim().slice(0, 24) : '';
       sb.rpc('leonida_sugerir_video', {url: u, comentario: com.value.trim().slice(0, 200), apelido: nick}).then(function (r) {
         btn.disabled = false;
@@ -241,8 +244,60 @@
     nick.value = salvo || ('Turista' + Math.floor(1000 + Math.random() * 9000));
     var vistos = {};
 
+    // ---- painel flutuante: abrir/fechar, não lidas, som e "novas mensagens" ----
+    var fab = $('chat-fab'), painel = $('chat'), badge = $('chat-badge'), bSom = $('chat-som'), bFechar = $('chat-fechar'), bNovas = $('chat-novas');
+    var aberto = false, naoLidas = 0, novasAbaixo = 0, maiorId = 0, lido = +(ls.get('rv-chat-lido') || 0), carregou = false;
+    var som = ls.get('rv-chat-som') !== '0', meuEnvio = 0, tituloBase = document.title, audio = null;
+    function visivel() { return aberto && document.visibilityState === 'visible'; }
+    function pintaSom() { bSom.textContent = som ? '🔔' : '🔕'; bSom.setAttribute('aria-pressed', som ? 'true' : 'false'); bSom.title = som ? t().somOn : t().somOff; bSom.setAttribute('aria-label', bSom.title); bFechar.title = t().fechar; }
+    function pintaBadge() {
+      badge.hidden = naoLidas < 1; badge.textContent = naoLidas > 99 ? '99+' : String(naoLidas);
+      if (naoLidas) { badge.style.animation = 'none'; void badge.offsetWidth; badge.style.animation = ''; }
+      document.title = naoLidas ? '(' + (naoLidas > 99 ? '99+' : naoLidas) + ') ' + tituloBase : tituloBase;
+    }
+    function marcaLido() { if (maiorId > lido) { lido = maiorId; ls.set('rv-chat-lido', String(lido)); } naoLidas = 0; pintaBadge(); }
+    function noFim() { return lista.scrollHeight - lista.scrollTop - lista.clientHeight < 60; }
+    function pintaNovas() { bNovas.hidden = novasAbaixo < 1; if (novasAbaixo) bNovas.textContent = t().novas(novasAbaixo); }
+    function desce() { lista.scrollTop = lista.scrollHeight; novasAbaixo = 0; pintaNovas(); }
+    // "plim" gerado na hora (sem arquivo de áudio); o navegador só libera depois de um clique/tecla
+    function liberaAudio() { try { audio = audio || new (window.AudioContext || window.webkitAudioContext)(); if (audio.state === 'suspended') audio.resume(); } catch (e) { audio = null; } }
+    document.addEventListener('pointerdown', liberaAudio, {once: true}); document.addEventListener('keydown', liberaAudio, {once: true});
+    function plim() {
+      if (!som || !audio || audio.state !== 'running') return;
+      var t0 = audio.currentTime;
+      [[880, 0], [1318.5, 0.09]].forEach(function (n) {
+        var o = audio.createOscillator(), g = audio.createGain();
+        o.type = 'sine'; o.frequency.value = n[0];
+        g.gain.setValueAtTime(0.0001, t0 + n[1]); g.gain.exponentialRampToValueAtTime(0.16, t0 + n[1] + 0.015); g.gain.exponentialRampToValueAtTime(0.0001, t0 + n[1] + 0.35);
+        o.connect(g); g.connect(audio.destination); o.start(t0 + n[1]); o.stop(t0 + n[1] + 0.4);
+      });
+    }
+    function abre() {
+      aberto = true; painel.hidden = false; fab.setAttribute('aria-expanded', 'true'); ls.set('rv-chat-aberto', '1');
+      liberaAudio(); desce(); marcaLido();
+      if (window.matchMedia('(min-width:561px)').matches) texto.focus();
+    }
+    function fecha() { aberto = false; painel.hidden = true; fab.setAttribute('aria-expanded', 'false'); ls.set('rv-chat-aberto', '0'); fab.focus(); }
+    fab.addEventListener('click', abre); bFechar.addEventListener('click', fecha);
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && aberto) fecha(); });
+    bSom.addEventListener('click', function () { som = !som; ls.set('rv-chat-som', som ? '1' : '0'); pintaSom(); liberaAudio(); if (som) plim(); });
+    bNovas.addEventListener('click', desce);
+    lista.addEventListener('scroll', function () { if (noFim() && novasAbaixo) { novasAbaixo = 0; pintaNovas(); } });
+    document.addEventListener('visibilitychange', function () { if (visivel()) marcaLido(); });
+    if (lang) lang.addEventListener('change', function () { pintaSom(); pintaNovas(); });
+    pintaSom();
+    // chegou mensagem (inicial = carga das últimas 60)
+    function chegou(m, li, inicial) {
+      maiorId = Math.max(maiorId, m.id);
+      var minha = !inicial && m.apelido === nick.value.trim() && Date.now() - meuEnvio < 15000;
+      if (minha) li.classList.add('meu');
+      if (inicial) { if (lido && m.id > lido) naoLidas++; return; }
+      if (minha) { desce(); if (visivel()) marcaLido(); return; }
+      if (visivel()) { marcaLido(); } else { naoLidas++; pintaBadge(); plim(); }
+      if (aberto && !noFim()) { novasAbaixo++; pintaNovas(); }
+    }
+
     function hora(iso) { return new Date(iso).toLocaleTimeString((window.ltT && window.ltT().loc) || 'pt-BR', {hour: '2-digit', minute: '2-digit'}); }
-    function rolaSePerto(forcar) { var perto = lista.scrollHeight - lista.scrollTop - lista.clientHeight < 120; if (forcar || perto) lista.scrollTop = lista.scrollHeight; }
     function poe(m, forcar) {
       if (vistos[m.id]) return; vistos[m.id] = true;
       var v = $('lt-chat-vazio'); if (v) v.remove();
@@ -252,15 +307,21 @@
       var x = document.createElement('span'); x.className = 'x'; x.textContent = m.texto;
       li.appendChild(h); li.appendChild(a); li.appendChild(x);
       if (window.ltAdminMod) window.ltAdminMod(li, m.id);
+      var perto = noFim();
       lista.appendChild(li);
       while (lista.children.length > 200) lista.removeChild(lista.firstChild);
-      rolaSePerto(forcar);
+      if (forcar || perto) lista.scrollTop = lista.scrollHeight;
+      chegou(m, li, !carregou);
     }
 
     sb.from('leonida_chat').select('id,criado_em,apelido,texto,cor').order('id', {ascending: false}).limit(60).then(function (r) {
       if (r.error) { st.textContent = t().offline; return; }
       if (!r.data.length) { var v = document.createElement('li'); v.id = 'lt-chat-vazio'; v.className = 'vazio'; v.textContent = t().semMsg; lista.appendChild(v); }
       r.data.reverse().forEach(function (m) { poe(m, true); });
+      carregou = true;
+      if (!lido) { lido = maiorId; ls.set('rv-chat-lido', String(lido)); naoLidas = 0; } // primeira visita: nada de "não lidas"
+      pintaBadge();
+      if (ls.get('rv-chat-aberto') === '1' && window.matchMedia('(min-width:561px)').matches) abre();
     });
 
     sb.channel('leonida-chat')
@@ -270,6 +331,7 @@
       })
       .subscribe();
 
+    if (location.hostname === 'localhost') window.__chatTeste = function (m) { poe(m, false); }; // só para testar localmente
     var espera = 0;
     form.addEventListener('submit', function (ev) {
       ev.preventDefault();
@@ -277,11 +339,11 @@
       if (!n || !m) { st.textContent = t().vazio; return; }
       if (Date.now() < espera) { st.textContent = t().rapido; return; }
       ls.set('lt-nick', n);
-      btn.disabled = true; st.textContent = '';
+      btn.disabled = true; st.textContent = ''; meuEnvio = Date.now();
       sb.rpc('leonida_enviar', {apelido: n, texto: m, cor: corDe(n)}).then(function (r) {
         btn.disabled = false;
         if (r.error) { st.textContent = t().erro; return; }
-        if (r.data === 'ok') { texto.value = ''; espera = Date.now() + 4000; texto.focus(); rolaSePerto(true); return; }
+        if (r.data === 'ok') { texto.value = ''; espera = Date.now() + 4000; texto.focus(); desce(); return; }
         st.textContent = t()[r.data] || t().erro;
       });
     });
