@@ -80,6 +80,15 @@ def metadados(u):
     return {}
 
 
+def midia_de(u, meta):
+    """Identidade do ARQUIVO de vídeo: reposts/quotes no X apontam para o mesmo amplify_video/ext_tw_video."""
+    m = re.search(r"/(amplify_video|ext_tw_video|tweet_video)/(\d+)", meta.get("_mp4") or "")
+    if m:
+        return f"xm:{m.group(2)}"
+    y = youtube_id(u) if "youtu" in u else None
+    return f"yt:{y}" if y else None
+
+
 def sobe_video(mp4):
     """Baixa o mp4 (até 60 MB) e manda para a File API do Gemini; devolve (uri, nome) já pronto para uso."""
     req = urllib.request.Request(mp4, headers={"User-Agent": "Mozilla/5.0"})
@@ -221,6 +230,14 @@ def main():
                                         "projeto": None, "marco": None, "titulo": None})
             print(f"vídeo {v['id']}: recusado (post sem vídeo ou apagado)")
             continue
+        midia = midia_de(v["url"], meta)
+        if midia:
+            ja = rpc("leonida_robo_midia", {"chave": ROBO, "midia": midia, "video": v["id"]})
+            if ja in ("aprovado", "recusado"):
+                rpc("leonida_robo_decide", {"chave": ROBO, "video": v["id"], "status": "recusado", "resumo": None, "projeto": None,
+                                            "marco": None, "titulo": None, "midia": midia})
+                print(f"vídeo {v['id']}: recusado (mesmo vídeo de outro link já {ja})")
+                continue
         try:
             a, viu = avaliar(v, projetos_txt, meta)
         except Exception as e:
@@ -230,12 +247,14 @@ def main():
             continue
         st = decidir(a, viu)
         proj = a.get("projeto") if a.get("projeto") in projetos else None
-        rpc("leonida_robo_decide", {"chave": ROBO, "video": v["id"], "status": st, "resumo": a.get("resumo"),
+        r = rpc("leonida_robo_decide", {"chave": ROBO, "video": v["id"], "status": st, "resumo": a.get("resumo"),
                                     "projeto": proj, "marco": a.get("marco_visto"), "titulo": (a.get("titulo") or "")[:90] or None,
-                                    "thumb": meta.get("_thumb"), "mp4": meta.get("_mp4")})
+                                    "thumb": meta.get("_thumb"), "mp4": meta.get("_mp4"), "midia": midia})
+        if r == "duplicado":
+            st = "recusado (repost de vídeo já aprovado)"
         feitos += 1
         print(f"vídeo {v['id']} ({'viu' if viu else 'texto'}): {st} conf={a.get('confianca')} | {a.get('motivo', '')[:140]}")
-        if st == "aprovado" and v.get("ia_status") != "aprovado":
+        if st == "aprovado" and r == "ok" and v.get("ia_status") != "aprovado":
             eventos.append({"em": C.iso(C.agora()), "tipo": "video", "projeto": proj or "", "url": v["url"],
                             "titulo": a.get("titulo"), "texto": a.get("resumo")})
     C.EST.write_text(json.dumps(est, ensure_ascii=False), "utf-8")
