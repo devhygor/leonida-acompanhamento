@@ -218,6 +218,16 @@ main section{padding:56px 0 8px}
 .mp-up-i b{font-size:15px}.mp-up-i em{font-style:normal;font-weight:700;color:var(--yellow);margin-top:4px}
 .mp-up-n{margin:8px 0 0;font-size:12.5px;color:var(--mut2)}
 .mp-up-aviso{margin:4px 0 0;font-size:11.5px;color:var(--mut2)}
+.ml-cta{display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin-top:14px;padding:9px 16px;border-radius:999px;text-decoration:none;font-size:14px;
+  background:linear-gradient(160deg,rgba(255,255,255,.12),rgba(255,255,255,.04));border:1px solid rgba(255,255,255,.18);box-shadow:var(--brilho);
+  -webkit-backdrop-filter:var(--vidro);backdrop-filter:var(--vidro)}
+.ml-cta:hover{border-color:rgba(255,210,63,.7)}
+.ml-cta-k{font-weight:800;color:var(--yellow)}.ml-cta b{color:var(--yellow)}
+.ml-seguro{margin-top:16px;padding-top:14px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:10px}
+.ml-chips{display:flex;flex-wrap:wrap;gap:8px}
+.ml-chips a{padding:7px 14px;border-radius:999px;text-decoration:none;font-size:13.5px;font-weight:600;background:rgba(255,255,255,.08);border:1px solid var(--line)}
+.ml-chips a:hover{border-color:rgba(255,210,63,.7);color:var(--yellow)}
+.ml-seguro small{color:var(--mut2);font-size:11.5px}
 .mp-nota{margin-top:10px;max-width:90ch}
 .duas{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
 @media (max-width:700px){.duas{grid-template-columns:minmax(0,1fr)}}
@@ -359,6 +369,7 @@ body::before{content:"";position:fixed;inset:-20vmax;z-index:-2;pointer-events:n
         <span class="selo"><span class="ponto" aria-hidden="true"></span><span data-i18n="selo">Radar ao vivo · ports de GTA VI para PC</span></span>
         <h1 class="pergunta" data-i18n="pergunta">GTA VI já roda no PC?</h1>
         <div class="resposta" id="resposta">Ainda não.</div>
+        <a class="ml-cta so-pt" data-ml="jogo" hidden><span class="ml-cta-k">Quer jogar hoje?</span> O GTA VI oficial já saiu para PS5 e Xbox <b>Ver preços →</b></a>
         <p class="sub" id="resposta-sub" data-i18n="sub">Acompanhamos todos os projetos que tentam rodar a versão de Xbox Series do GTA VI nativamente no PC, conferidos direto no GitHub a cada poucos minutos.</p>
       </div>
       <a class="lider" id="lider-card" href="#corrida" style="text-decoration:none">
@@ -494,6 +505,13 @@ body::before{content:"";position:fixed;inset:-20vmax;z-index:-2;pointer-events:n
           <li data-i18n="golpe_2">Repositórios e sites com "instalador", "versão PC" ou "emulador pronto" do GTA VI são golpe: trate como vírus.</li>
           <li data-i18n="golpe_3">Vídeo de "GTA VI rodando liso no PC" quase sempre é falso: nenhum projeto chegou à parte jogável ainda.</li>
         </ul>
+        <div class="ml-seguro so-pt" hidden>
+          <b>O jeito seguro de jogar agora é o jogo oficial no console:</b>
+          <div class="ml-chips">
+            <a data-ml="jogo">GTA VI (PS5 / Xbox)</a><a data-ml="ps5">PlayStation 5</a><a data-ml="ps5pro">PS5 Pro</a><a data-ml="xsx">Xbox Series X</a><a data-ml="xss">Xbox Series S</a>
+          </div>
+          <small>Links de afiliado do Mercado Livre: o Radar VI ganha uma pequena comissão se você comprar, sem custo extra.</small>
+        </div>
       </div>
     </section>
 

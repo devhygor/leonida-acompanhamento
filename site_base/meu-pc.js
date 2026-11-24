@@ -69,11 +69,24 @@
   var ML = 'https://meli.la/';
   var OFERTAS = {
     gpu: [['RX 6600', '2zZKqii'], ['RTX 3060', '2H4kQRg'], ['RTX 4060', '2MckBcr'], ['Arc B580', '1pDEEKu'], ['RX 9060 XT', '1Lffno6'],
-          ['RTX 5060 Ti', '2tXR5WE'], ['RTX 5070', '1Jc6bo7'], ['RX 9070 XT', '1uJLTwj']],
+          ['RTX 5060 Ti', '2tXR5WE'], ['RTX 5070', '1Jc6bo7'], ['RX 9070', '2NKpiFx'], ['RX 9070 XT', '1uJLTwj'], ['RTX 5070 Ti', '1oyViZj'],
+          ['RTX 5080', '1Jz4wyU'], ['RTX 5090', '2ZYY791']],
     cpu: [['Core i5-12400F', '2dXKRj8'], ['Ryzen 5 5600', '2UdTeJR'], ['Ryzen 7 5700X', '2wJNq4z'], ['Ryzen 5 7600', '1au7Sv1'],
-          ['Core i5-14600K', '1FZNGvX'], ['Ryzen 7 7800X3D', '33xoVsH']],
-    ram: [['32 GB DDR4 (2×16)', '1rGaPaC'], ['32 GB DDR5 (2×16)', '2ZiF4KQ']]
+          ['Core i5-14600K', '1FZNGvX'], ['Core Ultra 7 265K', '1kmbkpe'], ['Ryzen 7 9700X', '1DEc3gD'], ['Ryzen 7 7800X3D', '33xoVsH'],
+          ['Ryzen 7 9800X3D', '12spRBd']],
+    ram: [['32 GB DDR4 (2×16)', '1rGaPaC'], ['32 GB DDR5 (2×16)', '2ZiF4KQ']],
+    extra: [['Controle Xbox sem fio', '1TUYNWF', 'Os ports usam controle de Xbox'], ['SSD NVMe 1 TB', '2Zs4zpj', 'O jogo é enorme e carrega muito do disco']]
   };
+  // links soltos pelo site (elementos com data-ml="chave"): jogo oficial e consoles
+  var ML_SITE = { jogo: '1zp3TAw', ps5: '1e4PRvo', ps5pro: '21YzDQc', xsx: '1gWWGHW', xss: '1CbmGm6' };
+  function linksSite() {
+    var pt = window.ltLang === 'pt';
+    document.querySelectorAll('[data-ml]').forEach(function (a) {
+      var k = a.getAttribute('data-ml');
+      if (ML_SITE[k]) { a.href = ML + ML_SITE[k]; a.target = '_blank'; a.rel = 'sponsored noopener'; }
+    });
+    document.querySelectorAll('.so-pt').forEach(function (e) { e.hidden = !pt; });
+  }
 
   var I = {
     pt: {
@@ -101,6 +114,8 @@
       up_gpu: 'Placa de vídeo', up_cpu: 'Processador', up_ram: 'Memória RAM', up_ver: 'Ver preços →',
       up_vs_seu: function (p) { return '+' + p + '% sobre a sua'; }, up_vs_c: function (p, n) { return (p >= 0 ? '+' : '−') + Math.abs(p) + '% vs ' + n; },
       up_ram_n: '32 GB é o recomendado; o xcl usa ~15 GB só nos menus.', up_cpu_n: 'Confira o soquete da sua placa-mãe: Ryzen 5000 = AM4, Ryzen 7000 = AM5, Intel 12ª–14ª = LGA1700.',
+      up_t2: 'Para jogar no PC', up_sub2: 'Seu PC já dá conta. Acessórios que ajudam quando algum port ficar jogável:',
+      up_extra: 'Acessórios', up_console: 'Prefere o console?', up_console_n: 'O GTA VI oficial já roda nele',
       up_aviso: 'Links de afiliado do Mercado Livre: se você comprar por eles, o Radar VI recebe uma pequena comissão, sem custo extra para você.'
     },
     en: {
@@ -289,9 +304,12 @@
       if (cs.length) grupos.push([t.up_cpu, cs.map(function (o) { var v = cIdx(o[0]); return [o[0], o[1], t.up_vs_seu(Math.round((v / cpu[1] - 1) * 100)), t.up_vs_c(Math.round((v / alvo.cpu - 1) * 100), alvo.nome)]; }), t.up_cpu_n]);
     }
     if (ram < 32) grupos.push([t.up_ram, OFERTAS.ram.map(function (o) { return [o[0], o[1], null, null]; }), t.up_ram_n]);
-    if (!grupos.length) return;
+    var folgado = !grupos.length;
+    grupos.push([t.up_extra, OFERTAS.extra.map(function (o) { return [o[0], o[1], null, o[2]]; }), null]);
+    var cons = { xsx: '1gWWGHW', xss: '1CbmGm6', ps5: '1e4PRvo', ps5pro: '21YzDQc' }[$('mp-alvo').value];
+    if (cons) grupos.push([t.up_console, [[alvo.nome, cons, null, t.up_console_n]], null]);
     var up = el('div', 'mp-up');
-    up.appendChild(el('h4', null, t.up_t)); up.appendChild(el('p', 'mp-up-sub', t.up_sub));
+    up.appendChild(el('h4', null, folgado ? t.up_t2 : t.up_t)); up.appendChild(el('p', 'mp-up-sub', folgado ? t.up_sub2 : t.up_sub));
     grupos.forEach(function (g) {
       var gr = el('div', 'mp-up-g'); gr.appendChild(el('div', 'mp-up-k', g[0]));
       var lst = el('div', 'mp-up-l');
@@ -321,6 +339,8 @@
   }
 
   function iniciar() {
+    linksSite();
+    var lg = $('lt-lang'); if (lg) lg.addEventListener('change', function () { setTimeout(linksSite, 0); });
     if (!$('mp-alvo')) return;
     var sel = $('mp-alvo');
     Object.keys(ALVOS).forEach(function (k) { sel.appendChild(new Option(ALVOS[k].nome || T().outro_pc, k)); });
