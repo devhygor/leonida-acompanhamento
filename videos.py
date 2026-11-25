@@ -157,6 +157,11 @@ quando nenhum projeto passou do menu é muito suspeito. Reação ao vivo que MOS
 """
 
 
+def modelos_para(url):
+    # o lite não aceita link do YouTube (403): YouTube só no flash; mp4 do X no flash e, sem cota, no lite
+    return C.MODELOS_IA[:1] if "youtu" in url else C.MODELOS_IA
+
+
 def avaliar(v, projetos_txt, meta):
     partes, enviado = [], None
     vid = youtube_id(v["url"]) if "youtu" in v["url"] else None
@@ -177,26 +182,11 @@ def avaliar(v, projetos_txt, meta):
     corpo = {"contents": [{"role": "user", "parts": partes}],
              "generationConfig": {"temperature": 0.1, "responseMimeType": "application/json",
                                   **({"mediaResolution": "MEDIA_RESOLUTION_LOW"} if vid else {})}}
-    d, erro, ocupado = None, None, None
-    modelos = C.MODELOS_IA[:1] if "youtu" in v["url"] else C.MODELOS_IA  # o lite não aceita link do YouTube (403)
     try:
-        for m in modelos:  # uma passada só: insistir queima a cota grátis do dia
-            try:
-                d = C._gerar(m, corpo)
-                break
-            except urllib.error.HTTPError as e:
-                erro = e
-                if e.code in (429, 500, 503):
-                    ocupado = 429 if (e.code == 429 or ocupado == 429) else 503
-                else:
-                    raise
+        d, _ = C.gerar_ia(corpo, modelos_para(v["url"]))
     finally:
         if enviado:
             apaga_video(enviado)
-    if not d and ocupado:
-        raise C.IAOcupada(ocupado)
-    if not d:
-        raise erro or RuntimeError("sem resposta")
     txt = d["candidates"][0]["content"]["parts"][0]["text"]
     return json.loads(re.sub(r"^```(json)?|```$", "", txt.strip()).strip()), bool(vid)
 
@@ -216,6 +206,8 @@ def main():
         print("videos: sem ROBO_VIDEOS_KEY ou GEMINI_API_KEY; nada a fazer")
         return
     est = json.loads(C.EST.read_text("utf-8")) if C.EST.exists() else {"projetos": {}}
+    C.IA_COTA = est.setdefault("ia_cota", {})
+    est.pop("ia_pausa_ate", None)
     projetos = est.get("projetos", {})
     # 1. descobrir vídeos nos READMEs
     novos = 0
@@ -236,10 +228,15 @@ def main():
                    key=lambda x: -C.pontuacao(x[1].get("aval")))[:25]
     projetos_txt = "\n".join(f"- {n}: {(p.get('aval') or {}).get('marco', 'preparacao')}" for n, p in lista)
     eventos, feitos = [], 0
-    if C.ia_pausada(est):
-        print("videos: IA pausada até", est["ia_pausa_ate"], "- fila fica para a próxima rodada")
+    if C.ia_pausada():
+        print("videos: sem cota da IA agora", C.IA_COTA, "- fila fica para a próxima rodada")
         fila = []
-    for v in fila[:MAX_POR_RODADA]:
+    feitos_ia = 0
+    for v in fila:
+        if feitos_ia >= MAX_POR_RODADA:
+            break
+        if C.ia_pausada(None, modelos_para(v["url"])):
+            continue  # ex.: YouTube sem cota no flash; os do X ainda podem ir no lite
         meta = metadados(v["url"])
         if meta.get("sem_video_no_post") or "404" in (meta.get("erro") or ""):
             rpc("leonida_robo_decide", {"chave": ROBO, "video": v["id"], "status": "recusado", "resumo": None,
@@ -255,10 +252,10 @@ def main():
                 print(f"vídeo {v['id']}: recusado (mesmo vídeo de outro link já {ja})")
                 continue
         try:
+            feitos_ia += 1
             a, viu = avaliar(v, projetos_txt, meta)
-        except C.IAOcupada as e:
-            C.pausa_ia(est, e.codigo)  # não gasta tentativa: o vídeo volta na próxima janela
-            break
+        except C.IAOcupada:
+            continue  # não gasta tentativa: o vídeo volta quando a cota daquele modelo voltar
         except Removido as e:
             rpc("leonida_robo_decide", {"chave": ROBO, "video": v["id"], "status": "recusado", "resumo": None,
                                         "projeto": None, "marco": None, "titulo": None})

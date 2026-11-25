@@ -131,8 +131,62 @@
       sem_dados: 'Cargando los datos del radar…', erro_dados: 'No se pudieron cargar los datos ahora. Reintentando en breve.'
     }
   };
-  var MARCOS = ['preparacao', 'exe', 'imagem', 'menu', 'jogo', 'estavel'];
-  var PONTOS = {preparacao: 0, exe: 20, imagem: 40, menu: 60, jogo: 80, estavel: 100};
+  // Escala em duas partes: entrar no jogo é uma escada até 50; jogar bem (quatro barras) vale os outros 50.
+  var EXTRA = {
+    pt: {
+      quase: 'Quase.', sim: 'Sim, dá para jogar.',
+      sub_quase: function (l, fps) { return l + ' já é jogável' + (fps ? ', mas a uns ' + fps + ' fps' : '') + '. Ainda falta muito para jogar de verdade: veja as quatro barras de cada projeto. Nenhum projeto distribui o jogo.'; },
+      m_mundo: 'No mundo', m_mundo_d: 'O modo história carrega o mundo do jogo e desenha algo dele, mesmo quebrado.',
+      m_jogo_d: 'Dá para controlar um personagem no mundo, mesmo a poucos fps. Vale 50%: o resto vem de jogar bem.',
+      m_completo: 'Completo', jogar_bem: 'Jogar bem', trilha_barras: 'História · Gráficos · Desempenho · Estabilidade',
+      b_historia: 'História', b_graficos: 'Gráficos', b_desempenho: 'Desempenho', b_estabilidade: 'Estabilidade',
+      b_historia_d: 'Até onde dá para jogar a história.', b_graficos_d: 'O quanto a imagem se parece com a do console.',
+      b_desempenho_d: 'FPS médio ÷ 30, segundo o próprio projeto.', b_estabilidade_d: 'De travar o tempo todo a estável em sessões longas.',
+      n_historia: ['Preso no início', 'Prólogo concluído', 'Primeiras missões', 'Primeiro ato', 'Metade da história', 'Até os créditos', '100% concluído'],
+      n_graficos: ['Preto ou quebrado', 'Formas quase sem luz', 'Iluminado, faltam efeitos', 'Quase igual ao console', 'Igual ao console'],
+      n_estabilidade: ['Trava o tempo todo', 'Trava com frequência', 'Trava às vezes', 'Raramente trava', 'Estável'],
+      sem_dado: 'sem dado', antes_jogavel: 'conta depois de Jogável', pts: 'pts',
+      como_sub: 'Uma régua única para todos, em duas partes. Entrar no jogo é uma escada até 50%: a preparação vale até 10% e cada marco depende do anterior. Jogar bem vale os outros 50%, em quatro barras, e 100% é o jogo inteiro terminado. A cada poucos minutos o Radar VI confere cada projeto no GitHub e uma IA lê o README e os commits para dizer onde ele está. Tudo automático; nada é escrito à mão.',
+      como_nota: 'Marco alcançado pela metade (um menu que aparece mas não responde, por exemplo) vale metade. As quatro barras só contam depois de Jogável: não dá para julgar como um jogo roda antes de dar para jogá-lo. A preparação soma loader (2), shaders (2,8), camada gráfica (3,2) e outro jogo comprovado (2).'
+    },
+    en: {
+      quase: 'Almost.', sim: 'Yes, it is playable.',
+      sub_quase: function (l, fps) { return l + ' is playable' + (fps ? ', but at about ' + fps + ' fps' : '') + '. Real gameplay is still far off: check the four bars on each project. No project distributes the game.'; },
+      m_mundo: 'In the world', m_mundo_d: 'Story mode loads the game world and draws some of it, even if broken.',
+      m_jogo_d: 'You can control a character in the world, even at a few fps. Worth 50%: the rest comes from playing well.',
+      m_completo: 'Complete', jogar_bem: 'Playing well', trilha_barras: 'Story · Graphics · Performance · Stability',
+      b_historia: 'Story', b_graficos: 'Graphics', b_desempenho: 'Performance', b_estabilidade: 'Stability',
+      b_historia_d: 'How far into the story you can play.', b_graficos_d: 'How close the picture looks to the console.',
+      b_desempenho_d: 'Average FPS ÷ 30, as reported by the project.', b_estabilidade_d: 'From crashing all the time to stable over long sessions.',
+      n_historia: ['Stuck at the start', 'Prologue cleared', 'First missions', 'First act', 'Halfway', 'To the credits', '100% complete'],
+      n_graficos: ['Black or broken', 'Shapes, barely lit', 'Lit, missing effects', 'Close to console', 'Same as console'],
+      n_estabilidade: ['Crashes constantly', 'Crashes often', 'Crashes sometimes', 'Rarely crashes', 'Stable'],
+      sem_dado: 'no data', antes_jogavel: 'counts after Playable', pts: 'pts',
+      como_sub: 'One scale for everyone, in two parts. Getting into the game is a ladder up to 50%: groundwork is worth up to 10% and each milestone depends on the one before. Playing well is worth the other 50%, across four bars, and 100% is the whole game finished. Every few minutes Radar VI checks each project on GitHub and an AI reads its README and commits to say where it stands. Fully automatic; nothing is written by hand.',
+      como_nota: 'A milestone only half reached (a menu that shows but does not respond, say) is worth half. The four bars only count after Playable: you cannot judge how a game runs before you can play it. Groundwork adds loader (2), shaders (2.8), graphics layer (3.2) and proven on another game (2).'
+    },
+    es: {
+      quase: 'Casi.', sim: 'Sí, ya se puede jugar.',
+      sub_quase: function (l, fps) { return l + ' ya es jugable' + (fps ? ', pero a unos ' + fps + ' fps' : '') + '. Aún falta mucho para jugar de verdad: mira las cuatro barras de cada proyecto. Ningún proyecto distribuye el juego.'; },
+      m_mundo: 'En el mundo', m_mundo_d: 'El modo historia carga el mundo del juego y dibuja algo de él, aunque esté roto.',
+      m_jogo_d: 'Se puede controlar un personaje en el mundo, aunque sea a pocos fps. Vale 50%: el resto viene de jugar bien.',
+      m_completo: 'Completo', jogar_bem: 'Jugar bien', trilha_barras: 'Historia · Gráficos · Rendimiento · Estabilidad',
+      b_historia: 'Historia', b_graficos: 'Gráficos', b_desempenho: 'Rendimiento', b_estabilidade: 'Estabilidad',
+      b_historia_d: 'Hasta dónde se puede jugar la historia.', b_graficos_d: 'Cuánto se parece la imagen a la de consola.',
+      b_desempenho_d: 'FPS medio ÷ 30, según el propio proyecto.', b_estabilidade_d: 'De cerrarse todo el tiempo a estable en sesiones largas.',
+      n_historia: ['Atascado al inicio', 'Prólogo superado', 'Primeras misiones', 'Primer acto', 'Mitad de la historia', 'Hasta los créditos', '100% completado'],
+      n_graficos: ['Negro o roto', 'Formas casi sin luz', 'Iluminado, faltan efectos', 'Casi como en consola', 'Igual que en consola'],
+      n_estabilidade: ['Se cierra todo el tiempo', 'Se cierra a menudo', 'Se cierra a veces', 'Rara vez se cierra', 'Estable'],
+      sem_dado: 'sin datos', antes_jogavel: 'cuenta tras Jugable', pts: 'pts',
+      como_sub: 'Una sola escala para todos, en dos partes. Entrar al juego es una escalera hasta 50%: la preparación vale hasta 10% y cada hito depende del anterior. Jugar bien vale el otro 50%, en cuatro barras, y 100% es el juego entero terminado. Cada pocos minutos Radar VI revisa cada proyecto en GitHub y una IA lee su README y sus commits para decir dónde está. Todo automático; nada escrito a mano.',
+      como_nota: 'Un hito alcanzado a medias (un menú que aparece pero no responde, por ejemplo) vale la mitad. Las cuatro barras solo cuentan después de Jugable: no se puede juzgar cómo corre un juego antes de poder jugarlo. La preparación suma loader (2), shaders (2,8), capa gráfica (3,2) y probado en otro juego (2).'
+    }
+  };
+  Object.keys(EXTRA).forEach(function (k) { Object.keys(EXTRA[k]).forEach(function (c) { I18N[k][c] = EXTRA[k][c]; }); });
+  var MARCOS = ['preparacao', 'exe', 'imagem', 'menu', 'mundo', 'jogo'];
+  var PONTOS = {preparacao: 0, exe: 10, imagem: 20, menu: 30, mundo: 40, jogo: 50};
+  // barras de "jogar bem": [chave no aval.jogar, pontos, nível máximo, lista de nomes]
+  var BARRAS = [['historia', 17.5, 6, 'n_historia'], ['graficos', 12.5, 4, 'n_graficos'], ['desempenho', 10, 30, null], ['estabilidade', 10, 4, 'n_estabilidade']];
 
   var ls = {get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) { /* sem armazenamento */ } }};
   var lang = ls.get('rv-lang');
@@ -158,7 +212,7 @@
   function link(href, cls, txt) { var a = el('a', cls, txt); if (/^https:\/\//.test(href || '')) { a.href = href; a.target = '_blank'; a.rel = 'noopener'; } return a; }
   function fmt(n) { try { return new Intl.NumberFormat(T().loc).format(n); } catch (e) { return String(n); } }
   function nomeCurto(n) { return (n || '').split('/').pop(); }
-  function marcoNome(m) { return T()['m_' + (m || 'preparacao')] || m; }
+  function marcoNome(m) { if (m === 'estavel') m = 'jogo'; return T()['m_' + (m || 'preparacao')] || m; }
   function tr(obj) { if (!obj) return ''; if (typeof obj === 'string') return obj; return obj[window.ltLang] || obj.en || obj.pt || ''; }
   function trLista(obj) { if (!obj) return []; if (Array.isArray(obj)) return obj; return obj[window.ltLang] || obj.en || obj.pt || []; }
   function pct(p) { return (Math.round((p || 0) * 10) / 10).toString().replace('.', T().loc === 'en-US' ? '.' : ','); }
@@ -178,9 +232,12 @@
     $('atualizado').textContent = T().atualizado + window.ltQuando(r.gerado_em);
     var lider = (D.projetos || []).find(function (p) { return r.lider && p.nome === r.lider.nome; });
     var marco = r.lider && r.lider.marco;
-    $('resposta').textContent = r.jogavel ? T().sim : T().nao;
-    $('resposta').className = 'resposta' + (r.jogavel ? ' sim' : '');
-    $('resposta-sub').textContent = lider ? (r.jogavel ? T().sub_sim(nomeCurto(lider.nome)) : T().sub_nao(nomeCurto(lider.nome), marcoNome(marco))) : T().sub;
+    var est = !r.jogavel ? 'nao' : (lider && lider.pontos >= 80 ? 'sim' : 'quase');
+    $('resposta').textContent = T()[est];
+    $('resposta').className = 'resposta ' + est;
+    var fps = r.fps_lider ? String(Math.round(r.fps_lider * 10) / 10).replace('.', T().loc === 'en-US' ? '.' : ',') : '';
+    $('resposta-sub').textContent = !lider ? T().sub : est === 'nao' ? T().sub_nao(nomeCurto(lider.nome), marcoNome(marco))
+      : est === 'quase' ? T().sub_quase(nomeCurto(lider.nome), fps) : T().sub_sim(nomeCurto(lider.nome));
     if (lider) {
       $('lider-nome').textContent = nomeCurto(lider.nome);
       $('lider-repo').textContent = lider.nome;
@@ -206,7 +263,13 @@
     var ativos = (D.projetos || []).filter(function (p) { return !p.removido; });
     var lider = ativos[0];
     var f = el('div', 'feito'); f.style.width = (lider ? lider.pontos : 0) + '%'; t.appendChild(f);
-    MARCOS.forEach(function (m) { var mk = el('div', 'marca-t'); mk.style.left = PONTOS[m] + '%'; mk.appendChild(el('b', null, PONTOS[m])); mk.appendChild(document.createTextNode(marcoNome(m))); t.appendChild(mk); });
+    [10, 20, 30, 40, 50].forEach(function (x) { var dv = el('div', 'div-t'); dv.style.left = x + '%'; t.appendChild(dv); });
+    MARCOS.concat(['completo']).forEach(function (m, i) {
+      var v = m === 'completo' ? 100 : PONTOS[m];
+      var mk = el('div', 'marca-t m-' + m + (i % 2 ? ' baixo' : '') + (m === 'completo' ? ' fim' : '') + (i === 0 ? ' ini' : ''));
+      mk.style.left = v + '%'; mk.appendChild(el('b', null, v + '%')); mk.appendChild(document.createTextNode(m === 'completo' ? T().m_completo : marcoNome(m))); t.appendChild(mk);
+    });
+    var jb = el('div', 'marca-jb', T().trilha_barras); t.appendChild(jb);
     var usados = {};
     ativos.slice(0, 7).forEach(function (p, i) {
       var pos = Math.max(2, Math.min(98, p.pontos));
@@ -288,14 +351,15 @@
     if (a.roda_outros) tags.appendChild(el('span', 'tag roda', T().roda + a.roda_outros));
     corpo.appendChild(tags);
     var resumo = tr(a.resumo) || p.descricao; if (resumo) corpo.appendChild(el('p', null, resumo));
-    var mk = el('div', 'marcos'), nomes = el('div', 'marcos-nomes'), idx = MARCOS.indexOf(a.marco || 'preparacao');
-    MARCOS.forEach(function (m, i) {
-      var seg = el('i');
-      if (i === 0 && idx === 0) { seg.className = 'meio'; seg.style.setProperty('--p', Math.min(100, a.preparacao_pct || 0) + '%'); }
-      else if (i <= idx) seg.className = 'ok';
-      mk.appendChild(seg); nomes.appendChild(el('span', i <= idx ? 'ok' : '', marcoNome(m)));
-    });
+    // régua única: cheia até a pontuação real; divisões nos marcos (10 a 50)
+    var idx = MARCOS.indexOf(a.marco === 'estavel' ? 'jogo' : (a.marco || 'preparacao'));
+    var mk = el('div', 'escada'), cheio = el('b'); var w = Math.max(0.5, Math.min(100, p.pontos || 0)); cheio.style.width = w + '%'; cheio.style.backgroundSize = (10000 / w) + '% 100%'; mk.appendChild(cheio);
+    [10, 20, 30, 40, 50].forEach(function (x) { var dv = el('i'); dv.style.left = x + '%'; mk.appendChild(dv); });
+    mk.title = pct(p.pontos) + '%';
+    var nomes = el('div', 'escada-nomes');
+    MARCOS.forEach(function (m, i) { nomes.appendChild(el('span', i < idx || (i === idx && (i === 0 || !a.marco_parcial)) ? 'ok' : (i === idx ? 'meio' : ''), marcoNome(m))); });
     corpo.appendChild(mk); corpo.appendChild(nomes);
+    corpo.appendChild(jogarBem(p, a));
     var fn = trLista(a.funciona), tv = trLista(a.travando), pt = a.partes || {};
     var pecas = [['loader', 'p_loader'], ['shaders', 'p_shaders'], ['graficos', 'p_graficos'], ['outro_jogo', 'p_outro']]
       .filter(function (x) { return typeof pt[x[0]] === 'number'; });
@@ -339,6 +403,24 @@
     corpo.appendChild(rod);
     c.appendChild(corpo);
     return c;
+  }
+
+  function jogarBem(p, a) {
+    var jg = a.jogar || {}, bs = p.barras, box = el('div', 'jogar' + (bs ? '' : ' antes'));
+    if (!bs) box.title = T().antes_jogavel;
+    BARRAS.forEach(function (b) {
+      var k = b[0], v = k === 'desempenho' ? jg.fps : jg[k], txt;
+      if (v == null || isNaN(+v)) txt = bs ? T().sem_dado : '–';
+      else if (k === 'desempenho') txt = (Math.round(v * 10) / 10) + ' FPS';
+      else txt = (T()[b[3]] || [])[Math.max(0, Math.min(b[2], Math.round(v)))] || '';
+      var pts = bs && bs[k] != null ? bs[k] : 0;
+      var c = el('div', 'jb'), top = el('div', 'jb-t');
+      top.appendChild(el('b', null, T()['b_' + k])); top.appendChild(el('span', null, txt)); c.appendChild(top);
+      var br = el('i'); br.style.setProperty('--p', (100 * pts / b[1]) + '%'); c.appendChild(br);
+      c.title = T()['b_' + k + '_d'] + ' (' + pct(pts) + ' / ' + pct(b[1]) + ' ' + T().pts + ')';
+      box.appendChild(c);
+    });
+    return box;
   }
 
   function ranking() {

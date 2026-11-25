@@ -26,18 +26,27 @@ GEMINI = os.environ.get("GEMINI_API_KEY", "").strip().lstrip("\ufeff").strip()
 MAX_AVALIA = int(os.environ.get("CORRIDA_MAX_AVALIA", "8"))      # avaliações por IA por execução
 REAVALIA_HORAS = float(os.environ.get("CORRIDA_REAVALIA_H", "4"))  # só reavalia se mudou e passou esse tempo
 
-# Marcos, na nossa escala (0-100)
-MARCOS = ["preparacao", "exe", "imagem", "menu", "jogo", "estavel"]
-PONTOS = {"preparacao": 0, "exe": 20, "imagem": 40, "menu": 60, "jogo": 80, "estavel": 100}
+# Escala em duas partes (0-100). Entrar no jogo é uma escada até 50; jogar bem vale os outros 50,
+# em quatro barras que só contam depois de "jogo" (não dá para julgar como roda antes de dar para jogar).
+MARCOS = ["preparacao", "exe", "imagem", "menu", "mundo", "jogo"]
+PONTOS = {"preparacao": 0, "exe": 10, "imagem": 20, "menu": 30, "mundo": 40, "jogo": 50}
+PESO_PREP = {"loader": 2, "shaders": 2.8, "graficos": 3.2, "outro_jogo": 2}   # soma 10
+# barras de "jogar bem": (pontos, nível máximo); desempenho é fps/30
+BARRAS = {"historia": (17.5, 6), "graficos": (12.5, 4), "estabilidade": (10, 4)}
+PESO_FPS = 10
+ESCALA_VER = 2  # muda quando a escala muda: zera o histórico do líder (pontos antigos não são comparáveis)
 
 BUSCAS = [
     "gta+vi+xbox+in:name,description,readme", "gta6+port+in:name,description", "gta+6+pc+in:name,description",
     "xbox+series+compatibility+layer", "scarlett+gdk+in:name,description", "xbox+series+emulator+in:name,description",
     "rdna2+spirv+in:description,readme", "rdna2+dxil+in:description,readme", "d3d12_xs+in:readme", "xgameruntime+in:readme",
     "leonida+gta+in:name,description,readme", "xbox+series+recompilation+in:name,description",
+    "victory+gta+fork:true+in:name,description",
 ]
 # sempre acompanhados (inclusive o Leonida, que saiu do ar em 23/11/2026)
-FIXOS = ["ItsNotRexed/Leonida", "Marvisak/VIctory", "ivall/xcl", "brcly/TuxBox", "ThatRecompDev/five-star-recomp"]
+FIXOS = ["ItsNotRexed/Leonida", "Marvisak/VIctory", "ivall/xcl", "brcly/TuxBox", "ThatRecompDev/five-star-recomp",
+         # derivados do VIctory na frente da corrida que as buscas por palavra não acham
+         "Belobug/VIctory-Belobug-AMD", "Zettrox/ztrx", "fxceless/victory-fork"]
 # o que se sabia de um projeto que já tinha saído do ar quando o Radar começou (fonte: nosso próprio acompanhamento)
 CONHECIDOS = {
     "ItsNotRexed/Leonida": {
@@ -227,14 +236,22 @@ e responda SOMENTE com um JSON válido, sem markdown, com estes campos:
  "relevante": true|false,            // é um esforço real (código) para rodar jogos de Xbox Series/GTA VI no PC? false para listas, trackers, golpes, repositórios vazios
  "tipo": "camada de compatibilidade"|"emulador"|"recompilação estática"|"ferramenta"|"continuação de outro projeto"|"outro",
  "alvo": "GTA VI"|"qualquer jogo de Xbox Series",
- "marco": "preparacao"|"exe"|"imagem"|"menu"|"jogo"|"estavel",  // o mais avançado ALCANÇADO NO GTA VI, segundo o próprio projeto
+ "marco": "preparacao"|"exe"|"imagem"|"menu"|"mundo"|"jogo",  // o mais avançado ALCANÇADO NO GTA VI, segundo o próprio projeto
+ "marco_parcial": true|false,        // true se o marco só foi alcançado pela metade (ex.: menu aparece mas quebrado, não responde)
  "prova_gta": "trecho LITERAL copiado do README ou de um commit (até 200 caracteres) que mostra o marco no GTA VI, ou null",
- "marco_outros": "preparacao"|"exe"|"imagem"|"menu"|"jogo"|"estavel"|null,  // o mais avançado em OUTROS jogos de Xbox (Minecraft etc.)
+ "marco_outros": "preparacao"|"exe"|"imagem"|"menu"|"mundo"|"jogo"|null,  // o mais avançado em OUTROS jogos de Xbox (Minecraft etc.)
  "preparacao_pct": 0-100,            // quanto da base (loader, shaders, gráficos) está pronta, se ainda em preparação
  "partes": {"loader": 0-100, "shaders": 0-100, "graficos": 0-100, "outro_jogo": 0-100},
    // quão pronta está cada peça da base, segundo o README/commits: loader = carregar o executável e as bibliotecas do sistema
    // do Xbox; shaders = tradução dos shaders; graficos = camada gráfica (D3D12/Vulkan); outro_jogo = já roda algum outro
    // jogo de Xbox Series (0 se nenhum). Use null na peça que o projeto não menciona.
+ "jogar": {"historia": 0-6|null, "graficos": 0-4|null, "fps": número|null, "estabilidade": 0-4|null},
+   // SÓ quando marco = "jogo" (senão tudo null). historia: 0 preso no início, 1 prólogo concluído, 2 primeiras missões,
+   // 3 primeiro ato, 4 metade da história, 5 história principal até os créditos, 6 100% concluído.
+   // graficos: 0 preto ou quebrado, 1 formas desenhadas mas quase sem luz/pretas, 2 iluminado mas faltam efeitos importantes,
+   // 3 quase igual ao console com falhas pequenas, 4 igual ao console.
+   // fps: FPS médio informado pelo projeto (use o valor típico; "2-4 fps" -> 3). null se não informa.
+   // estabilidade: 0 trava o tempo todo, 1 trava com frequência, 2 trava às vezes, 3 raramente trava, 4 estável em sessões longas; null se não diz.
  "gta_testado": true|false,
  "autodeclarado": true|false,        // true se não há prova (vídeo, print, reprodução por terceiros), só o relato
  "roda_outros": "texto curto em inglês ou null",   // outros jogos de Xbox que o projeto diz rodar
@@ -245,8 +262,9 @@ e responda SOMENTE com um JSON válido, sem markdown, com estes campos:
 }
 Significado dos marcos: preparacao = ainda montando a base, o executável do GTA VI não roda; exe = o código do jogo roda
 (janela abre, frames pretos ou travamento cedo); imagem = aparece algo do jogo na tela (logos, intro, tela de carregamento);
-menu = menus/tela inicial aparecem e respondem (inclui carregar o mundo sem conseguir jogar: tela escura, travando, fps < 5);
-jogo = dá para controlar o personagem e andar no mundo de verdade; estavel = jogável por longos períodos.
+menu = menus/tela inicial aparecem e respondem; mundo = o modo história carrega o mundo do jogo e desenha algo dele, mesmo
+quebrado, mas não dá para controlar o personagem; jogo = dá para controlar o personagem no mundo (andar, com HUD ou menu de
+pausa funcionando), MESMO a poucos fps. O quanto se joga bem (história, gráficos, fps, estabilidade) vai em "jogar".
 IMPORTANTE: "marco" mede SÓ o GTA VI. Se o projeto roda outros jogos (Minecraft, Unicorn Overlord, Terraria...) mas não
 diz que o executável do GTA VI chegou a algum ponto, "marco" é "preparacao" e o sucesso nos outros jogos vai em
 "marco_outros", "roda_outros" e "partes.outro_jogo". O GTA VI pode aparecer com outro nome (ex.: "Leonida", "GTA6.exe", "Vice City"): conte isso como GTA VI.
@@ -258,8 +276,12 @@ Seja conservador: na dúvida, o marco menor. Escreva em linguagem simples, para 
 
 
 # aliases que o Google mantém apontando para o flash atual; o "lite" é o reserva quando o principal dá 503 (sobrecarga)
-PROMPT_VER = 5  # suba quando o PROMPT mudar: força reavaliar todos (aos poucos, MAX_AVALIA por rodada)
+PROMPT_VER = 6  # suba quando o PROMPT mudar: força reavaliar todos (aos poucos, MAX_AVALIA por rodada)
+# Cota grátis (nov/2026): só 20 pedidos por dia no flash, por modelo. O lite tem cota própria e lê texto e mp4,
+# mas não link do YouTube. Projetos vão no lite; o flash fica para os vídeos.
 MODELOS_IA = ["models/gemini-flash-latest", "models/gemini-flash-lite-latest"]
+MODELOS_TEXTO = ["models/gemini-flash-lite-latest", "models/gemini-flash-latest"]
+IA_COTA = {}  # modelo -> pausado até (ISO); vive em estado["ia_cota"] e é ligado pelo main de cada script
 _modelos_ruins = set()
 
 
@@ -270,16 +292,52 @@ class IAOcupada(Exception):
         self.codigo = codigo
 
 
-def pausa_ia(estado, codigo):
-    minutos = 120 if codigo == 429 else 15
-    ate = iso(agora() + dt.timedelta(minutes=minutos))
-    if (estado.get("ia_pausa_ate") or "") < ate:
-        estado["ia_pausa_ate"] = ate
-    print(f"aviso: Gemini {codigo}; IA pausada até {estado['ia_pausa_ate']}")
+def _espera(e, codigo):
+    """Segundos até a cota voltar, pelo retryDelay que o Google manda no 429."""
+    if codigo != 429:
+        return 5 * 60  # 503 = sobrecarga passageira
+    try:
+        d = json.loads(e.read().decode()).get("error", {})
+        s = [det.get("retryDelay") for det in d.get("details", []) if det.get("retryDelay")]
+        return max(60, int(float(s[0].rstrip("s")))) if s else 2 * 3600  # por minuto ou por dia: o Google diz quanto
+    except Exception:
+        return 2 * 3600
 
 
-def ia_pausada(estado):
-    return (estado.get("ia_pausa_ate") or "") > iso(agora())
+def pausa_modelo(m, segundos, codigo):
+    ate = iso(agora() + dt.timedelta(seconds=segundos))
+    if (IA_COTA.get(m) or "") < ate:
+        IA_COTA[m] = ate
+    print(f"aviso: Gemini {codigo} em {m.replace('models/', '')}; pausado até {IA_COTA[m]}")
+
+
+def ia_pausada(estado=None, modelos=None):
+    """True se todos os modelos pedidos estão sem cota agora."""
+    cota = IA_COTA if estado is None else estado.get("ia_cota", IA_COTA)
+    return all((cota.get(m) or "") > iso(agora()) for m in (modelos or MODELOS_IA))
+
+
+def gerar_ia(corpo, modelos):
+    """Uma passada pelos modelos com cota. 429/503 pausam só aquele modelo; se nenhum responde, IAOcupada."""
+    ocupado, erro = None, None
+    for m in modelos:
+        if m in _modelos_ruins or (IA_COTA.get(m) or "") > iso(agora()):
+            continue
+        try:
+            return _gerar(m, corpo), m
+        except urllib.error.HTTPError as e:
+            erro = e
+            if e.code in (429, 500, 503):
+                ocupado = 429 if (e.code == 429 or ocupado == 429) else 503
+                pausa_modelo(m, _espera(e, e.code), e.code)
+            elif e.code in (400, 403, 404) and "file_data" not in json.dumps(corpo)[:20000]:
+                _modelos_ruins.add(m)
+                print(f"aviso: {m} respondeu {e.code}; fora nesta rodada")
+            else:
+                raise
+    if erro is None or ocupado:
+        raise IAOcupada(ocupado or 429)
+    raise erro
 
 
 def _gemini_modelo():
@@ -321,28 +379,12 @@ def avaliar_ia(modelo, p):
                f"\n\nREADME:\n{p.get('_readme', '')[:14000]}")
     corpo = {"contents": [{"role": "user", "parts": [{"text": PROMPT + "\n\n" + entrada}]}],
              "generationConfig": {"temperature": 0.2, "responseMimeType": "application/json"}}
-    d, erro = None, None
-    ocupado = None
-    for m in MODELOS_IA:  # uma passada só: insistir queima a cota grátis do dia
-        if m in _modelos_ruins:
-            continue
-        try:
-            d = _gerar(m, corpo)
-            usado = m
-            break
-        except urllib.error.HTTPError as e:
-            erro = e
-            if e.code in (400, 403, 404):
-                _modelos_ruins.add(m)
-            elif e.code in (429, 500, 503):
-                ocupado = 429 if (e.code == 429 or ocupado == 429) else 503
-    if not d and ocupado:
-        raise IAOcupada(ocupado)
-    if not d:
-        raise erro or RuntimeError("nenhum modelo respondeu")
+    d, usado = gerar_ia(corpo, MODELOS_TEXTO)
     txt = d["candidates"][0]["content"]["parts"][0]["text"]
     txt = re.sub(r"^```(json)?|```$", "", txt.strip()).strip()
     a = json.loads(txt)
+    if a.get("marco") == "estavel":
+        a["marco"] = "jogo"
     if a.get("marco") not in MARCOS:
         a["marco"] = "preparacao"
     if a["marco"] != "preparacao" and not _prova_ok(a.get("prova_gta"), p):
@@ -398,13 +440,49 @@ def avaliar_regras(p):
             "resumo": {"en": desc}, "funciona": {}, "travando": {}, "novidade": None, "fonte": "regras"}
 
 
+def _num(v):
+    try:
+        return float(v)
+    except (TypeError, ValueError):
+        return None
+
+
+def nota_prep(a):
+    """0-10: peças da base com pesos; sem peças, cai no preparacao_pct."""
+    pt = a.get("partes") or {}
+    tem = [k for k in PESO_PREP if _num(pt.get(k)) is not None]
+    if tem:
+        return sum(PESO_PREP[k] * max(0, min(100, _num(pt[k]))) / 100 for k in tem)
+    return 10 * max(0, min(100, _num(a.get("preparacao_pct")) or 0)) / 100
+
+
+def barras(a):
+    """Pontos de cada barra de "jogar bem" (só valem em "jogo")."""
+    j = a.get("jogar") or {}
+    out = {}
+    for k, (pts, top) in BARRAS.items():
+        v = _num(j.get(k))
+        out[k] = None if v is None else round(pts * max(0, min(top, v)) / top, 2)
+    fps = _num(j.get("fps"))
+    out["desempenho"] = None if fps is None else round(PESO_FPS * max(0, min(30, fps)) / 30, 2)
+    return out
+
+
 def pontuacao(a):
     if not a:
         return 0
     m = a.get("marco", "preparacao")
-    if m == "preparacao":
-        return round(PONTOS["exe"] * min(100, max(0, a.get("preparacao_pct") or 0)) / 100, 1)
-    return PONTOS[m]
+    if m == "estavel":
+        m = "jogo"
+    if m not in PONTOS or m == "preparacao":
+        return round(nota_prep(a), 1)
+    i = MARCOS.index(m)
+    base = PONTOS[m]
+    if a.get("marco_parcial"):  # passo pela metade vale metade
+        base = (PONTOS[MARCOS[i - 1]] + PONTOS[m]) / 2 if i > 1 else max(nota_prep(a), PONTOS[m] / 2)
+    if m == "jogo" and not a.get("marco_parcial"):
+        base += sum(v for v in barras(a).values() if v)
+    return round(min(100, base), 1)
 
 
 # ---------------------------------------------------------------- main
@@ -413,6 +491,19 @@ def main():
     estado = json.loads(EST.read_text("utf-8")) if EST.exists() else {}
     estado.setdefault("projetos", {})
     estado.setdefault("eventos", [])
+    if estado.get("escala") != ESCALA_VER:
+        estado["escala"] = ESCALA_VER
+        estado["lider_hist"] = []
+        for p in estado["projetos"].values():
+            a = p.get("aval") or {}
+            if a.get("marco") == "estavel":
+                a["marco"] = "jogo"
+            if a.get("marco_outros") == "estavel":
+                a["marco_outros"] = "jogo"
+        for e in estado["eventos"]:
+            for k in ("de", "para"):
+                if e.get(k) == "estavel":
+                    e[k] = "jogo"
     for f in FIXOS:
         estado["projetos"].setdefault(f, {"nome": f, "descoberto_em": iso(t0)})
     for nome in [n for n, p in estado["projetos"].items() if "descricao" in p and not aceita(n, p.get("descricao"), p.get("estrelas"))]:
@@ -426,6 +517,9 @@ def main():
             eventos.append({"em": iso(t0), "tipo": "novo", "projeto": n})
 
     modelo = _gemini_modelo()
+    global IA_COTA
+    IA_COTA = estado.setdefault("ia_cota", {})
+    estado.pop("ia_pausa_ate", None)  # pausa geral antiga: agora a pausa é por modelo
     avaliados = 0
     # mais promissores primeiro: os que já estão mais longe e os mais ativos
     ordem = sorted(estado["projetos"].values(), key=lambda p: (-(pontuacao(p.get("aval"))), -(p.get("estrelas") or 0)))
@@ -444,7 +538,8 @@ def main():
             continue
         if antes_removido:
             eventos.append({"em": iso(t0), "tipo": "voltou", "projeto": nome})
-        defasada = bool(modelo) and (p.get("aval") or {}).get("fonte") == "ia" and (p.get("aval") or {}).get("versao") != PROMPT_VER
+        defasada = (bool(modelo) and (p.get("aval") or {}).get("fonte") == "ia" and (p.get("aval") or {}).get("versao") != PROMPT_VER
+                    and (p.get("aval") or {}).get("marco") not in (None, "preparacao"))
         if not p.get("_readme_novo") and p.get("aval") and not defasada and not (modelo and p["aval"].get("fonte") == "regras"):
             continue  # nada novo desde a última olhada
         if not p.get("_readme_novo") and modelo:
@@ -456,15 +551,14 @@ def main():
         precisa = not p.get("aval") or defasada or (mudou and velha) or (modelo and (p.get("aval") or {}).get("fonte") == "regras")
         if precisa:
             try:
-                if modelo and not ia_pausada(estado) and avaliados < MAX_AVALIA:
+                if modelo and not ia_pausada(None, MODELOS_TEXTO) and avaliados < MAX_AVALIA:
                     a = avaliar_ia(modelo, p)
                     avaliados += 1
                 elif not p.get("aval") or (p.get("aval") or {}).get("fonte") == "regras":
                     a = avaliar_regras(p)
                 else:
                     a = None
-            except IAOcupada as e:
-                pausa_ia(estado, e.codigo)
+            except IAOcupada:
                 a = None if p.get("aval") else avaliar_regras(p)
             except Exception as e:
                 print("aviso: avaliação de", nome, "falhou:", str(e)[:160])
@@ -494,6 +588,7 @@ def main():
             continue
         q = {k: v for k, v in p.items() if not k.startswith("_") and k not in ("estrelas_hist", "aval_readme", "aval_commit", "commits_recentes", "videos_enviados")}
         q["pontos"] = pontuacao(a)
+        q["barras"] = barras(a) if a.get("marco") == "jogo" else None
         q["spark"] = [h[1] for h in p.get("estrelas_hist", [])][-48:]
         lista.append(q)
     lista.sort(key=lambda q: (q.get("removido", False), -q["pontos"], -(q.get("estrelas") or 0)))
@@ -502,7 +597,8 @@ def main():
     resumo = {
         "gerado_em": iso(t0), "projetos": len(ativos), "removidos": sum(1 for q in lista if q.get("removido")),
         "lider": lider and {"nome": lider["nome"], "pontos": lider["pontos"], "marco": (lider.get("aval") or {}).get("marco")},
-        "jogavel": any((q.get("aval") or {}).get("marco") in ("jogo", "estavel") for q in ativos),
+        "jogavel": any((q.get("aval") or {}).get("marco") == "jogo" for q in ativos),
+        "fps_lider": lider and _num(((lider.get("aval") or {}).get("jogar") or {}).get("fps")),
         "rodam_exe": sum(1 for q in ativos if (q.get("aval") or {}).get("marco") not in (None, "preparacao")),
         "commits_24h": sum(q.get("commits_24h") or 0 for q in ativos),
         "ia": bool(modelo), "modelo": (modelo or "").replace("models/", ""),

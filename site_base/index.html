@@ -92,16 +92,21 @@ main section{padding:56px 0 8px}
 .chip{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
 .chip b{display:block;font-size:22px;font-weight:800;letter-spacing:-.02em}
 .chip span{font-size:12px;color:var(--mut)}
-.trilha{position:relative;margin:34px 6px 6px;height:86px}
+.trilha{position:relative;margin:34px 6px 6px;height:112px}
 .trilha .base{position:absolute;left:0;right:0;top:46px;height:8px;border-radius:99px;background:linear-gradient(90deg,#241c40,#2a2148)}
 .trilha .feito{position:absolute;left:0;top:46px;height:8px;border-radius:99px;background:linear-gradient(90deg,var(--purple),var(--pink),var(--orange))}
 .trilha .marca-t{position:absolute;top:60px;transform:translateX(-50%);text-align:center;font-size:11.5px;color:var(--mut);white-space:nowrap}
 .trilha .marca-t::before{content:"";display:block;width:2px;height:10px;background:var(--line);margin:-16px auto 6px}
 .trilha .marca-t b{display:block;color:var(--fg);font-size:12px}
+.trilha .marca-t.baixo{top:84px}.trilha .marca-t.baixo::before{height:36px;margin-top:-42px}
+.trilha .marca-t.fim{transform:translateX(-100%);text-align:right}.trilha .marca-t.fim::before{margin-right:0}
+.trilha .div-t{position:absolute;top:46px;width:2px;height:8px;background:rgba(10,6,24,.75);transform:translateX(-1px);z-index:2}
+.trilha .marca-jb{position:absolute;left:52%;right:8%;top:64px;text-align:center;font-size:11.5px;color:var(--mut2);letter-spacing:.02em}
 .trilha .pin{position:absolute;top:0;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:3px}
 .trilha .pin img,.trilha .pin .ini{width:30px;height:30px;border-radius:50%;border:2px solid var(--panel);background:var(--panel2);object-fit:cover;display:grid;place-items:center;font-size:11px;font-weight:800}
 .trilha .pin.primeiro img,.trilha .pin.primeiro .ini{border-color:var(--pink);box-shadow:0 0 0 3px rgba(255,61,139,.3)}
-@media (max-width:640px){.trilha .marca-t:nth-child(odd){display:none}.trilha .marca-t b{font-size:11px}}
+.trilha .marca-t.ini{transform:none;text-align:left}.trilha .marca-t.ini::before{margin-left:0}
+@media (max-width:640px){.trilha .marca-t{font-size:10px}.trilha .marca-t b{font-size:10.5px}.trilha .marca-jb{display:none}.trilha .marca-t:not(.ini):not(.fim):not(.m-jogo){font-size:0}.trilha .marca-t:not(.ini):not(.fim):not(.m-jogo) b{font-size:10.5px}}
 .graf{margin-top:20px;border-top:1px solid var(--line);padding-top:14px;position:relative}
 .graf svg{display:block;width:100%;height:90px}
 .dica{position:absolute;pointer-events:none;background:#241a4d;border:1px solid var(--pink);border-radius:8px;padding:6px 9px;font-size:12px;white-space:nowrap;z-index:5}
@@ -152,6 +157,24 @@ main section{padding:56px 0 8px}
 .marcos i.meio{background:linear-gradient(90deg,var(--purple) 0%,var(--pink) var(--p,50%),#241c40 var(--p,50%))}
 .marcos-nomes{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px;font-size:11px;color:var(--mut2)}
 .marcos-nomes span.ok{color:var(--fg);font-weight:600}
+.escada{position:relative;height:9px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden}
+.escada b{position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:linear-gradient(90deg,var(--purple),var(--pink) 50%,var(--orange))}
+.escada i{position:absolute;top:0;bottom:0;width:2px;transform:translateX(-1px);background:rgba(10,6,24,.8)}
+.escada-nomes{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:11.5px;color:var(--mut2);margin-top:-4px}
+.escada-nomes span::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.18);margin-right:6px;vertical-align:1px}
+.escada-nomes span.ok{color:var(--fg);font-weight:600}.escada-nomes span.ok::before{background:var(--pink)}
+.escada-nomes span.meio::before{background:linear-gradient(90deg,var(--pink) 50%,rgba(255,255,255,.18) 50%)}
+.jogar{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px 18px;padding-top:12px;border-top:1px solid var(--line)}
+.jogar .jb-t{display:flex;justify-content:space-between;gap:8px;font-size:12px;margin-bottom:5px}
+.jogar .jb-t b{font-weight:700;white-space:nowrap}.jogar .jb-t span{color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.jogar i{display:block;height:5px;border-radius:99px;background:linear-gradient(90deg,var(--purple),var(--pink),var(--orange)) 0 0/var(--p,0%) 100% no-repeat,rgba(255,255,255,.08)}
+.jogar.antes{opacity:.5}
+@media (max-width:640px){.jogar{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.sub-como{margin:26px 0 0;font-size:18px;display:flex;gap:10px;align-items:baseline}
+.sub-como span:first-child{font-weight:900;background:linear-gradient(90deg,var(--pink),var(--orange));-webkit-background-clip:text;background-clip:text;color:transparent}
+.escala.quatro{grid-template-columns:repeat(4,minmax(0,1fr))}
+.como-nota{margin-top:14px;font-size:13.5px;max-width:860px}
+@media (max-width:900px){.escala.quatro{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:640px){.marcos-nomes{display:none}.proj{grid-template-columns:30px minmax(0,1fr) auto;padding:16px}.proj .corpo{grid-column:1 / 4}.proj .nota b{font-size:26px}.proj .cab h3{font-size:18px}}
 .detalhes{margin-top:4px}
 .tres{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr) minmax(0,1fr);gap:22px;align-items:start}
@@ -583,13 +606,21 @@ body::before{content:"";position:fixed;inset:-20vmax;z-index:-2;pointer-events:n
       <h2 class="titulo" data-i18n="como_t">Como funciona</h2>
       <p class="intro" data-i18n="como_sub">Uma régua única para todos. A cada poucos minutos o Radar VI procura projetos novos no GitHub, confere cada um na branch principal (estrelas, commits, README) e uma IA lê o que o projeto publica para dizer em que marco ele está. Tudo automático; nada é escrito à mão.</p>
       <div class="escala">
-        <div class="card"><b>0–20</b><h4 data-i18n="m_preparacao">Preparação</h4><p data-i18n="m_preparacao_d">A base ainda está sendo montada: carregador, sistema do console, shaders, gráficos.</p></div>
-        <div class="card"><b>20</b><h4 data-i18n="m_exe">Executável roda</h4><p data-i18n="m_exe_d">O código do próprio GTA VI começa a rodar no PC; a tela ainda fica preta ou trava cedo.</p></div>
-        <div class="card"><b>40</b><h4 data-i18n="m_imagem">Primeira imagem</h4><p data-i18n="m_imagem_d">Aparece algo do jogo: logos, vídeo de abertura, tela de carregamento.</p></div>
-        <div class="card"><b>60</b><h4 data-i18n="m_menu">Menu</h4><p data-i18n="m_menu_d">Os menus do jogo aparecem e respondem ao controle.</p></div>
-        <div class="card"><b>80</b><h4 data-i18n="m_jogo">Jogável</h4><p data-i18n="m_jogo_d">Dá para entrar no mundo e jogar.</p></div>
-        <div class="card"><b>100</b><h4 data-i18n="m_estavel">Estável</h4><p data-i18n="m_estavel_d">Roda por longos períodos, com desempenho aceitável.</p></div>
+        <div class="card"><b>0–10</b><h4 data-i18n="m_preparacao">Preparação</h4><p data-i18n="m_preparacao_d">A base ainda está sendo montada: carregador, sistema do console, shaders, gráficos.</p></div>
+        <div class="card"><b>10</b><h4 data-i18n="m_exe">Executável roda</h4><p data-i18n="m_exe_d">O código do próprio GTA VI começa a rodar no PC; a tela ainda fica preta ou trava cedo.</p></div>
+        <div class="card"><b>20</b><h4 data-i18n="m_imagem">Primeira imagem</h4><p data-i18n="m_imagem_d">Aparece algo do jogo: logos, vídeo de abertura, tela de carregamento.</p></div>
+        <div class="card"><b>30</b><h4 data-i18n="m_menu">Menu</h4><p data-i18n="m_menu_d">Os menus do jogo aparecem e respondem ao controle.</p></div>
+        <div class="card"><b>40</b><h4 data-i18n="m_mundo">No mundo</h4><p data-i18n="m_mundo_d">O modo história carrega o mundo do jogo e desenha algo dele, mesmo quebrado.</p></div>
+        <div class="card"><b>50</b><h4 data-i18n="m_jogo">Jogável</h4><p data-i18n="m_jogo_d">Dá para controlar um personagem no mundo, mesmo a poucos fps.</p></div>
       </div>
+      <h3 class="sub-como"><span>50–100</span> <span data-i18n="jogar_bem">Jogar bem</span></h3>
+      <div class="escala quatro">
+        <div class="card"><b>17,5</b><h4 data-i18n="b_historia">História</h4><p data-i18n="b_historia_d">Até onde dá para jogar a história.</p></div>
+        <div class="card"><b>12,5</b><h4 data-i18n="b_graficos">Gráficos</h4><p data-i18n="b_graficos_d">O quanto a imagem se parece com a do console.</p></div>
+        <div class="card"><b>10</b><h4 data-i18n="b_desempenho">Desempenho</h4><p data-i18n="b_desempenho_d">FPS médio ÷ 30, segundo o próprio projeto.</p></div>
+        <div class="card"><b>10</b><h4 data-i18n="b_estabilidade">Estabilidade</h4><p data-i18n="b_estabilidade_d">De travar o tempo todo a estável em sessões longas.</p></div>
+      </div>
+      <p class="como-nota mut" data-i18n="como_nota"></p>
     </section>
   </div>
 </main>
